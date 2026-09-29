@@ -602,6 +602,43 @@ body:has(#wizard-overlay) { overflow: hidden; }
 .signin-otp:not(.hidden) { animation: panelIn .3s ease both; }
 .btn-glass { background: rgba(255,255,255,.7); border: 1px solid var(--glass-brd); box-shadow: var(--spec); color: var(--ink); font-weight: 700; }
 .btn-glass:hover { background: rgba(255,255,255,.9); }
+
+/* ---------- magic-ui inspired touches (vanilla, transform/opacity budget) ---------- */
+/* animated dot-grid backdrop inside the hero scene */
+.hero-scene::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background-image: radial-gradient(rgba(0,133,122,.30) 1px, transparent 1.7px);
+  background-size: 22px 22px; background-position: 0 0;
+  -webkit-mask-image: radial-gradient(ellipse 75% 70% at 50% 45%, #000 25%, transparent 78%);
+  mask-image: radial-gradient(ellipse 75% 70% at 50% 45%, #000 25%, transparent 78%);
+  animation: dotDrift 40s linear infinite;
+}
+@keyframes dotDrift { to { background-position: 88px 44px; } }
+/* animated gradient headline accent */
+.hero h1 span {
+  background: linear-gradient(90deg, #0b7c72, #00a898, #14d4bd, #0b7c72);
+  background-size: 220% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: gradPan 7s linear infinite;
+}
+@keyframes gradPan { to { background-position: 220% 0; } }
+/* border beam on primary conversion buttons */
+@property --beam { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+.wiz-confirm, #dm-book { position: relative; }
+.wiz-confirm::before, #dm-book::before {
+  content: ''; position: absolute; inset: -2px; border-radius: inherit; padding: 2.5px; pointer-events: none;
+  background: conic-gradient(from var(--beam), transparent 0deg 68%, rgba(94,234,212,.95) 80%, rgba(255,255,255,.95) 87%, transparent 97%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  animation: beamSpin 3.4s linear infinite;
+}
+@keyframes beamSpin { to { --beam: 360deg; } }
+/* staggered reveals */
+.reveal { transition-delay: calc(var(--i, 0) * 55ms); }
+@media (prefers-reduced-motion: reduce) {
+  .hero-scene::before, .hero h1 span, .wiz-confirm::before, #dm-book::before { animation: none !important; }
+  .reveal { transition-delay: 0ms; }
+}
 /* ---------- empty states ---------- */
 .empty-state { text-align: center; padding: 34px 22px; border-radius: 18px; background: var(--glass-bg); border: 1px solid var(--glass-brd); box-shadow: var(--spec), var(--shadow-sm); backdrop-filter: blur(14px) saturate(150%); -webkit-backdrop-filter: blur(14px) saturate(150%); animation: panelIn .35s ease both; margin: 10px 0 16px; }
 .empty-ico { font-size: 34px; margin-bottom: 10px; }

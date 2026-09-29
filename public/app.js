@@ -145,8 +145,8 @@ function renderHomeExtras() {
   };
   const host = $('#browse-specs');
   if (host) {
-    host.innerHTML = [...specs.entries()].slice(0, 8).map(([s, n]) =>
-      `<button class="spec-circle-btn reveal" data-spec="${esc(s)}" aria-label="Book a clinic for ${esc(s)}"><span class="spec-circ">${SPEC_EMOJI[s] || '🏥'}</span><span class="spec-circ-name">${esc(s)}</span></button>`).join('');
+    host.innerHTML = [...specs.entries()].slice(0, 8).map(([s, n], i) =>
+      `<button class="spec-circle-btn reveal" style="--i:${i}" data-spec="${esc(s)}" aria-label="Book a clinic for ${esc(s)}"><span class="spec-circ">${SPEC_EMOJI[s] || '🏥'}</span><span class="spec-circ-name">${esc(s)}</span></button>`).join('');
     host.querySelectorAll('.spec-circle-btn').forEach(b => b.onclick = () => {
       state.filter.spec = b.dataset.spec;
       renderSpecChips(); renderBrowse();
@@ -183,8 +183,8 @@ function renderSoonRow() {
   const rank = n => (n.today ? '0' : n.tomorrow ? '1' : '2' + n.date) + n.time;
   const soon = state.clinics.filter(c => c.next_available)
     .sort((a, b) => rank(a.next_available).localeCompare(rank(b.next_available)));
-  host.innerHTML = soon.map(c => `
-    <div class="soon-card reveal" data-id="${esc(c.id)}" role="button" tabindex="0" aria-label="View ${esc(c.name)}, next slot ${esc(fmtNext(c.next_available))}">
+  host.innerHTML = soon.map((c, i) => `
+    <div class="soon-card reveal" style="--i:${i}" data-id="${esc(c.id)}" role="button" tabindex="0" aria-label="View ${esc(c.name)}, next slot ${esc(fmtNext(c.next_available))}">
       <div class="soon-emoji">${c.emoji}</div>
       <div class="soon-name">${esc(c.name)}</div>
       <div class="soon-slot">${esc(fmtNext(c.next_available))}</div>
@@ -383,7 +383,7 @@ function renderDoctorsBrowse() {
   host.innerHTML = docs.map((d, i) => {
     const initials = d.name.replace(/^Dr\.?\s+/i, '').split(' ').map(w => w[0] || '').slice(0, 2).join('').toUpperCase();
     return `
-    <div class="clinic-card doc-browse-card reveal" data-clinic="${esc(d.clinic_id)}" role="button" tabindex="0" aria-label="View ${esc(d.name)} at ${esc(d.clinic_name)}">
+    <div class="clinic-card doc-browse-card reveal" style="--i:${Math.min(i, 9)}" data-clinic="${esc(d.clinic_id)}" role="button" tabindex="0" aria-label="View ${esc(d.name)} at ${esc(d.clinic_name)}">
       <div class="doc-browse-top">
         <div class="doc-avatar">${esc(initials)}</div>
         <div>
@@ -465,7 +465,7 @@ function updateMapMarkers(list) {
 
 function clinicCardHTML(c, i) {
   return `
-    <div class="clinic-card reveal" data-id="${esc(c.id)}" role="button" tabindex="0" aria-label="View ${esc(c.name)}">
+    <div class="clinic-card reveal" style="--i:${Math.min(i, 9)}" data-id="${esc(c.id)}" role="button" tabindex="0" aria-label="View ${esc(c.name)}">
       <div class="clinic-head">
         <div class="clinic-emoji">${c.emoji}</div>
         <div>
