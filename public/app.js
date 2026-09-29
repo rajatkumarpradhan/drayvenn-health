@@ -1333,29 +1333,38 @@ function renderAccount() {
   if (!host) return;
   if (!state.patient) {
     host.innerHTML = `
-      <h2 style="font-size:20px;font-weight:700">My bookings</h2>
-      <p style="color:var(--muted);font-size:13.5px;margin:6px 0 14px">Sign in to see your booking history, with cancel and reschedule.</p>
-      <button class="btn btn-block" id="acct-goto-signin">Sign in</button>`;
+      <div class="empty-state" style="margin-top:0">
+        <img class="empty-ico-img" src="brand/icons/calendar.webp" alt="" width="52" height="52" loading="lazy" decoding="async">
+        <div class="empty-title">Your bookings live here</div>
+        <div class="empty-sub">Sign in with your mobile number to see every booking in one place, with cancel and reschedule.</div>
+        <button class="btn btn-block" id="acct-goto-signin">Sign in</button>
+      </div>`;
     $('#acct-goto-signin').onclick = showSignin;
     return;
   }
   const p = state.patient;
+  const initial = esc(((p.name || 'A').trim()[0] || 'A').toUpperCase());
   host.innerHTML = `
-    <h2 style="font-size:20px;font-weight:700">Hi${p.name ? ', ' + esc(p.name.split(' ')[0]) : ''}</h2>
-    <p style="color:var(--muted);font-size:13.5px;margin:4px 0 14px">
-      ${p.phone ? 'Signed in with ' + esc(maskPhone(p.phone)) : (p.email ? 'Signed in with ' + esc(p.email) : 'Signed in with Google')}
-      ${p.has_google ? ' &middot; Google linked' + (p.google_email ? ' (' + esc(p.google_email) + ')' : '') : ''}
-    </p>
-    ${!p.has_google ? '<a class="btn btn-block google-start" href="/api/auth/google/start" style="margin-bottom:14px;display:block;text-align:center">Link Google account</a>' : ''}
-    <div class="form-grid" style="margin-bottom:14px">
-      <div class="form-row"><label for="acct-name">Your name</label><input id="acct-name" maxlength="60" autocomplete="name" value="${esc(p.name || '')}" placeholder="Used to prefill bookings"></div>
-      <div class="form-row"><label for="acct-age">Age</label><input id="acct-age" inputmode="numeric" maxlength="3" value="${p.age != null ? p.age : ''}" placeholder="Optional"></div>
-      <div class="form-error" id="acct-error"></div>
-      <button class="btn btn-block" id="acct-save">Save details</button>
+    <div class="acct-head">
+      <div class="acct-avatar">${initial}</div>
+      <div class="acct-head-info">
+        <div class="acct-hi">Hi${p.name ? ', ' + esc(p.name.split(' ')[0]) : ''}</div>
+        <div class="acct-sub">${p.phone ? 'Signed in with ' + esc(maskPhone(p.phone)) : (p.email ? 'Signed in with ' + esc(p.email) : 'Signed in with Google')}${p.has_google ? ' &middot; Google linked' : ''}</div>
+      </div>
     </div>
-    <h3 style="font-size:16px;font-weight:700;margin:6px 0 10px">My bookings</h3>
+    ${!p.has_google ? '<a class="btn btn-block btn-glass google-start" href="/api/auth/google/start" style="display:block;text-align:center;margin-bottom:14px">Link Google account</a>' : ''}
+    <details class="acct-details">
+      <summary>Your details<span class="acct-details-hint">name and age prefill your bookings</span></summary>
+      <div class="form-grid" style="margin-top:12px">
+        <div class="form-row"><label for="acct-name">Your name</label><input id="acct-name" maxlength="60" autocomplete="name" value="${esc(p.name || '')}" placeholder="Used to prefill bookings"></div>
+        <div class="form-row"><label for="acct-age">Age</label><input id="acct-age" inputmode="numeric" maxlength="3" value="${p.age != null ? p.age : ''}" placeholder="Optional"></div>
+        <div class="form-error" id="acct-error"></div>
+        <button class="btn btn-block btn-small" id="acct-save">Save details</button>
+      </div>
+    </details>
+    <div class="acct-sec-title">My bookings</div>
     <div id="my-bookings"><div class="loading">Loading&hellip;</div></div>
-    <button class="btn btn-block btn-ghost" id="acct-logout" style="margin-top:16px">Sign out</button>`;
+    <button class="signout-link" id="acct-logout">Sign out</button>`;
   bindGoogleStart(host);
   $('#acct-save').onclick = saveProfile;
   $('#acct-logout').onclick = logout;
@@ -1512,7 +1521,7 @@ async function loadMyBookings() {
   try {
     const { bookings } = await api('/api/my/bookings');
     if (!bookings.length) { host.innerHTML = `<div class="empty-state">
-      <div class="empty-ico">🗓️</div>
+      <img class="empty-ico-img" src="brand/icons/calendar.webp" alt="" width="52" height="52" loading="lazy" decoding="async">
       <div class="empty-title">No bookings yet</div>
       <div class="empty-sub">Book from the home page and your appointments show up here.</div>
       <button type="button" class="btn btn-outline btn-small" id="mb-browse">Browse clinics</button>

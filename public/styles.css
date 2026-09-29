@@ -998,3 +998,22 @@ body::before {
 .splash { background: linear-gradient(160deg, #0e3328, #11402f 55%, #0b281e); }
 .splash-word { color: #edf7f3; }
 .splash-ecg path { stroke: #35d6c3; }
+
+/* bookings tab rebuild (v38) */
+.empty-ico-img { width: 52px; height: 52px; object-fit: contain; display: block; margin: 0 auto 12px; }
+.acct-head { display: flex; align-items: center; gap: 13px; margin-bottom: 14px; }
+.acct-avatar { width: 52px; height: 52px; flex: none; border-radius: 50%; background: var(--grad); color: #fff; display: grid; place-items: center; font-family: 'Manrope'; font-weight: 800; font-size: 21px; box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 20px rgba(0,194,174,.3); }
+.acct-hi { font-family: 'Manrope'; font-weight: 800; font-size: 19px; color: var(--ink); letter-spacing: -.01em; }
+.acct-sub { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.acct-sec-title { font-family: 'Manrope'; font-size: 16px; font-weight: 800; color: var(--ink); margin: 18px 0 10px; }
+.acct-details { border: 1px solid var(--glass-brd); border-radius: 14px; background: rgba(255,255,255,.04); padding: 12px 14px; margin-bottom: 6px; }
+.acct-details summary { cursor: pointer; font-weight: 700; font-size: 14px; color: var(--ink); list-style: none; display: flex; align-items: center; }
+.acct-details summary::-webkit-details-marker { display: none; }
+.acct-details summary::after { content: '\203a'; margin-left: auto; color: var(--muted); font-size: 17px; transition: transform .2s; }
+.acct-details[open] summary::after { transform: rotate(90deg); }
+.acct-details-hint { font-size: 11.5px; color: var(--muted); font-weight: 500; margin-left: 8px; }
+.signout-link { display: block; margin: 20px auto 4px; background: none; border: 0; color: var(--muted); font-size: 13.5px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.signout-link:hover { color: var(--danger); }
+
+.booking-row:has(.status-cancelled) { opacity: .55; }
+.booking-row:has(.status-completed) { opacity: .75; }
