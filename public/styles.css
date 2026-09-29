@@ -644,6 +644,13 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) both; }
 /* ---------- sign-in ---------- */
 .signin-brand { border-radius: var(--r-card); overflow: hidden; margin-bottom: 18px; background: linear-gradient(140deg, #0b3f39, #00857a 60%, #00a898); padding: 26px 20px; text-align: center; position: relative; }
 .signin-brand::after { content: ''; position: absolute; inset: 0; background: radial-gradient(220px 140px at 80% -20%, rgba(255,255,255,.22), transparent 70%); pointer-events: none; }
+/* sign-in ambient scene: self-generated brand loop, static fallback */
+.auth-scene { position: relative; height: 150px; border-radius: var(--r-panel); overflow: hidden; margin-bottom: 14px; display: grid; place-items: center; background: linear-gradient(160deg, #eafaf7, #dcf5f0 55%, #d2efe9); border: 1px solid var(--line); box-shadow: var(--shadow-sm); }
+.auth-static { width: 150px; height: auto; position: relative; z-index: 1; transition: opacity .5s ease; }
+.auth-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 42%; opacity: 0; transition: opacity .7s ease; pointer-events: none; z-index: 0; }
+.auth-video.ready { opacity: 1; }
+.auth-scene.video-on .auth-static { opacity: 0; }
+
 .signin-brand-ico { width: 62px; height: 62px; border-radius: 18px; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.3); display: grid; place-items: center; margin: 0 auto 10px; backdrop-filter: blur(6px); }
 .signin-brand-ico svg { width: 30px; height: 30px; color: #fff; }
 .signin-brand-name { font-family: 'Manrope'; font-weight: 800; font-size: 19px; color: #fff; letter-spacing: -.01em; }
@@ -680,7 +687,7 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) both; }
 #chat-fab { position: fixed; bottom: 88px; right: 18px; z-index: 200; width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, rgba(0,168,152,.85), rgba(0,194,174,.85)); backdrop-filter: blur(10px) saturate(160%); -webkit-backdrop-filter: blur(10px) saturate(160%); border: 1px solid rgba(255,255,255,.45); box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 8px 20px rgba(0,168,152,.4); display: grid; place-items: center; color: #fff; transition: transform var(--t-fast) var(--spring); }
 #chat-fab:active { transform: scale(.9); }
 .chat-fab-ring { display: none; }
-#chat-panel { position: fixed; bottom: 88px; right: 18px; z-index: 200; width: min(380px, calc(100vw - 28px)); height: min(560px, calc(100dvh - 120px)); background: rgba(255,255,255,.68); border: 1px solid var(--glass-brd); border-radius: 24px; box-shadow: var(--spec), var(--shadow-lg); display: flex; flex-direction: column; overflow: hidden; backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); animation: panelIn var(--t-std) var(--ease) both; }
+#chat-panel { position: fixed; bottom: 88px; right: 18px; z-index: 200; width: min(380px, calc(100vw - 28px)); height: min(560px, calc(100dvh - 120px)); background: rgba(255,255,255,.86); border: 1px solid var(--glass-brd); border-radius: 24px; box-shadow: var(--spec), var(--shadow-lg); display: flex; flex-direction: column; overflow: hidden; backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); animation: panelIn var(--t-std) var(--ease) both; }
 #chat-head { padding: 13px 16px; border-bottom: 1px solid rgba(255,255,255,.5); display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,.55); }
 .chat-head-avatar { width: 34px; height: 34px; border-radius: 12px; background: var(--grad); color: #fff; display: grid; place-items: center; flex-shrink: 0; }
 .chat-head-text { flex: 1; }
@@ -691,7 +698,7 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) both; }
 .chat-disclaimer { font-size: 11px; color: var(--amber); background: #fdf6e8; padding: 6px 14px; border-bottom: 1px solid #f5e7c8; }
 #chat-msgs { flex: 1; overflow-y: auto; padding: 16px 14px 8px; display: flex; flex-direction: column; gap: 9px; }
 .chat-msg { max-width: 84%; padding: 10px 13px; border-radius: 15px; font-size: 14px; line-height: 1.45; white-space: pre-line; animation: fadeUp var(--t-std) var(--ease) both; }
-.chat-msg.bot { background: rgba(255,255,255,.75); border: 1px solid var(--glass-brd); box-shadow: var(--spec); border-radius: 15px 15px 15px 4px; color: var(--body); align-self: flex-start; }
+.chat-msg.bot { background: rgba(255,255,255,.94); border: 1px solid var(--glass-brd); box-shadow: var(--spec); border-radius: 15px 15px 15px 4px; color: var(--body); align-self: flex-start; }
 .chat-msg.user { background: var(--grad); color: #fff; border-radius: 15px 15px 4px 15px; align-self: flex-end; }
 .chat-action { display: inline-block; margin-top: 8px; font-size: 13px; font-weight: 700; color: var(--primary); background: var(--primary-soft); padding: 7px 12px; border-radius: var(--r-pill); }
 #chat-chips { display: flex; gap: 7px; padding: 8px 14px; overflow-x: auto; flex-shrink: 0; scrollbar-width: none; }
@@ -781,7 +788,7 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) both; }
 
   /* two-column hero: task left, scene right */
   .hero { display: grid; grid-template-columns: 1.06fr .94fr; gap: 36px; align-items: center; padding: 26px 0 10px; }
-  .hero-scene { grid-row: span 6; height: 420px; align-self: center; }
+  .hero-scene { grid-column: 2; grid-row: 1 / span 6; height: 420px; align-self: center; }
   .hero h1 { font-size: clamp(40px, 4.2vw, 58px); line-height: 1.08; margin-top: 0; }
   .hero p { font-size: 17px; margin-top: 14px; max-width: 520px; }
   .hero-badges { margin-top: 18px; }
@@ -828,6 +835,8 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) both; }
   #toast-host { bottom: 34px; }
 }
 
+#bk-ref::placeholder { text-transform: none; }
+
 /* ---------- reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
@@ -836,4 +845,17 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) both; }
   .hero-scene::before, .hero h1 span, .wiz-confirm::before, #dm-book::before { animation: none !important; }
   .dh-pin .dh-pin-halo { animation: none; opacity: .45; transform: none; }
   .ecg-pulse { animation: none; stroke-dasharray: none; }
+}
+
+/* ---------- reduced transparency: glass becomes solid ---------- */
+@media (prefers-reduced-transparency: reduce) {
+  .topbar, #tabbar, #chat-panel, .toast, .map-chip, .detail-map-card .map-chip,
+  .leaflet-popup-content-wrapper, .leaflet-bar a, #chat-fab, .doc-modal, .wizard {
+    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+  }
+  #chat-panel, .doc-modal, .wizard { background: #fbfffe !important; }
+  .toast { background: #0d203a !important; }
+  .map-chip, .detail-map-card .map-chip, .leaflet-popup-content-wrapper, .leaflet-bar a { background: #fff !important; }
+  .topbar { background: rgba(246,251,250,.98) !important; }
+  #tabbar { background: rgba(255,255,255,.98) !important; }
 }

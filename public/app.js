@@ -599,6 +599,39 @@ function renderHomeHighlights() {
   else setTimeout(arm, 1500);
 })();
 
+/* ---------- sign-in ambient brand loop (self-generated asset) ---------- */
+(function authVideo() {
+  const v = $('#auth-video');
+  if (!v) return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const arm = () => {
+    fetch('brand/brand-loop.mp4', { method: 'HEAD' }).then(r => {
+      if (!r.ok || !(r.headers.get('content-type') || '').startsWith('video/')) return;
+      v.addEventListener('canplay', () => {
+        v.classList.add('ready');
+        const scene = v.closest('.auth-scene');
+        if (scene) scene.classList.add('video-on');
+        v.play().catch(() => {});
+      }, { once: true });
+      v.addEventListener('error', () => v.remove(), { once: true });
+      v.muted = true;
+      v.src = 'brand/brand-loop.mp4';
+      v.load();
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(es => es.forEach(e => {
+          if (v.src) { if (e.isIntersecting) v.play().catch(() => {}); else v.pause(); }
+        }), { threshold: 0.05 }).observe(v);
+      }
+      document.addEventListener('visibilitychange', () => {
+        if (!v.src) return;
+        if (document.hidden) v.pause(); else v.play().catch(() => {});
+      });
+    }).catch(() => {});
+  };
+  if ('requestIdleCallback' in window) requestIdleCallback(arm, { timeout: 3500 });
+  else setTimeout(arm, 1800);
+})();
+
 /* ---------- scroll reveal (one-shot, transform/opacity only) ---------- */
 const revealIO = ('IntersectionObserver' in window) ? new IntersectionObserver(entries => {
   for (const e of entries) {
