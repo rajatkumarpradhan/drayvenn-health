@@ -1,6 +1,7 @@
 const state = {
   clinics: [],
   filter: { q: '', spec: 'All', area: 'All' },
+  browse: 'clinics', mapMode: 'list',
   clinic: null,
   booking: { doctor: null, date: null, slot: null },
   lastBooking: null,
@@ -93,7 +94,7 @@ async function loadClinics() {
     renderHomeExtras();
     renderRecentClinics();
     renderHomeHighlights();
-    renderClinics();
+    renderBrowse();
   } catch (e) {
     $('#clinic-list').innerHTML = '<div class="loading">Could not load clinics. <a href="/">Retry</a></div>';
   }
@@ -108,7 +109,7 @@ function renderAreaFilter() {
     areas.map(a => `<option value="${esc(a)}">${esc(a)}</option>`).join('');
   sel.value = areas.includes(cur) ? cur : 'All';
   state.filter.area = sel.value;
-  sel.onchange = () => { state.filter.area = sel.value; renderClinics(); };
+  sel.onchange = () => { state.filter.area = sel.value; renderBrowse(); };
 }
 
 /* ---------- recently viewed clinics (local only, never leaves the device) ---------- */
@@ -141,7 +142,7 @@ function renderHomeExtras() {
       `<button class="browse-card" data-spec="${esc(s)}"><div class="browse-name">${esc(s)}</div><div class="browse-sub">${n} clinic${n > 1 ? 's' : ''}</div></button>`).join('');
     host.querySelectorAll('.browse-card').forEach(b => b.onclick = () => {
       state.filter.spec = b.dataset.spec;
-      renderSpecChips(); renderClinics();
+      renderSpecChips(); renderBrowse();
       show('clinics');
     });
   }
@@ -153,7 +154,7 @@ function renderHomeExtras() {
       state.filter.area = b.dataset.area;
       const sel = $('#area-filter');
       if (sel) sel.value = b.dataset.area;
-      renderClinics();
+      renderBrowse();
       show('clinics');
     });
   }
@@ -168,14 +169,14 @@ function renderSpecChips() {
     const b = document.createElement('button');
     b.className = 'chip' + (state.filter.spec === s ? ' active' : '');
     b.textContent = s;
-    b.onclick = () => { state.filter.spec = s; renderSpecChips(); renderClinics(); };
+    b.onclick = () => { state.filter.spec = s; renderSpecChips(); renderBrowse(); };
     host.appendChild(b);
   }
 }
 
-function renderClinics() {
+function filteredClinics() {
   const q = state.filter.q.toLowerCase();
-  const list = state.clinics.filter(c => {
+  return state.clinics.filter(c => {
     const inSpec = state.filter.spec === 'All' || c.specialties.includes(state.filter.spec);
     if (!inSpec) return false;
     if (state.filter.area !== 'All' && c.area !== state.filter.area) return false;
@@ -183,13 +184,123 @@ function renderClinics() {
     const hay = [c.name, c.area, c.tagline, c.specialties.join(' '), c.doctors.map(d => d.name + ' ' + d.specialty).join(' ')].join(' ').toLowerCase();
     return hay.includes(q);
   });
+}
+
+function renderClinics() {
+  const list = filteredClinics();
   const host = $('#clinic-list');
   if (!list.length) {
     host.innerHTML = '<div class="loading">No clinics match that search.</div>';
+  } else {
+    host.innerHTML = list.map((c, i) => clinicCardHTML(c, i)).join('');
+    bindClinicCards(host);
+  }
+  updateMapMarkers(list);
+}
+
+function renderBrowse() {
+  if (state.browse === 'doctors') renderDoctorsBrowse();
+  else renderClinics();
+}
+
+function renderDoctorsBrowse() {
+  const host = $('#doctor-browse-list');
+  if (!host) return;
+  const q = state.filter.q.toLowerCase();
+  const docs = [];
+  for (const c of state.clinics) {
+    if (state.filter.area !== 'All' && c.area !== state.filter.area) continue;
+    for (const d of (c.doctors || [])) {
+      if (state.filter.spec !== 'All' && d.specialty !== state.filter.spec) continue;
+      if (q) {
+        const hay = [d.name, d.specialty, d.qualification, c.name, c.area].join(' ').toLowerCase();
+        if (!hay.includes(q)) continue;
+      }
+      docs.push({ ...d, clinic_id: c.id, clinic_name: c.name, clinic_area: c.area });
+    }
+  }
+  if (!docs.length) {
+    host.innerHTML = '<div class="loading">No doctors match that search.</div>';
     return;
   }
-  host.innerHTML = list.map((c, i) => clinicCardHTML(c, i)).join('');
-  bindClinicCards(host);
+  host.innerHTML = docs.map((d, i) => {
+    const initials = d.name.replace(/^Dr\.?\s+/i, '').split(' ').map(w => w[0] || '').slice(0, 2).join('').toUpperCase();
+    return `
+    <div class="clinic-card doc-browse-card" data-clinic="${esc(d.clinic_id)}" role="button" tabindex="0" style="animation-delay:${i * 40}ms" aria-label="View ${esc(d.name)} at ${esc(d.clinic_name)}">
+      <div class="doc-browse-top">
+        <div class="doc-avatar">${esc(initials)}</div>
+        <div>
+          <div class="db-name">${esc(d.name)}</div>
+          <div class="db-qual">${esc(d.qualification)}${d.experience_years ? ' · ' + d.experience_years + ' yrs exp' : ''}</div>
+        </div>
+      </div>
+      <div class="spec-chips" style="margin-top:10px"><span class="spec-chip">${esc(d.specialty)}</span></div>
+      <div class="doc-browse-clinic">🏥 ${esc(d.clinic_name)} · 📍 ${esc(d.clinic_area)}</div>
+      <div class="doc-meta">🗓 ${esc(d.days_label)} · ₹${d.fee}</div>
+      ${fmtNext(d.next_available) ? `<div class="next-slot">Next slot: <b>${fmtNext(d.next_available)}</b></div>` : ''}
+    </div>`;
+  }).join('');
+  host.querySelectorAll('.doc-browse-card').forEach(el => {
+    const open = () => openClinic(el.dataset.clinic);
+    el.onclick = open;
+    el.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
+  });
+}
+
+/* ---------- MAP (OpenStreetMap + Leaflet) ---------- */
+let map = null, mapMarkers = [];
+
+function setMapMode(mode) {
+  state.mapMode = mode;
+  document.querySelectorAll('#clinic-view-toggle .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.vt === mode));
+  const listEl = $('#clinic-list'), mapEl = $('#clinic-map');
+  if (mode === 'map') {
+    listEl.classList.add('hidden');
+    mapEl.classList.remove('hidden');
+    initMap();
+    updateMapMarkers(filteredClinics());
+    if (map) setTimeout(() => map.invalidateSize(), 80);
+  } else {
+    mapEl.classList.add('hidden');
+    listEl.classList.remove('hidden');
+  }
+}
+
+function initMap() {
+  if (map || typeof L === 'undefined') {
+    if (typeof L === 'undefined') $('#clinic-map').innerHTML = '<div class="loading">Map could not load - check your connection.</div>';
+    return;
+  }
+  map = L.map('clinic-map', { scrollWheelZoom: false }).setView([12.9716, 77.5946], 11);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  }).addTo(map);
+  map.on('popupopen', e => {
+    const btn = e.popup.getElement().querySelector('.mc-open');
+    if (btn) btn.onclick = () => { map.closePopup(); openClinic(btn.dataset.id); };
+  });
+}
+
+function updateMapMarkers(list) {
+  if (!map) return;
+  mapMarkers.forEach(m => map.removeLayer(m));
+  mapMarkers = [];
+  const pts = [];
+  for (const c of list) {
+    const co = CLINIC_COORDS[c.id];
+    if (!co) continue;
+    pts.push(co);
+    const m = L.marker(co).addTo(map);
+    m.bindPopup(`<div class="map-card">
+      <div class="mc-name">${c.emoji} ${esc(c.name)}</div>
+      <div class="mc-area">📍 ${esc(c.area)}</div>
+      <div class="mc-meta">from ₹${c.min_fee}${fmtNext(c.next_available) ? ' · Next: ' + esc(fmtNext(c.next_available)) : ''}</div>
+      <button type="button" class="mc-open" data-id="${esc(c.id)}">View clinic</button>
+    </div>`);
+    mapMarkers.push(m);
+  }
+  if (pts.length) map.fitBounds(L.latLngBounds(pts).pad(0.2));
 }
 
 function clinicCardHTML(c, i) {
@@ -793,16 +904,24 @@ async function cancelBooking(ref, btn) {
 }
 
 /* ---------- WIRE UP ---------- */
-$('#search-input').addEventListener('input', e => { state.filter.q = e.target.value; renderClinics(); });
+$('#search-input').addEventListener('input', e => { state.filter.q = e.target.value; renderBrowse(); });
 $('#home-search').addEventListener('keydown', e => {
   if (e.key !== 'Enter') return;
   e.preventDefault();
   state.filter.q = e.target.value;
   $('#search-input').value = e.target.value;
-  renderClinics();
+  renderBrowse();
   show('clinics');
 });
 $('#view-all-clinics').onclick = e => { e.preventDefault(); show('clinics'); };
+document.querySelectorAll('#browse-seg .seg-btn').forEach(b => b.onclick = () => {
+  state.browse = b.dataset.seg;
+  document.querySelectorAll('#browse-seg .seg-btn').forEach(x => x.classList.toggle('active', x === b));
+  $('#clinics-pane').classList.toggle('hidden', state.browse !== 'clinics');
+  $('#doctors-pane').classList.toggle('hidden', state.browse !== 'doctors');
+  renderBrowse();
+});
+document.querySelectorAll('#clinic-view-toggle .seg-btn').forEach(b => b.onclick = () => setMapMode(b.dataset.vt));
 $('#logo-home').onclick = () => show('home');
 $('#back-home').onclick = () => show('home');
 $('#confirm-home').onclick = () => show('home');

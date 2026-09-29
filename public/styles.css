@@ -71,6 +71,28 @@ img { max-width: 100%; }
 .title-row .section-title { margin: 0; }
 .title-link { font-size: 13px; font-weight: 700; color: var(--primary); white-space: nowrap; }
 
+.seg { display: flex; gap: 4px; background: #e8f5f2; border: 1px solid var(--line); border-radius: 12px; padding: 4px; margin-top: 16px; }
+.seg-btn { flex: 1; border: 0; background: transparent; border-radius: 9px; padding: 8px 10px; font: inherit; font-size: 13.5px; font-weight: 700; color: #5b6b68; cursor: pointer; transition: background .15s, color .15s; }
+.seg-btn.active { background: #fff; color: var(--primary); box-shadow: 0 1px 4px rgba(0,168,152,.18); }
+.seg-sm { margin: 0; padding: 3px; }
+.seg-sm .seg-btn { padding: 5px 12px; font-size: 12.5px; flex: none; }
+.pane-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 18px; }
+
+#clinic-map { height: 420px; margin-top: 14px; border-radius: var(--radius); border: 1px solid var(--line); overflow: hidden; z-index: 0; }
+#clinic-map .leaflet-popup-content { margin: 10px 12px; }
+.map-card { min-width: 168px; }
+.map-card .mc-name { font-weight: 800; font-size: 14px; color: var(--ink); }
+.map-card .mc-area { font-size: 12px; color: #5b6b68; margin: 2px 0 6px; }
+.map-card .mc-meta { font-size: 12px; color: var(--ink); margin-bottom: 8px; }
+.map-card .mc-open { display: block; width: 100%; border: 0; background: var(--primary); color: #fff; font: inherit; font-size: 12.5px; font-weight: 700; padding: 7px 0; border-radius: 8px; cursor: pointer; }
+
+.doc-browse-card { cursor: pointer; }
+.doc-browse-top { display: flex; align-items: center; gap: 12px; }
+.doc-avatar { width: 44px; height: 44px; flex: none; border-radius: 50%; background: var(--grad); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; }
+.doc-browse-top .db-name { font-weight: 800; font-size: 15px; color: var(--ink); }
+.doc-browse-top .db-qual { font-size: 12px; color: #5b6b68; }
+.doc-browse-clinic { font-size: 12.5px; color: #5b6b68; margin: 10px 0 8px; }
+
 .recent-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 18px 0 8px; }
 
 /* ---------- footer ---------- */

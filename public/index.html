@@ -97,14 +97,33 @@
   </section>
   <!-- CLINICS (full browser) -->
   <section id="view-clinics" class="hidden">
-    <div class="searchbar" style="margin-top:14px">
+    <div class="seg" id="browse-seg">
+      <button type="button" class="seg-btn active" data-seg="clinics">Clinics</button>
+      <button type="button" class="seg-btn" data-seg="doctors">Doctors</button>
+    </div>
+    <div class="searchbar" style="margin-top:12px">
       <input type="text" id="search-input" placeholder="Search clinics, doctors, specialties... e.g. dentist">
       <select id="area-filter" aria-label="Filter by area"><option value="All">All areas</option></select>
     </div>
     <div class="chips" id="spec-chips"></div>
-    <h2 class="section-title">All clinics</h2>
-    <div id="clinic-list" class="clinic-grid">
-      <div class="clinic-card skel-card"></div><div class="clinic-card skel-card"></div><div class="clinic-card skel-card"></div>
+
+    <div id="clinics-pane">
+      <div class="pane-head">
+        <h2 class="section-title" style="margin:0">All clinics</h2>
+        <div class="seg seg-sm" id="clinic-view-toggle">
+          <button type="button" class="seg-btn active" data-vt="list">List</button>
+          <button type="button" class="seg-btn" data-vt="map">Map</button>
+        </div>
+      </div>
+      <div id="clinic-list" class="clinic-grid" style="margin-top:14px">
+        <div class="clinic-card skel-card"></div><div class="clinic-card skel-card"></div><div class="clinic-card skel-card"></div>
+      </div>
+      <div id="clinic-map" class="hidden"></div>
+    </div>
+
+    <div id="doctors-pane" class="hidden">
+      <h2 class="section-title" style="margin-top:18px">All doctors</h2>
+      <div id="doctor-browse-list" class="clinic-grid"></div>
     </div>
   </section>
 
@@ -213,6 +232,8 @@
 </nav>
 
 <div id="toast-host"></div>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 <script src="app.js"></script>
 <script src="chat.js"></script>
 </body>
