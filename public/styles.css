@@ -1203,8 +1203,9 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
 }
 
 /* ---- Animated illustrations (Lottie assets, recolored to brand) ---- */
-.anim-recolor{filter:hue-rotate(66deg) saturate(1.15) brightness(.92)}
+.anim-recolor{filter:hue-rotate(66deg) saturate(1.15) brightness(.92);mix-blend-mode:multiply}
 .anim-load{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:14px 0;color:var(--muted);font-size:13px;font-weight:600;text-align:center}
+#slot-grid .anim-load, #my-bookings .anim-load, #family-list .anim-load, #clinic-detail .anim-load{grid-column:1/-1;min-height:120px}
 .anim-load img{width:84px;height:84px;object-fit:contain;display:block}
 .anim-empty{display:block;width:104px;height:104px;object-fit:contain;margin:0 auto 2px}
 /* Success check: CSS/SVG stroke draw (Lottie success-check port, zero-weight) */
