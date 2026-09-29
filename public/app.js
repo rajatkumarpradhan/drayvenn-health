@@ -161,6 +161,15 @@ async function openClinic(id) {
   }
 }
 
+/* Demo clinic locations (Marathahalli, Bengaluru) for the map view. */
+const CLINIC_COORDS = {
+  'marathahalli-multispeciality': [12.9591, 77.6974],
+  'motherhood-child-family': [12.9565, 77.7010],
+  'orthoplus-bone-joint': [12.9610, 77.7025],
+  'skinfirst-derma': [12.9580, 77.7080],
+  'smilecare-dental': [12.9545, 77.6990]
+};
+
 function renderClinicDetail() {
   const c = state.clinic;
   $('#clinic-detail').innerHTML = `
@@ -176,7 +185,20 @@ function renderClinicDetail() {
       <div><b>Timings:</b> ${esc(c.timings)}</div>
       <div><b>Phone:</b> ${esc(c.phone)}</div>
       <div class="spec-chips" style="margin-top:4px">${c.specialties.map(s => `<span class="spec-chip">${esc(s)}</span>`).join('')}</div>
-    </div>`;
+    </div>
+    ${(() => {
+      const co = CLINIC_COORDS[c.id];
+      if (!co) return '';
+      const [lat, lon] = co, d = 0.008;
+      const bbox = [lon - d, lat - d * 0.8, lon + d, lat + d * 0.8].join('%2C');
+      return `<div class="map-card">
+        <iframe title="Map to ${esc(c.name)}" loading="lazy" src="https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat}%2C${lon}"></iframe>
+        <div class="map-foot"><b>📍 ${esc(c.area)}</b><span>
+          <a href="https://www.google.com/maps/search/?api=1&query=${lat}%2C${lon}" target="_blank" rel="noopener">Directions →</a>
+          &nbsp;·&nbsp; <a href="tel:${esc(c.phone.replace(/[^0-9+]/g, ''))}">Call clinic</a>
+        </span></div>
+      </div>`;
+    })()}`;
   $('#doctor-list').innerHTML = '<h2 class="section-title" style="margin-top:24px">Doctors</h2>' + c.doctors.map(d => `
     <div class="doctor-card">
       <div class="doc-avatar">${esc(d.name.replace('Dr. ', '').charAt(0))}</div>
@@ -189,11 +211,52 @@ function renderClinicDetail() {
       <div class="doc-right">
         <div class="doc-fee">₹${d.fee} <small>consult</small></div>
         <button class="btn btn-small" data-doc="${esc(d.id)}">Book appointment</button>
+        <button class="doc-more" data-docinfo="${esc(d.id)}">Details</button>
       </div>
     </div>`).join('');
   $('#doctor-list').querySelectorAll('button[data-doc]').forEach(b => {
     b.onclick = () => openBooking(b.dataset.doc);
   });
+  $('#doctor-list').querySelectorAll('button[data-docinfo]').forEach(b => {
+    b.onclick = () => openDoctorModal(b.dataset.docinfo);
+  });
+}
+
+/* ---------- doctor profile modal ---------- */
+function openDoctorModal(doctorId) {
+  const d = state.clinic.doctors.find(x => x.id === doctorId);
+  if (!d) return;
+  closeDoctorModal();
+  const ov = document.createElement('div');
+  ov.className = 'doc-modal-overlay'; ov.id = 'doc-modal-overlay';
+  ov.innerHTML = `
+    <div class="doc-modal" role="dialog" aria-modal="true" aria-label="Doctor profile">
+      <button class="modal-close" id="dm-close" aria-label="Close">✕</button>
+      <div class="doc-modal-head">
+        <div class="doc-avatar">${esc(d.name.replace(/^Dr\.?\s*/i, '').trim().charAt(0))}</div>
+        <div>
+          <div class="doc-name" style="font-size:19px">${esc(d.name)}</div>
+          <div class="doc-spec">${esc(d.specialty)}</div>
+          <div class="doc-meta">${esc(d.qualification)}</div>
+        </div>
+      </div>
+      <div class="doc-modal-grid">
+        <div class="doc-modal-cell"><div class="k">Experience</div><div class="v">${d.experience_years} years</div></div>
+        <div class="doc-modal-cell"><div class="k">Consult fee</div><div class="v">₹${d.fee}</div></div>
+        <div class="doc-modal-cell"><div class="k">Available</div><div class="v">${esc(d.days_label)}</div></div>
+        <div class="doc-modal-cell"><div class="k">Next slot</div><div class="v">${d.next_available ? esc(fmtNext(d.next_available)) : 'Not in 14 days'}</div></div>
+      </div>
+      <div class="doc-modal-about">${esc(d.name)} is a ${esc(d.specialty.toLowerCase())} at ${esc(state.clinic.name)} with ${d.experience_years} years of experience. Consultation is ₹${d.fee}, pay at the clinic. Speaks English, Hindi and Kannada.</div>
+      <button class="btn btn-block" id="dm-book">Book appointment →</button>
+    </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click', e => { if (e.target === ov) closeDoctorModal(); });
+  $('#dm-close').onclick = closeDoctorModal;
+  $('#dm-book').onclick = () => { closeDoctorModal(); openBooking(doctorId); };
+}
+function closeDoctorModal() {
+  const m = document.getElementById('doc-modal-overlay');
+  if (m) m.remove();
 }
 
 /* ---------- BOOKING WIZARD (v7) ---------- */
@@ -371,12 +434,21 @@ async function loadSlots() {
     host.innerHTML = `<div class="wiz-step" style="animation:stepFade .3s both">
       <div class="wiz-step-title">Pick a time</div>
       <div class="wiz-step-sub">${esc(fmtDate(date))} · ${slots.filter(s => s.available).length} of ${slots.length} slots open</div>
-      <div class="slot-grid" id="slot-grid">` +
-      slots.map(s => {
-        const isNext = firstOpen && s.time === firstOpen.time;
-        return `<button class="slot-btn ${isNext ? 'slot-next' : ''}" data-time="${s.time}" ${s.available ? '' : 'disabled'}
-          style="animation-delay:${(si++ * 22)}ms">${fmtTime(s.time)}${isNext ? '<span class="slot-next-tag">next</span>' : ''}${s.available ? '' : '<span class="slot-taken-tag">taken</span>'}</button>`;
-      }).join('') + `</div>
+      <div id="slot-grid">` +
+      (() => {
+        const groups = [['Morning', s => +s.time.slice(0, 2) < 12], ['Afternoon', s => +s.time.slice(0, 2) >= 12 && +s.time.slice(0, 2) < 17], ['Evening', s => +s.time.slice(0, 2) >= 17]];
+        let html = '';
+        for (const [label, match] of groups) {
+          const g = slots.filter(match);
+          if (!g.length) continue;
+          html += `<div class="slot-group-label">${label}</div><div class="slot-grid">` + g.map(s => {
+            const isNext = firstOpen && s.time === firstOpen.time;
+            return `<button class="slot-btn ${isNext ? 'slot-next' : ''}" data-time="${s.time}" ${s.available ? '' : 'disabled'}
+              style="animation-delay:${(si++ * 18)}ms">${fmtTime(s.time)}${isNext ? '<span class="slot-next-tag">next</span>' : ''}${s.available ? '' : '<span class="slot-taken-tag">taken</span>'}</button>`;
+          }).join('') + '</div>';
+        }
+        return html;
+      })() + `</div>
       <div class="slot-legend"><span><i class="lg lg-open"></i>Available</span><span><i class="lg lg-next"></i>Next up</span><span><i class="lg lg-taken"></i>Taken</span></div></div>`;
     const grid = $('#slot-grid');
     grid.querySelectorAll('.slot-btn:not(:disabled)').forEach(b => {
