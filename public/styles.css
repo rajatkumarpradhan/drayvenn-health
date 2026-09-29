@@ -83,9 +83,7 @@ img { max-width: 100%; }
 }
 .fc-sub { color: var(--muted); font-weight: 500; }
 .fc-check { color: var(--teal); font-weight: 800; }
-.fc-1 { top: -14px; left: 8px; }
-.fc-2 { bottom: -12px; left: 14px; }
-.fc-3 { top: -14px; right: 8px; }
+.fc-3 { top: auto; bottom: -13px; left: 50%; transform: translateX(-50%); right: auto; }
 
 .hero h1 { font-family: 'Manrope'; font-size: clamp(30px, 5.6vw, 46px); font-weight: 800; letter-spacing: -.025em; line-height: 1.12; }
 .hero h1 span { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
