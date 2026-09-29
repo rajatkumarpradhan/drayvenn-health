@@ -67,6 +67,10 @@ img { max-width: 100%; }
 .why-strip { margin-top: 26px; background: var(--primary-soft); border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
 .why-item { font-size: 13px; font-weight: 600; color: var(--ink); }
 
+.title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 26px 0 0; }
+.title-row .section-title { margin: 0; }
+.title-link { font-size: 13px; font-weight: 700; color: var(--primary); white-space: nowrap; }
+
 .recent-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 18px 0 8px; }
 
 /* ---------- footer ---------- */

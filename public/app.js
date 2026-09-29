@@ -14,7 +14,7 @@ function show(view) {
   // safety: a stuck scroll lock must never survive a view switch
   if (!document.getElementById('wizard-overlay')) document.body.classList.remove('wiz-open');
   if (view === 'mybookings') renderAccount();
-  for (const v of ['home', 'clinic', 'confirm', 'mybookings', 'signin']) {
+  for (const v of ['home', 'clinics', 'clinic', 'confirm', 'mybookings', 'signin']) {
     const el = document.getElementById('view-' + v);
     el.classList.toggle('hidden', v !== view);
     if (v === view) {
@@ -23,7 +23,7 @@ function show(view) {
       el.classList.add('view-enter');
     }
   }
-  const tabFor = { home: 'home', clinic: 'clinics', confirm: 'home', mybookings: 'mybookings' };
+  const tabFor = { home: 'home', clinics: 'clinics', clinic: 'clinics', confirm: 'home', mybookings: 'mybookings' };
   document.querySelectorAll('.tabbar .tab').forEach(t =>
     t.classList.toggle('active', t.dataset.tab === tabFor[view]));
   window.scrollTo({ top: 0 });
@@ -92,6 +92,7 @@ async function loadClinics() {
     renderAreaFilter();
     renderHomeExtras();
     renderRecentClinics();
+    renderHomeHighlights();
     renderClinics();
   } catch (e) {
     $('#clinic-list').innerHTML = '<div class="loading">Could not load clinics. <a href="/">Retry</a></div>';
@@ -141,7 +142,7 @@ function renderHomeExtras() {
     host.querySelectorAll('.browse-card').forEach(b => b.onclick = () => {
       state.filter.spec = b.dataset.spec;
       renderSpecChips(); renderClinics();
-      $('#clinic-list').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      show('clinics');
     });
   }
   const ah = $('#home-areas');
@@ -153,7 +154,7 @@ function renderHomeExtras() {
       const sel = $('#area-filter');
       if (sel) sel.value = b.dataset.area;
       renderClinics();
-      $('#clinic-list').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      show('clinics');
     });
   }
 }
@@ -187,7 +188,12 @@ function renderClinics() {
     host.innerHTML = '<div class="loading">No clinics match that search.</div>';
     return;
   }
-  host.innerHTML = list.map((c, i) => `
+  host.innerHTML = list.map((c, i) => clinicCardHTML(c, i)).join('');
+  bindClinicCards(host);
+}
+
+function clinicCardHTML(c, i) {
+  return `
     <div class="clinic-card" data-id="${esc(c.id)}" role="button" tabindex="0" style="animation-delay:${i * 40}ms" aria-label="View ${esc(c.name)}">
       <div class="clinic-head">
         <div class="clinic-emoji">${c.emoji}</div>
@@ -203,11 +209,21 @@ function renderClinics() {
         <span class="fee">from ₹${c.min_fee}</span>
       </div>
       ${fmtNext(c.next_available) ? `<div class="next-slot">Next slot: <b>${fmtNext(c.next_available)}</b></div>` : ''}
-    </div>`).join('');
+    </div>`;
+}
+
+function bindClinicCards(host) {
   host.querySelectorAll('.clinic-card').forEach(el => {
     el.onclick = () => openClinic(el.dataset.id);
     el.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openClinic(el.dataset.id); } };
   });
+}
+
+function renderHomeHighlights() {
+  const host = $('#home-highlights');
+  if (!host || !state.clinics.length) return;
+  host.innerHTML = state.clinics.slice(0, 3).map((c, i) => clinicCardHTML(c, i)).join('');
+  bindClinicCards(host);
 }
 
 /* ---------- CLINIC DETAIL ---------- */
@@ -778,12 +794,21 @@ async function cancelBooking(ref, btn) {
 
 /* ---------- WIRE UP ---------- */
 $('#search-input').addEventListener('input', e => { state.filter.q = e.target.value; renderClinics(); });
+$('#home-search').addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  state.filter.q = e.target.value;
+  $('#search-input').value = e.target.value;
+  renderClinics();
+  show('clinics');
+});
+$('#view-all-clinics').onclick = e => { e.preventDefault(); show('clinics'); };
 $('#logo-home').onclick = () => show('home');
 $('#back-home').onclick = () => show('home');
 $('#confirm-home').onclick = () => show('home');
 $('#back-home-3').onclick = () => show('home');
 $('#back-home-4').onclick = () => show('home');
-$('#foot-clinics').onclick = e => { e.preventDefault(); show('home'); setTimeout(() => $('#clinic-list') && $('#clinic-list').scrollIntoView({ behavior: 'smooth', block: 'start' }), 60); };
+$('#foot-clinics').onclick = e => { e.preventDefault(); show('clinics'); };
 $('#foot-track').onclick = e => { e.preventDefault(); show('mybookings'); };
 $('#foot-signin').onclick = e => { e.preventDefault(); showSignin(); };
 $('#bk-btn').onclick = lookupBooking;
@@ -831,12 +856,6 @@ document.querySelectorAll('.tabbar .tab').forEach(tab => {
   tab.addEventListener('click', () => {
     const t = tab.dataset.tab;
     if (window.closeChat) window.closeChat();
-    if (t === 'clinics') {
-      show('home');
-      document.querySelectorAll('.tabbar .tab').forEach(x => x.classList.toggle('active', x === tab));
-      setTimeout(() => $('#clinic-list') && $('#clinic-list').scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
-      return;
-    }
     show(t);
   });
 });

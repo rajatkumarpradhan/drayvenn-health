@@ -60,17 +60,18 @@
         <div class="hero-badge">✓ No sign-up needed</div>
       </div>
       <div class="searchbar">
-        <input type="text" id="search-input" placeholder="Search clinics, doctors, specialties... e.g. dentist">
-        <select id="area-filter" aria-label="Filter by area"><option value="All">All areas</option></select>
+        <input type="text" id="home-search" placeholder="Search clinics, doctors, specialties... e.g. dentist">
       </div>
-      <div class="chips" id="spec-chips"></div>
     </div>
     <div id="recent-wrap" class="hidden">
       <div class="recent-label">Recently viewed</div>
       <div class="chips" id="recent-chips"></div>
     </div>
-    <h2 class="section-title">Clinics across Bengaluru</h2>
-    <div id="clinic-list" class="clinic-grid">
+    <div class="title-row">
+      <h2 class="section-title" style="margin-bottom:0">Clinics across Bengaluru</h2>
+      <a href="#" id="view-all-clinics" class="title-link">View all →</a>
+    </div>
+    <div id="home-highlights" class="clinic-grid" style="margin-top:14px">
       <div class="clinic-card skel-card"></div><div class="clinic-card skel-card"></div><div class="clinic-card skel-card"></div>
     </div>
 
@@ -94,6 +95,19 @@
       <div class="why-item">✓ Track with ref + mobile</div>
     </div>
   </section>
+  <!-- CLINICS (full browser) -->
+  <section id="view-clinics" class="hidden">
+    <div class="searchbar" style="margin-top:14px">
+      <input type="text" id="search-input" placeholder="Search clinics, doctors, specialties... e.g. dentist">
+      <select id="area-filter" aria-label="Filter by area"><option value="All">All areas</option></select>
+    </div>
+    <div class="chips" id="spec-chips"></div>
+    <h2 class="section-title">All clinics</h2>
+    <div id="clinic-list" class="clinic-grid">
+      <div class="clinic-card skel-card"></div><div class="clinic-card skel-card"></div><div class="clinic-card skel-card"></div>
+    </div>
+  </section>
+
 
   <!-- CLINIC DETAIL -->
   <section id="view-clinic" class="hidden">
