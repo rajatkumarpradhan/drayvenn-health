@@ -23,6 +23,7 @@ function show(view) {
       el.classList.remove('view-enter');
       void el.offsetWidth;
       el.classList.add('view-enter');
+      requestAnimationFrame(segSlideAll);
     }
   }
   const tabFor = { home: 'home', clinics: 'clinics', clinic: 'clinics', confirm: 'home', mybookings: 'mybookings', account: 'none' };
@@ -1126,14 +1127,25 @@ $('#home-area').onchange = e => {
   renderBrowse();
   show('clinics');
 };
+
+/* sliding pill for segment toggles (measured, transform-free layout but cheap) */
+function segSlide(seg) {
+  const act = seg && seg.querySelector('.seg-btn.active');
+  if (!act) return;
+  seg.style.setProperty('--pl', act.offsetLeft + 'px');
+  seg.style.setProperty('--pw', act.offsetWidth + 'px');
+}
+function segSlideAll() { document.querySelectorAll('.seg').forEach(segSlide); }
+window.addEventListener('resize', segSlideAll);
 document.querySelectorAll('#browse-seg .seg-btn').forEach(b => b.onclick = () => {
   state.browse = b.dataset.seg;
   document.querySelectorAll('#browse-seg .seg-btn').forEach(x => x.classList.toggle('active', x === b));
+  segSlide($('#browse-seg'));
   $('#clinics-pane').classList.toggle('hidden', state.browse !== 'clinics');
   $('#doctors-pane').classList.toggle('hidden', state.browse !== 'doctors');
   renderBrowse();
 });
-document.querySelectorAll('#clinic-view-toggle .seg-btn').forEach(b => b.onclick = () => setMapMode(b.dataset.vt));
+document.querySelectorAll('#clinic-view-toggle .seg-btn').forEach(b => b.onclick = () => { setMapMode(b.dataset.vt); segSlide($('#clinic-view-toggle')); });
 $('#logo-home').onclick = () => show('home');
 $('#back-home').onclick = () => show('home');
 $('#confirm-home').onclick = () => show('home');

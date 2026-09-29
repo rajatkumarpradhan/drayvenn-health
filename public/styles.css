@@ -161,9 +161,10 @@ img { max-width: 100%; }
 .title-row .section-title { margin: 0; }
 .title-link { font-size: 13px; font-weight: 700; color: var(--primary); white-space: nowrap; }
 
-.seg { display: flex; gap: 4px; background: rgba(232,245,242,.55); border: 1px solid var(--glass-brd); border-radius: 12px; padding: 4px; margin-top: 16px; box-shadow: var(--spec); }
-.seg-btn { flex: 1; border: 0; background: transparent; border-radius: 9px; padding: 8px 10px; font: inherit; font-size: 13.5px; font-weight: 700; color: #5b6b68; cursor: pointer; transition: background .15s, color .15s; }
-.seg-btn.active { background: rgba(255,255,255,.92); color: var(--primary); box-shadow: var(--spec), 0 1px 4px rgba(0,168,152,.18); }
+.seg { position: relative; display: flex; gap: 4px; background: rgba(232,245,242,.55); border: 1px solid var(--glass-brd); border-radius: 12px; padding: 4px; margin-top: 16px; box-shadow: var(--spec); }
+.seg::before { content: ''; position: absolute; top: 4px; bottom: 4px; left: var(--pl, 4px); width: var(--pw, 0px); background: rgba(255,255,255,.92); border-radius: 9px; box-shadow: var(--spec), 0 1px 4px rgba(0,168,152,.18); transition: left .28s cubic-bezier(.22,.61,.36,1), width .28s cubic-bezier(.22,.61,.36,1); }
+.seg-btn { position: relative; z-index: 1; flex: 1; border: 0; background: transparent; border-radius: 9px; padding: 8px 10px; font: inherit; font-size: 13.5px; font-weight: 700; color: #5b6b68; cursor: pointer; transition: color .15s; }
+.seg-btn.active { color: var(--primary); }
 .seg-sm { margin: 0; padding: 3px; }
 .seg-sm .seg-btn { padding: 5px 12px; font-size: 12.5px; flex: none; }
 .pane-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 18px; }
@@ -524,6 +525,7 @@ body:has(#wizard-overlay) { overflow: hidden; }
 @keyframes stepInL { from { opacity: 0; transform: translateX(-28px) scale(.985); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) {
   .wiz-step { animation: none !important; }
+  .seg::before { transition: none; }
 }
 .date-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
 .date-pill { flex-shrink: 0; width: 62px; padding: 10px 0; border-radius: 14px; border: 1.5px solid var(--line); background: var(--surface); text-align: center; transition: all .15s; }
