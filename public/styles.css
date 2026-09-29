@@ -1482,3 +1482,15 @@ body::after {
   color: var(--ink); border-radius: 10px; padding: 8px 10px; font-size: 13.5px;
   font-family: inherit;
 }
+
+/* ---- mobile perf pass (29 Sep 2026) ---- */
+/* ambient orbs: the radial gradients already fade to transparent, so the 90px blur
+   filter only re-rasterized two full-screen layers every frame on mobile. Drop the
+   filter, keep the drift (transform-only, composited). */
+body::before, body::after { filter: none; will-change: transform; }
+/* sticky chrome with backdrop-filter forces a re-sample of the page behind it on
+   every scroll frame - the main budget-Android scroll jank. Solid glass on mobile. */
+@media (max-width: 760px) {
+  .topbar { backdrop-filter: none; background: rgba(11,16,37,.92); }
+  .tabbar { backdrop-filter: none; background: rgba(11,16,37,.94); }
+}
