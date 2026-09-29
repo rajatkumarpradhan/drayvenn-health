@@ -191,6 +191,7 @@ img { max-width: 100%; }
 .footer { border-top: 1px solid rgba(255,255,255,.08); background: linear-gradient(168deg, #083330 0%, #0b2b3a 55%, #0d2440 100%); margin-top: 44px; color: #bcd9d2; }
 .footer-cols { max-width: 1080px; margin: 0 auto; padding: 26px 18px 8px; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 20px; }
 .footer-logo { display: flex; align-items: center; gap: 8px; font-family: 'Manrope'; font-size: 15px; color: #fff; }
+.footer-logo, .footer-logo b, .footer-logo span { color: #fff !important; }
 .footer-logo img { width: 26px; height: 26px; border-radius: 8px; }
 .footer-brand p { font-size: 12.5px; color: rgba(188,217,210,.75); margin-top: 8px; line-height: 1.55; max-width: 300px; }
 .footer-head { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: rgba(188,217,210,.6); margin-bottom: 8px; }
