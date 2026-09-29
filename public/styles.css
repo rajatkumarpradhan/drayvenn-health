@@ -437,6 +437,10 @@ img { max-width: 100%; }
   box-shadow: 0 20px 60px rgba(13,36,64,.3); animation: panelIn .35s cubic-bezier(.22,.61,.36,1) both;
 }
 @media (min-width: 761px) { .doc-modal { border-radius: 22px; } }
+@media (min-width: 761px) {
+  .clinic-card { transition: transform .2s ease, box-shadow .2s ease; }
+  .clinic-card:hover { transform: translateY(-2px); box-shadow: var(--spec), var(--shadow); }
+}
 .doc-modal-head { display: flex; gap: 14px; align-items: center; margin-bottom: 14px; }
 .doc-modal-head .doc-avatar { width: 62px; height: 62px; font-size: 24px; }
 .doc-modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; }
@@ -610,7 +614,7 @@ body:has(#wizard-overlay) { overflow: hidden; }
   backdrop-filter: blur(16px) saturate(150%); -webkit-backdrop-filter: blur(16px) saturate(150%);
   animation: panelIn .35s ease both;
 }
-.booking-row { background: rgba(255,255,255,.6); border: 1px solid var(--glass-brd); box-shadow: var(--spec), var(--shadow-sm); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; box-shadow: var(--shadow-sm); position: relative; animation: fadeUp .3s ease both; transition: box-shadow .2s; }
+.booking-row { background: rgba(255,255,255,.6); border: 1px solid var(--glass-brd); box-shadow: var(--spec), var(--shadow-sm); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; position: relative; animation: fadeUp .3s ease both; transition: box-shadow .2s; backdrop-filter: blur(10px) saturate(150%); -webkit-backdrop-filter: blur(10px) saturate(150%); }
 .status-pending { color: var(--amber); font-weight: 700; }
 .status-confirmed { color: var(--teal); font-weight: 700; }
 .status-cancelled { color: var(--danger); font-weight: 700; }
@@ -635,9 +639,9 @@ body:has(#wizard-overlay) { overflow: hidden; }
 .tstep { display: flex; align-items: center; gap: 6px; }
 .tstep .tdot { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
 .tstep.done { color: var(--teal); }
-.tstep.done .tdot { background: var(--teal); }
+.tstep.done .tdot { background: var(--grad); box-shadow: 0 0 0 3px rgba(0,168,152,.18), 0 2px 6px rgba(0,168,152,.4); animation: checkPop .4s ease both; }
 .tline { width: 48px; height: 2px; background: var(--line); }
-.tline.done { background: var(--teal); }
+.tline.done { background: var(--grad); }
 .wa-bubble .wa-head { display: flex; align-items: center; gap: 8px; font-weight: 700; color: #075e54; margin-bottom: 8px; }
 .wa-bubble .wa-ref { font-family: 'Manrope'; font-weight: 800; font-size: 17px; letter-spacing: .04em; color: #075e54; }
 .wa-bubble .wa-time { text-align: right; font-size: 11px; color: #8aa39d; margin-top: 6px; }
