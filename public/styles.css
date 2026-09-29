@@ -384,5 +384,11 @@ body:has(#wizard-overlay) { overflow: hidden; }
   .nav-short { display: inline; }
   .hero-scene { height: 168px; }
   .clinic-grid { grid-template-columns: 1fr; }
+  .doctor-card { flex-wrap: wrap; }
+  .doctor-card .doc-avatar { width: 46px; height: 46px; font-size: 18px; }
+  .doc-info { flex: 1 1 calc(100% - 62px); }
+  .doc-right { width: 100%; display: flex; justify-content: space-between; align-items: center; text-align: left; margin-top: 4px; }
+  .doc-right .btn { flex: 1; margin-left: 14px; }
+  .doc-more { margin-left: 12px; }
   #chat-panel { bottom: 0; right: 0; width: 100vw; height: 100dvh; border-radius: 0; }
 }
