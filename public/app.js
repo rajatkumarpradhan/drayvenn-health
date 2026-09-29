@@ -69,7 +69,7 @@ function fmtNext(n) {
 async function api(path, opts) {
   const res = await fetch(path, opts);
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || 'Something went wrong');
+  if (!res.ok) throw new Error(data.message || data.error || 'Something went wrong');
   return data;
 }
 
@@ -697,7 +697,7 @@ function renderAccount() {
       ${p.phone ? 'Signed in with ' + esc(maskPhone(p.phone)) : (p.email ? 'Signed in with ' + esc(p.email) : 'Signed in with Google')}
       ${p.has_google ? ' &middot; Google linked' + (p.google_email ? ' (' + esc(p.google_email) + ')' : '') : ''}
     </p>
-    ${!p.has_google ? '<a class="btn btn-block" href="/api/auth/google/start" style="margin-bottom:14px;display:block;text-align:center">Link Google account</a>' : ''}
+    ${!p.has_google ? '<a class="btn btn-block google-start" href="/api/auth/google/start" style="margin-bottom:14px;display:block;text-align:center">Link Google account</a>' : ''}
     <div class="form-grid" style="margin-bottom:14px">
       <div class="form-row"><label for="acct-name">Your name</label><input id="acct-name" maxlength="60" autocomplete="name" value="${esc(p.name || '')}" placeholder="Used to prefill bookings"></div>
       <div class="form-row"><label for="acct-age">Age</label><input id="acct-age" inputmode="numeric" maxlength="3" value="${p.age != null ? p.age : ''}" placeholder="Optional"></div>
@@ -707,6 +707,7 @@ function renderAccount() {
     <h3 style="font-size:16px;font-weight:700;margin:6px 0 10px">My bookings</h3>
     <div id="my-bookings"><div class="loading">Loading&hellip;</div></div>
     <button class="btn btn-block btn-ghost" id="acct-logout" style="margin-top:16px">Sign out</button>`;
+  bindGoogleStart(host);
   $('#acct-save').onclick = saveProfile;
   $('#acct-logout').onclick = logout;
   loadMyBookings();
@@ -730,12 +731,30 @@ function renderLogin(host) {
       <button class="btn btn-block btn-ghost" id="login-back">Use a different email</button>
     </div>
     <div style="display:flex;align-items:center;gap:10px;margin:14px 0;color:var(--muted);font-size:12px"><span style="flex:1;height:1px;background:var(--line,rgba(190,220,215,.4))"></span>or<span style="flex:1;height:1px;background:var(--line,rgba(190,220,215,.4))"></span></div>
-    <a class="btn btn-block btn-ghost" href="/api/auth/google/start" style="display:block;text-align:center">Continue with Google</a>
+    <a class="btn btn-block btn-ghost google-start" href="/api/auth/google/start" style="display:block;text-align:center">Continue with Google</a>
     <div class="privacy-line" style="margin-top:14px">Sign-in doubles as registration. Codes expire in 10 minutes.</div>`;
   $('#login-otp').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6); });
   $('#login-send').onclick = requestOtp;
   $('#login-verify').onclick = verifyOtp;
   $('#login-back').onclick = () => { $('#login-otp-step').classList.add('hidden'); $('#login-phone-step').classList.remove('hidden'); };
+  bindGoogleStart(host);
+}
+
+
+/* Follows /api/auth/google/start in JS so the clean "switching on" message
+   shows as a toast instead of a raw JSON page when Google is not configured. */
+function bindGoogleStart(root) {
+  (root || document).querySelectorAll('.google-start').forEach(a => {
+    a.onclick = async e => {
+      e.preventDefault();
+      try {
+        const res = await fetch(a.href, { redirect: 'manual' });
+        if (res.type === 'opaqueredirect' || (res.status >= 300 && res.status < 400)) { location.href = a.href; return; }
+        const data = await res.json().catch(() => ({}));
+        toast(data.message || data.error || 'Google sign-in is unavailable right now', 'info');
+      } catch { location.href = a.href; }
+    };
+  });
 }
 
 async function requestOtp() {
