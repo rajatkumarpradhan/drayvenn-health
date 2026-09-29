@@ -138,6 +138,15 @@ function renderRecentClinics() {
 function renderHomeExtras() {
   const specs = new Map();
   state.clinics.forEach(c => c.specialties.forEach(s => specs.set(s, (specs.get(s) || 0) + 1)));
+  const SPEC_ICON = {
+    'General Medicine': 'auscultate', 'Diabetology': 'bloodbag', 'Fever Care': 'thermometer',
+    'Vaccination': 'syringe', 'Orthopaedics': 'fracture-leg', 'Sports Injury': 'bandage',
+    'Dermatology': 'dermatology', 'Dental': 'tooth'
+  };
+  const specCirc = s => {
+    const ic = SPEC_ICON[s] || (!SPEC_EMOJI[s] ? 'hospital' : null);
+    return ic ? `<img class="spec-ic" src="brand/icons/${ic}.webp" alt="" loading="lazy" decoding="async">` : SPEC_EMOJI[s];
+  };
   const SPEC_EMOJI = {
     'General Medicine': '🩺', 'Diabetology': '🩸', 'Fever Care': '🌡️', 'Paediatrics': '🧸',
     'Vaccination': '💉', 'Family Medicine': '👨‍👩‍👧', 'Orthopaedics': '🦴', 'Physiotherapy': '🤸',
@@ -147,7 +156,7 @@ function renderHomeExtras() {
   const host = $('#browse-specs');
   if (host) {
     host.innerHTML = [...specs.entries()].slice(0, 8).map(([s, n], i) =>
-      `<button class="spec-circle-btn reveal" style="--i:${i}" data-spec="${esc(s)}" aria-label="Book a clinic for ${esc(s)}"><span class="spec-circ">${SPEC_EMOJI[s] || '🏥'}</span><span class="spec-circ-name">${esc(s)}</span></button>`).join('');
+      `<button class="spec-circle-btn reveal" style="--i:${i}" data-spec="${esc(s)}" aria-label="Book a clinic for ${esc(s)}"><span class="spec-circ">${specCirc(s)}</span><span class="spec-circ-name">${esc(s)}</span></button>`).join('');
     host.querySelectorAll('.spec-circle-btn').forEach(b => b.onclick = () => {
       state.filter.spec = b.dataset.spec;
       renderSpecChips(); renderBrowse();

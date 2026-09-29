@@ -105,6 +105,9 @@ img { max-width: 100%; }
 .svc-tile:hover { border-color: var(--primary); }
 .svc-tile:active { transform: scale(.97); }
 .svc-ico { font-size: 25px; line-height: 1; }
+.svc-ico-img { width: 30px; height: 30px; object-fit: contain; display: block; margin: 0 auto; }
+.spec-ic { width: 34px; height: 34px; object-fit: contain; display: block; }
+.confirm-illus { width: min(210px, 62%); height: auto; display: block; margin: 18px auto 6px; border-radius: 20px; border: 1px solid var(--line); box-shadow: 0 12px 30px rgba(0,60,54,.12); }
 .svc-label { font-size: 10.5px; font-weight: 700; line-height: 1.25; }
 
 /* specialty circles */
@@ -607,10 +610,10 @@ body:has(#wizard-overlay) { overflow: hidden; }
 
 
 /* ---------- hero video slot (activates only when /brand/hero.mp4 exists) ---------- */
-.hero-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; opacity: 0; transition: opacity .7s ease; pointer-events: none; z-index: 0; }
+.hero-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 35%; border-radius: inherit; opacity: 0; transition: opacity .7s ease; pointer-events: none; z-index: 0; }
 .hero-video.ready { opacity: 1; }
 .hero-scene > *:not(.hero-video) { position: relative; z-index: 1; }
-.hero-scene.video-on .hero-halo, .hero-scene.video-on .hero-ecg { opacity: 0; transition: opacity .5s ease; }
+.hero-scene.video-on .hero-halo, .hero-scene.video-on .hero-ecg, .hero-scene.video-on .hero-lockup, .hero-scene.video-on .hero-wordmark { opacity: 0; transition: opacity .5s ease; }
 /* ---------- magic-ui inspired touches (vanilla, transform/opacity budget) ---------- */
 /* animated dot-grid backdrop inside the hero scene */
 .hero-scene::before {
