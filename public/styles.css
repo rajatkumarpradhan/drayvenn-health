@@ -472,7 +472,7 @@ body:has(#wizard-overlay) { overflow: hidden; }
 .wiz-steps { padding: 12px 22px 8px; overflow-y: auto; flex: 1; min-height: 220px; }
 .wiz-step-title { font-family: 'Manrope'; font-size: 17px; font-weight: 800; }
 .wiz-step-sub { font-size: 13px; color: var(--muted); margin: 3px 0 14px; }
-@keyframes stepFade { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: none; } }
+@keyframes stepFade { from { opacity: 0; transform: translateY(12px) scale(.99); } to { opacity: 1; transform: none; } }
 @keyframes stepInR { from { opacity: 0; transform: translateX(28px) scale(.985); } to { opacity: 1; transform: none; } }
 @keyframes stepInL { from { opacity: 0; transform: translateX(-28px) scale(.985); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) {

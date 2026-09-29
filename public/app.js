@@ -802,7 +802,7 @@ async function loadSlots() {
     const { slots } = await api(`/api/slots?doctor_id=${encodeURIComponent(doctor.id)}&date=${date}`);
     if (state.booking.step !== 'time') return;
     if (!slots.length) {
-      host.innerHTML = `<div class="wiz-step" style="animation:stepFade .3s both">
+      host.innerHTML = `<div class="wiz-step" style="animation:stepFade .32s cubic-bezier(.22,.61,.36,1) both">
         <div class="wiz-step-title">Pick a time</div>
         <div class="empty-note">Doctor is not available on ${esc(fmtDate(date))}. <a href="#" id="wiz-pick-other">Choose another day</a>.</div></div>`;
       const po = $('#wiz-pick-other'); if (po) po.onclick = e => { e.preventDefault(); wizGoto('date', 'back'); };
@@ -810,7 +810,7 @@ async function loadSlots() {
     }
     const firstOpen = slots.find(s => s.available);
     let si = 0;
-    host.innerHTML = `<div class="wiz-step" style="animation:stepFade .3s both">
+    host.innerHTML = `<div class="wiz-step" style="animation:stepFade .32s cubic-bezier(.22,.61,.36,1) both">
       <div class="wiz-step-title">Pick a time</div>
       <div class="wiz-step-sub">${esc(fmtDate(date))} · ${slots.filter(s => s.available).length} of ${slots.length} slots open</div>
       <div id="slot-grid">` +
