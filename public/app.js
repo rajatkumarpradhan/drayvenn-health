@@ -553,6 +553,32 @@ function bindClinicCards(host) {
 }
 
 
+/* ---------- featured clinics (home) ---------- */
+function renderFeatured() {
+  const host = $('#featured-grid');
+  if (!host || !state.clinics.length) return;
+  host.innerHTML = state.clinics.slice(0, 3).map((c, i) => {
+    const specs = (c.specialties || []).slice(0, 3).map(s => `<span class="feat-spec">${esc(s)}</span>`).join('');
+    const next = fmtNext(c.next_available);
+    return `<article class="feat-card reveal" data-id="${c.id}" role="button" tabindex="0" aria-label="View ${esc(c.name)}">
+      <div class="feat-visual">${clinicMark(c, 'feat-mark')}</div>
+      <div class="feat-body">
+        <div class="feat-name">${esc(c.name)}</div>
+        <div class="feat-area">${uiIcon('pin')} ${esc(c.area)}${c.sample ? ' <span class="sample-tag">Sample clinic</span>' : ''}</div>
+        <div class="feat-specs">${specs}</div>
+        <div class="feat-meta"><span class="feat-fee">from ₹${c.min_fee}</span>${next ? `<span class="feat-next">${uiIcon('cal')} Next: ${esc(next)}</span>` : ''}</div>
+        <button type="button" class="btn btn-block feat-book" data-book="${c.id}">Book Now</button>
+      </div>
+    </article>`;
+  }).join('');
+  host.querySelectorAll('.feat-card').forEach(el => {
+    el.onclick = e => { if (e.target.closest('.feat-book')) return; openClinic(el.dataset.id); };
+    el.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openClinic(el.dataset.id); } };
+  });
+  host.querySelectorAll('.feat-book').forEach(b => b.onclick = e => { e.stopPropagation(); openClinic(b.dataset.book); });
+  watchReveals(host);
+}
+
 /* ---------- hero video slot ----------
    Stays on the static hero unless /brand/hero-loop.mp4 actually exists.
    Lazy: HEAD-checks on idle, streams same-origin only after canplay.
@@ -1251,8 +1277,9 @@ $('#home-search').addEventListener('keydown', e => {
 });
 $('#home-browse-cta').onclick = e => { e.preventDefault(); show('clinics'); };
 { const sb = $('#svc-book'); if (sb) sb.onclick = () => show('clinics'); }
-$('#svc-track').onclick = () => show('track');
-$('#svc-chat').onclick = () => { if (window.openChat) window.openChat(); };
+$('#cta-find').onclick = () => show('clinics');
+$('#cta-track').onclick = () => show('track');
+const vac = $('#view-all-clinics'); if (vac) vac.onclick = e => { e.preventDefault(); show('clinics'); };
 $('#home-area').onchange = e => {
   state.filter.area = e.target.value;
   const sel = $('#area-filter');
