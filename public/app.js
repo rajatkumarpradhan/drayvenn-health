@@ -370,7 +370,14 @@ function renderDoctorsBrowse() {
     }
   }
   if (!docs.length) {
-    host.innerHTML = '<div class="loading">No doctors match that search.</div>';
+    host.innerHTML = `<div class="empty-state">
+      <div class="empty-ico">🩺</div>
+      <div class="empty-title">No doctors match that search</div>
+      <div class="empty-sub">Try a different name, specialty, or clinic - or clear the search to see every doctor.</div>
+      <button type="button" class="btn btn-outline btn-small" id="doc-clear">Clear search</button>
+    </div>`;
+    const dc = $('#doc-clear');
+    if (dc) dc.onclick = () => { state.filter.q = ''; state.filter.spec = 'All'; const si = $('#search-input'); if (si) si.value = ''; renderSpecChips(); renderDoctorsBrowse(); };
     return;
   }
   host.innerHTML = docs.map((d, i) => {
