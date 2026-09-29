@@ -756,6 +756,12 @@ function watchReveals(root) {
     el.style.transitionDelay = Math.min(sibs.indexOf(el) * 45, 270) + 'ms';
     revealIO.observe(el);
   });
+  /* Safety net: if IntersectionObserver never fires (throttled tab, odd WebView),
+     reveal everything after 4s so cards can never stay invisible. */
+  clearTimeout(state.__revealFailsafe);
+  state.__revealFailsafe = setTimeout(() => {
+    document.querySelectorAll('.reveal:not(.revealed)').forEach(el => { el.style.transitionDelay = '0ms'; el.classList.add('revealed'); });
+  }, 4000);
 }
 
 /* ---------- CLINIC DETAIL ---------- */
