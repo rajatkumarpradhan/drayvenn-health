@@ -948,14 +948,15 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
   .hero h1 { grid-column: 1; grid-row: 2; font-size: clamp(40px, 4.2vw, 58px); line-height: 1.08; margin-top: 22px; }
   .hero p { grid-column: 1; grid-row: 3; font-size: 17px; margin-top: 16px; max-width: 520px; }
   .hero-ctas { grid-column: 1; grid-row: 4; margin-top: 24px; }
-  .hero-search { grid-column: 1; grid-row: 5; position: static; margin-top: 16px; max-width: 520px; }
+  .hero { grid-row: 1; }
+  .hero-search { grid-column: 1 / -1; grid-row: 2; position: static; margin-top: 0; max-width: 520px; justify-self: start; width: 100%; }
   .hero-scene { position: absolute; inset: 0; height: auto; border-radius: 0; background: transparent; }
-  .hero::after { display: block; z-index: 1; background: linear-gradient(90deg, rgba(240,253,250,.95) 0%, rgba(240,253,250,.8) 42%, rgba(240,253,250,.42) 75%, rgba(240,253,250,.58) 100%); }
+  .hero::after { display: block; z-index: 0; background: linear-gradient(90deg, rgba(240,253,250,.95) 0%, rgba(240,253,250,.8) 42%, rgba(240,253,250,.42) 75%, rgba(240,253,250,.58) 100%); }
   .hero-video { filter: none; transform: none; border-radius: inherit; }
   .hero-lockup { display: block; width: 96px; height: 96px; }
   .hero-wordmark, .hero-ecg, .hero-halo { display: block; }
   .hero-halo { position: absolute !important; }
-  .trust-strip { grid-column: 1 / -1; grid-template-columns: repeat(4, 1fr); margin-top: 26px; }
+  .trust-strip { grid-column: 1 / -1; grid-row: 3; grid-template-columns: repeat(4, 1fr); margin-top: 6px; }
   #recent-wrap, #view-home .section-title, #view-home .spec-circles, #view-home .title-row,
   #featured-grid, #view-home .how-strip, #view-home .why-strip,
   #view-home .feature-band, #view-home .why-panel { grid-column: 1 / -1; }
