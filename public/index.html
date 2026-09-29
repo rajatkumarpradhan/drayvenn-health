@@ -29,7 +29,7 @@
       </div>
     </div>
     <nav class="topbar-links">
-      <a href="#" id="nav-bookings">Bookings</a>
+      <a href="#" id="nav-bookings">Track booking</a>
       <a href="admin.html"><span class="nav-full">For clinics</span><span class="nav-short">Clinics</span></a>
     </nav>
   </div>
@@ -88,7 +88,7 @@
       <div class="wa-caption">This is the confirmation message. In the full version it is also sent to the patient on WhatsApp / SMS.</div>
       <div class="confirm-actions">
         <a class="btn btn-outline hidden" id="confirm-cal" target="_blank" rel="noopener">Add to Google Calendar</a>
-        <button class="btn btn-outline" id="confirm-manage">Manage this booking</button>
+        <button class="btn btn-outline" id="confirm-manage">Track this booking</button>
         <button class="btn btn-ghost" id="confirm-home">Book another</button>
       </div>
     </div>
@@ -98,8 +98,8 @@
   <section id="view-mybookings" class="hidden">
     <a class="back-link" id="back-home-3">&larr; All clinics</a>
     <div class="track-card mb-card">
-      <h2 style="font-size:20px;font-weight:700">Manage your booking</h2>
-      <p style="color:var(--muted);font-size:14px;margin:6px 0 18px">Enter your booking reference and the mobile number you booked with. Both are needed - that keeps your booking private.</p>
+      <h2 style="font-size:20px;font-weight:700">Track your booking</h2>
+      <p style="color:var(--muted);font-size:14px;margin:6px 0 18px">Enter your booking reference and the mobile number you booked with - both are needed, that keeps your booking private. From here you can also cancel an upcoming appointment.</p>
       <div class="form-grid">
         <div class="form-row">
           <label for="bk-ref">Booking reference</label>
@@ -110,7 +110,7 @@
           <div class="phone-wrap"><span class="phone-prefix">+91</span><input id="bk-phone" placeholder="98765 43210" inputmode="numeric" maxlength="10" autocomplete="tel-national"></div>
         </div>
         <div class="form-error" id="bk-error"></div>
-        <button class="btn btn-block" id="bk-btn">Find booking</button>
+        <button class="btn btn-block" id="bk-btn">Check status</button>
       </div>
       <div id="bk-result"></div>
       <div class="privacy-line">Booked with the wrong number, or want your data removed? <a href="privacy.html#delete">Request data deletion</a> &middot; <a href="privacy.html">Privacy policy</a></div>
@@ -131,9 +131,9 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
     <span>Home</span>
   </button>
-  <button class="tab" data-tab="mybookings" aria-label="My bookings">
+  <button class="tab" data-tab="mybookings" aria-label="Track booking">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="17" rx="3"/><path d="M8 2.5v4M16 2.5v4M3 10h18"/><path d="M9 15.5l2 2 4-4"/></svg>
-    <span>Bookings</span>
+    <span>Track</span>
   </button>
   <button class="tab" data-tab="chat" aria-label="Assistant">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>

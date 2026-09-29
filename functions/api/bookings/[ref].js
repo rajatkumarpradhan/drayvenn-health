@@ -59,6 +59,7 @@ export async function onRequestPost(context) {
   const { DB } = context.env;
   const ip = clientIp(context);
   if (await guardBlocked(DB, ip)) return tooMany();
+  const ref = (context.params.ref || '').toUpperCase();
   let body;
   try { body = await context.request.json(); }
   catch { return badRequest('Invalid JSON'); }

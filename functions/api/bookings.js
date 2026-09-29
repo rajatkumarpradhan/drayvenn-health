@@ -1,7 +1,8 @@
-import { json, badRequest, generateSlots, nowIST, istToday, addDays, makeRef, normalizePhone } from './_lib.js';
+import { json, badRequest, generateSlots, nowIST, istToday, addDays, makeRef, normalizePhone, purgeOldBookings } from './_lib.js';
 
 export async function onRequestPost(context) {
   const { DB } = context.env;
+  await purgeOldBookings(DB);
   let body;
   try { body = await context.request.json(); }
   catch { return badRequest('Invalid JSON'); }

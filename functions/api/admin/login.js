@@ -28,7 +28,7 @@ export async function onRequestPost(context) {
   if (!safeEqualHex(hash, account.password_hash)) {
     const fails = account.fails + 1;
     const locked = fails >= MAX_FAILS
-      ? new Date(Date.now() + LOCK_MINUTES * 60000).toISOString().replace('T', ' ').slice(0, 19)
+      ? new Date(Date.now() + LOCK_MINUTES * 60000).toISOString()
       : null;
     await DB.prepare('UPDATE clinic_admins SET fails = ?, locked_until = ? WHERE clinic_id = ?')
       .bind(locked ? 0 : fails, locked, account.clinic_id).run();

@@ -63,6 +63,12 @@ export function safeEqualHex(a, b) {
   return diff === 0;
 }
 
+/* Retention: bookings auto-delete 1 year after the appointment date.
+   Pages has no cron, so this runs on API touchpoints (create booking, admin summary). */
+export async function purgeOldBookings(DB) {
+  await DB.prepare("DELETE FROM bookings WHERE date < date('now', '-1 year')").run();
+}
+
 export function badRequest(msg) {
   return json({ error: msg }, 400);
 }

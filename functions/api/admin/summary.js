@@ -1,9 +1,10 @@
-import { json, istToday, addDays, requireAdmin } from '../_lib.js';
+import { json, istToday, addDays, requireAdmin, purgeOldBookings } from '../_lib.js';
 
 export async function onRequestGet(context) {
   const { DB } = context.env;
   const session = await requireAdmin(DB, context.request);
   if (!session) return json({ error: 'Session expired - sign in again' }, 401);
+  await purgeOldBookings(DB);
   const today = istToday();
   const end = addDays(today, 6);
   const rows = await DB.prepare(
