@@ -1,0 +1,21 @@
+/*
+  X-Robots-Tag: noindex, nofollow
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+/api/*
+  Cache-Control: no-store
+/
+  Cache-Control: no-cache, must-revalidate
+/admin
+  Cache-Control: no-cache, must-revalidate
+/*.html
+  Cache-Control: no-cache, must-revalidate
+/*.js
+  Cache-Control: no-cache, must-revalidate
+/*.css
+  Cache-Control: no-cache, must-revalidate
+/brand/*
+  Cache-Control: public, max-age=86400
+/*.png
+  Cache-Control: public, max-age=86400

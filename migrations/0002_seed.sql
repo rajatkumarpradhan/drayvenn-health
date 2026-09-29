@@ -1,0 +1,16 @@
+INSERT INTO clinics (id, name, area, address, phone, tagline, specialties, rating, reviews_count, timings, emoji, admin_pin) VALUES
+('marathahalli-multispeciality', 'Marathahalli Multispeciality Clinic', 'Marathahalli', 'No 42, Outer Ring Road, Near Marathahalli Bridge, Bengaluru 560037', '08041234501', 'Everyday family care, walk-ins welcome', '["General Medicine","Diabetology","Fever Care"]', 4.6, 312, 'Mon–Sat, 9:30 AM – 8:30 PM', '🏥', '1101'),
+('smilecare-dental', 'SmileCare Dental Studio', 'Marathahalli', '2nd Floor, Sai Arcade, Spice Garden Layout, Marathahalli, Bengaluru 560037', '08041234502', 'Painless dentistry and braces', '["Dental","Orthodontics","Root Canal"]', 4.8, 428, 'Mon–Sat, 10:00 AM – 9:00 PM', '🦷', '2202'),
+('motherhood-child-family', 'Motherhood Child & Family Clinic', 'Marathahalli', 'No 17, 1st Main Road, AECS Layout, Marathahalli, Bengaluru 560037', '08041234503', 'Gentle care for kids and parents', '["Paediatrics","Vaccination","Family Medicine"]', 4.7, 256, 'Mon–Sat, 10:30 AM – 8:00 PM', '👶', '3303'),
+('skinfirst-derma', 'SkinFirst Dermatology Clinic', 'Marathahalli', 'No 8, Spice Garden Layout, Near Spice Garden Bus Stop, Bengaluru 560037', '08041234504', 'Skin, hair and allergy care', '["Dermatology","Hair Care","Allergy"]', 4.5, 189, 'Mon–Sat, 11:00 AM – 7:30 PM', '✨', '4404'),
+('orthoplus-bone-joint', 'OrthoPlus Bone & Joint Clinic', 'Marathahalli', 'Ground Floor, KR Layout, Outer Ring Road, Marathahalli, Bengaluru 560037', '08041234505', 'Bones, joints and physio under one roof', '["Orthopaedics","Physiotherapy","Sports Injury"]', 4.6, 221, 'Mon–Sat, 9:00 AM – 8:30 PM', '🦴', '5505');
+
+INSERT INTO doctors (id, clinic_id, name, specialty, qualification, experience_years, fee, days, sessions) VALUES
+('dr-anitha-rao', 'marathahalli-multispeciality', 'Dr. Anitha Rao', 'General Physician', 'MBBS, MD (General Medicine)', 12, 400, '[1,2,3,4,5,6]', '[{"start":"10:00","end":"13:00"},{"start":"17:30","end":"20:30"}]'),
+('dr-rohan-kulkarni', 'marathahalli-multispeciality', 'Dr. Rohan Kulkarni', 'General Physician', 'MBBS', 7, 350, '[1,2,3,4,5,6]', '[{"start":"09:30","end":"13:00"}]'),
+('dr-vikram-shetty', 'smilecare-dental', 'Dr. Vikram Shetty', 'Dentist', 'BDS, MDS', 10, 300, '[1,2,3,4,5,6]', '[{"start":"10:00","end":"14:00"},{"start":"17:00","end":"21:00"}]'),
+('dr-meera-iyer', 'smilecare-dental', 'Dr. Meera Iyer', 'Orthodontist', 'MDS (Orthodontics)', 8, 500, '[2,4,6]', '[{"start":"11:00","end":"14:00"}]'),
+('dr-priya-nair', 'motherhood-child-family', 'Dr. Priya Nair', 'Paediatrician', 'MBBS, MD (Paediatrics)', 14, 600, '[1,2,3,4,5,6]', '[{"start":"10:30","end":"13:30"},{"start":"18:00","end":"20:00"}]'),
+('dr-kavya-reddy', 'skinfirst-derma', 'Dr. Kavya Reddy', 'Dermatologist', 'MBBS, MD (Dermatology)', 9, 700, '[1,2,3,4,5,6]', '[{"start":"11:00","end":"14:00"},{"start":"17:00","end":"19:30"}]'),
+('dr-arvind-menon', 'orthoplus-bone-joint', 'Dr. Arvind Menon', 'Orthopaedic Surgeon', 'MS (Orthopaedics)', 15, 650, '[1,2,3,4,5,6]', '[{"start":"10:00","end":"13:00"},{"start":"18:00","end":"20:30"}]'),
+('dr-sana-khan', 'orthoplus-bone-joint', 'Dr. Sana Khan', 'Physiotherapist', 'BPT', 6, 400, '[1,2,3,4,5,6]', '[{"start":"09:00","end":"12:00"},{"start":"16:00","end":"19:00"}]');

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy - Drayvenn Health</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" type="image/png" href="/favicon-64.png">
+</head>
+<body>
+<canvas id="neural-bg" aria-hidden="true"></canvas>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="logo" href="index.html" style="text-decoration:none">
+      <img src="brand/icon.png" alt="Drayvenn Lab logo" class="logo-mark-img">
+      <div>
+        <div class="logo-name">Drayvenn Health</div>
+        <div class="logo-sub">by Drayvenn Lab</div>
+      </div>
+    </a>
+    <nav class="topbar-links">
+      <a href="index.html">Home</a>
+      <a href="admin.html"><span class="nav-full">For clinics</span><span class="nav-short">Clinics</span></a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="privacy-page">
+    <h1 style="font-size:26px;font-weight:800;letter-spacing:-.02em;margin-top:8px">Privacy Policy</h1>
+    <p style="margin-top:6px">Drayvenn Health is a clinic appointment booking service by Drayvenn Lab, Bengaluru. This page explains what we collect, why, and how to have it deleted. We follow the Digital Personal Data Protection (DPDP) Act, 2023.</p>
+
+    <h2>What we collect</h2>
+    <ul>
+      <li>Patient name and age</li>
+      <li>Mobile number used for the booking</li>
+      <li>Appointment details - clinic, doctor, date and time slot</li>
+      <li>A short concern note you choose to write (optional)</li>
+    </ul>
+
+    <h2>What we never collect</h2>
+    <ul>
+      <li>No diagnosis, prescriptions, reports or medical records</li>
+      <li>No passwords or accounts for patients</li>
+      <li>No payment details - you pay at the clinic</li>
+    </ul>
+
+    <h2>How your data is used</h2>
+    <ul>
+      <li>To create and manage your appointment with the clinic you booked</li>
+      <li>The clinic you booked sees your name, age, mobile number and concern so they can confirm and run your visit</li>
+      <li>We do not sell or share your data with anyone else</li>
+    </ul>
+
+    <h2>Your choices</h2>
+    <ul>
+      <li>See or cancel a booking anytime from the Bookings page with your reference and mobile number</li>
+      <li>Ask us to delete your booking data using the form below - we action it within 7 days and confirm</li>
+    </ul>
+
+    <h2 id="delete">Request data deletion</h2>
+    <p>Enter the mobile number you booked with. If you have it, add your booking reference - it helps us find your data faster.</p>
+    <div class="track-card">
+      <div class="form-grid">
+        <div class="form-row">
+          <label for="del-phone">Mobile number used for booking</label>
+          <div class="phone-wrap"><span class="phone-prefix">+91</span><input id="del-phone" placeholder="98765 43210" inputmode="numeric" maxlength="10" autocomplete="tel-national"></div>
+        </div>
+        <div class="form-row">
+          <label for="del-ref">Booking reference (optional)</label>
+          <input id="del-ref" placeholder="e.g. DH-7K3QP9X2MT" autocomplete="off" style="text-transform:uppercase">
+        </div>
+        <div class="form-row">
+          <label for="del-note">Anything else? (optional)</label>
+          <input id="del-note" placeholder="e.g. delete all bookings on this number" maxlength="300">
+        </div>
+        <div class="form-error" id="del-error"></div>
+        <button class="btn btn-block" id="del-btn">Request deletion</button>
+        <div id="del-done" class="hidden" style="color:var(--green);font-weight:600;font-size:14px;margin-top:4px"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <span><b style="color:var(--ink)">Drayvenn Health</b> · a Drayvenn Lab product</span>
+    <span class="right"><a href="index.html" style="font-weight:600">Home</a> · Made in Bengaluru · Demo build</span>
+  </div>
+</footer>
+
+<script>
+const $ = s => document.querySelector(s);
+$('#del-phone').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10); });
+$('#del-btn').onclick = async () => {
+  const err = $('#del-error');
+  err.style.display = 'none';
+  const phone = $('#del-phone').value.trim();
+  if (!/^[6-9]\d{9}$/.test(phone)) {
+    err.textContent = 'Enter a valid 10-digit mobile number.';
+    err.style.display = 'block';
+    return;
+  }
+  const btn = $('#del-btn');
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/privacy/delete-request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, ref: $('#del-ref').value.trim(), note: $('#del-note').value.trim() })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Something went wrong');
+    $('#del-done').textContent = data.message;
+    $('#del-done').classList.remove('hidden');
+    btn.classList.add('hidden');
+  } catch (e) {
+    err.textContent = e.message;
+    err.style.display = 'block';
+    btn.disabled = false;
+  }
+};
+</script>
+<script src="neural.js"></script>
+</body>
+</html>

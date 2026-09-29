@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Drayvenn Health - Book clinic appointments in Marathahalli</title>
+<meta name="description" content="Find trusted clinics near you and book an appointment in under a minute.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Drayvenn Health - Book clinic appointments in Marathahalli">
+<meta property="og:description" content="Neighbourhood clinics in Marathahalli, Bengaluru. Pick a doctor, choose a time, done in under a minute.">
+<meta property="og:url" content="https://drayvenn-health.pages.dev/">
+<meta property="og:image" content="https://drayvenn-health.pages.dev/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" type="image/png" href="/favicon-64.png">
+</head>
+<body>
+<canvas id="neural-bg" aria-hidden="true"></canvas>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="logo" id="logo-home" style="cursor:pointer">
+      <img src="brand/icon.png" alt="Drayvenn Lab logo" class="logo-mark-img">
+      <div>
+        <div class="logo-name">Drayvenn Health</div>
+        <div class="logo-sub">by Drayvenn Lab</div>
+      </div>
+    </div>
+    <nav class="topbar-links">
+      <a href="#" id="nav-bookings">Bookings</a>
+      <a href="admin.html"><span class="nav-full">For clinics</span><span class="nav-short">Clinics</span></a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- HOME -->
+  <section id="view-home">
+    <div class="hero">
+      <div class="hero-scene">
+        <div class="hero-halo"></div>
+        <img src="brand/icon.png" alt="Drayvenn Lab" class="hero-lockup"><div class="hero-wordmark">Drayvenn <b>Lab</b></div>
+        <svg class="hero-ecg" viewBox="0 0 560 64" fill="none" aria-hidden="true">
+          <path class="ecg-base" d="M0 32 H180 L196 32 204 12 216 52 226 22 232 32 H330 L344 32 352 10 364 54 374 20 380 32 H560" stroke="rgba(139,223,208,.20)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path class="ecg-pulse" d="M0 32 H180 L196 32 204 12 216 52 226 22 232 32 H330 L344 32 352 10 364 54 374 20 380 32 H560" stroke="#5eead4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle class="ecg-dot" r="4.5" fill="#8bdfd0" style="filter:drop-shadow(0 0 6px #5eead4)"/>
+        </svg>
+        <div class="float-chip fc-1"><span class="fc-check">✓</span> Slot booked</div>
+        <div class="float-chip fc-2">🦷 Dr. Meera Iyer <span class="fc-sub">Orthodontist</span></div>
+        <div class="float-chip fc-3">🕕 Today, 6:30 PM <span class="fc-sub">next slot</span></div>
+      </div>
+      <h1>Book a doctor near you,<br><span>without the phone calls.</span></h1>
+      <p>Neighbourhood clinics in Marathahalli, Bengaluru. Pick a doctor, choose a time, done in under a minute.</p>
+      <div class="hero-badges">
+        <div class="hero-badge">✓ Free to use</div>
+        <div class="hero-badge">✓ Clinic confirms shortly</div>
+        <div class="hero-badge">✓ No sign-up needed</div>
+      </div>
+      <div class="searchbar">
+        <input type="text" id="search-input" placeholder="Search clinics, doctors, specialties... e.g. dentist">
+      </div>
+      <div class="chips" id="spec-chips"></div>
+    </div>
+    <h2 class="section-title">Clinics near Marathahalli</h2>
+    <div id="clinic-list" class="clinic-grid">
+      <div class="clinic-card skel-card"></div><div class="clinic-card skel-card"></div><div class="clinic-card skel-card"></div>
+    </div>
+  </section>
+
+  <!-- CLINIC DETAIL -->
+  <section id="view-clinic" class="hidden">
+    <a class="back-link" id="back-home">← All clinics</a>
+    <div id="clinic-detail"></div>
+    <div id="doctor-list" style="display:grid;gap:12px;margin-top:16px"></div>
+    <div id="book-panel-host"></div>
+  </section>
+
+  <!-- CONFIRMATION -->
+  <section id="view-confirm" class="hidden">
+    <div class="confirm-hero">
+      <div class="confirm-check">✓</div>
+      <h1 style="font-size:26px;font-weight:800;letter-spacing:-.02em">Appointment booked</h1>
+      <p style="color:var(--muted);margin-top:8px" id="confirm-sub"></p>
+      <div class="wa-bubble" id="wa-bubble"></div>
+      <div class="wa-caption">This is the confirmation message. In the full version it is also sent to the patient on WhatsApp / SMS.</div>
+      <div class="confirm-actions">
+        <a class="btn btn-outline hidden" id="confirm-cal" target="_blank" rel="noopener">Add to Google Calendar</a>
+        <button class="btn btn-outline" id="confirm-manage">Manage this booking</button>
+        <button class="btn btn-ghost" id="confirm-home">Book another</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- MANAGE BOOKING -->
+  <section id="view-mybookings" class="hidden">
+    <a class="back-link" id="back-home-3">&larr; All clinics</a>
+    <div class="track-card mb-card">
+      <h2 style="font-size:20px;font-weight:700">Manage your booking</h2>
+      <p style="color:var(--muted);font-size:14px;margin:6px 0 18px">Enter your booking reference and the mobile number you booked with. Both are needed - that keeps your booking private.</p>
+      <div class="form-grid">
+        <div class="form-row">
+          <label for="bk-ref">Booking reference</label>
+          <input id="bk-ref" placeholder="e.g. DH-7K3QP9X2MT" autocomplete="off" style="text-transform:uppercase">
+        </div>
+        <div class="form-row">
+          <label for="bk-phone">Mobile number</label>
+          <div class="phone-wrap"><span class="phone-prefix">+91</span><input id="bk-phone" placeholder="98765 43210" inputmode="numeric" maxlength="10" autocomplete="tel-national"></div>
+        </div>
+        <div class="form-error" id="bk-error"></div>
+        <button class="btn btn-block" id="bk-btn">Find booking</button>
+      </div>
+      <div id="bk-result"></div>
+      <div class="privacy-line">Booked with the wrong number, or want your data removed? <a href="privacy.html#delete">Request data deletion</a> &middot; <a href="privacy.html">Privacy policy</a></div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <span><b style="color:var(--ink)">Drayvenn Health</b> · a Drayvenn Lab product</span>
+    <span class="right"><a href="privacy.html" style="font-weight:600">Privacy</a> · <a href="admin.html" style="font-weight:600">For clinics →</a> · Made in Bengaluru · Demo build</span>
+  </div>
+</footer>
+
+<nav class="tabbar" aria-label="Main navigation">
+  <button class="tab active" data-tab="home" aria-label="Home">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
+    <span>Home</span>
+  </button>
+  <button class="tab" data-tab="mybookings" aria-label="My bookings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="17" rx="3"/><path d="M8 2.5v4M16 2.5v4M3 10h18"/><path d="M9 15.5l2 2 4-4"/></svg>
+    <span>Bookings</span>
+  </button>
+  <button class="tab" data-tab="chat" aria-label="Assistant">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+    <span>Assistant</span>
+  </button>
+</nav>
+
+<div id="toast-host"></div>
+<script src="app.js"></script>
+<script src="chat.js"></script>
+<script src="neural.js"></script>
+</body>
+</html>

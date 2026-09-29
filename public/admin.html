@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clinic dashboard - Drayvenn Health</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" type="image/png" href="/favicon-64.png">
+</head>
+<body>
+<canvas id="neural-bg" aria-hidden="true"></canvas>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="logo">
+      <img src="brand/icon.png" alt="Drayvenn Lab logo" class="logo-mark-img">
+      <div>
+        <div class="logo-name">Drayvenn Health</div>
+        <div class="logo-sub">Clinic dashboard</div>
+      </div>
+    </div>
+    <nav class="topbar-links">
+      <a href="index.html">Patient site</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section id="admin-login-view">
+    <div class="admin-login">
+      <img src="brand/icon.png" alt="Drayvenn Lab" style="height:72px;width:auto;margin:0 auto 10px;display:block;filter:drop-shadow(0 0 18px rgba(139,223,208,.45))"><div class="hero-wordmark" style="text-align:center;margin:0 0 16px">Drayvenn <b>Lab</b></div>
+      <h2>Clinic sign in</h2>
+      <p>Manage appointments for your clinic.</p>
+      <div class="form-grid">
+        <div class="form-row">
+          <label for="adm-email">Clinic email</label>
+          <input id="adm-email" type="email" autocomplete="username" placeholder="you@yourclinic.in">
+        </div>
+        <div class="form-row">
+          <label for="adm-password">Password</label>
+          <div class="pin-wrap">
+            <input id="adm-password" type="password" autocomplete="current-password" placeholder="Clinic password">
+            <button type="button" id="pin-toggle" class="pin-toggle">Show</button>
+          </div>
+        </div>
+        <div class="form-error" id="adm-error"></div>
+        <button class="btn btn-block" id="adm-login-btn">Open dashboard</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="admin-dash-view" class="hidden">
+    <div class="admin-bar">
+      <h2 id="dash-clinic-name"></h2>
+      <div class="spacer">
+        <button class="btn btn-ghost btn-small" id="dash-refresh">↻ Refresh</button>
+        <button class="btn btn-ghost btn-small" id="dash-logout">Sign out</button>
+      </div>
+    </div>
+    <div class="week-strip" id="week-strip"></div>
+    <div class="day-nav">
+      <button class="btn btn-ghost btn-small" id="day-prev">← Prev</button>
+      <div class="day-nav-mid">
+        <span id="day-label" class="day-label"></span>
+        <input type="date" id="dash-date">
+        <button class="btn btn-ghost btn-small" id="day-today">Today</button>
+      </div>
+      <button class="btn btn-ghost btn-small" id="day-next">Next →</button>
+    </div>
+    <div class="stat-row" id="stat-row"></div>
+    <div class="filter-row">
+      <button class="filter-chip active" data-filter="all">All</button>
+      <button class="filter-chip" data-filter="pending">Pending</button>
+      <button class="filter-chip" data-filter="confirmed">Confirmed</button>
+      <button class="filter-chip" data-filter="cancelled">Cancelled</button>
+    </div>
+    <div class="filter-row" id="doctor-row" style="margin-top:-6px"></div>
+    <div class="admin-search">
+      <input type="text" id="admin-search-input" placeholder="Search patient, phone or ref...">
+    </div>
+    <div id="booking-host" class="booking-list"></div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <span><b style="color:var(--ink)">Drayvenn Health</b> · a Drayvenn Lab product</span>
+    <span class="right">Clinic admin · Demo build</span>
+  </div>
+</footer>
+
+<div id="toast-host"></div>
+<script src="admin.js"></script>
+<script src="neural.js"></script>
+</body>
+</html>
