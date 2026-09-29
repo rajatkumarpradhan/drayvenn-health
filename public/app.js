@@ -14,7 +14,7 @@ function show(view) {
   // safety: a stuck scroll lock must never survive a view switch
   if (!document.getElementById('wizard-overlay')) document.body.classList.remove('wiz-open');
   if (view === 'mybookings') renderAccount();
-  for (const v of ['home', 'clinic', 'confirm', 'mybookings']) {
+  for (const v of ['home', 'clinic', 'confirm', 'mybookings', 'signin']) {
     const el = document.getElementById('view-' + v);
     el.classList.toggle('hidden', v !== view);
     if (v === view) {
@@ -730,8 +730,8 @@ $('#search-input').addEventListener('input', e => { state.filter.q = e.target.va
 $('#logo-home').onclick = () => show('home');
 $('#back-home').onclick = () => show('home');
 $('#confirm-home').onclick = () => show('home');
-$('#nav-bookings').onclick = e => { e.preventDefault(); show('mybookings'); };
 $('#back-home-3').onclick = () => show('home');
+$('#back-home-4').onclick = () => show('home');
 $('#bk-btn').onclick = lookupBooking;
 $('#bk-phone').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10); });
 $('#bk-phone').addEventListener('keydown', e => { if (e.key === 'Enter') lookupBooking(); });
@@ -815,7 +815,7 @@ function renderAcctMenu() {
       <button class="acct-item" id="am-track" role="menuitem">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4.5" width="18" height="17" rx="3"/><path d="M8 2.5v4M16 2.5v4M3 10h18"/></svg>
         Track a booking</button>`;
-    $('#am-login').onclick = () => { closeAcctMenu(); show('mybookings'); };
+    $('#am-login').onclick = () => { closeAcctMenu(); showSignin(); };
     $('#am-track').onclick = () => { closeAcctMenu(); show('mybookings'); };
   }
 }
@@ -850,10 +850,22 @@ async function loadPatient() {
 
 function maskPhone(p) { return p ? '+91 ' + p.slice(0, 5) + ' ' + p.slice(5) : ''; }
 
+function showSignin() {
+  show('signin');
+  renderLogin($('#signin-panel'));
+}
+
 function renderAccount() {
   const host = $('#account-panel');
   if (!host) return;
-  if (!state.patient) { renderLogin(host); return; }
+  if (!state.patient) {
+    host.innerHTML = `
+      <h2 style="font-size:20px;font-weight:700">My bookings</h2>
+      <p style="color:var(--muted);font-size:13.5px;margin:6px 0 14px">Sign in to see your booking history, with cancel and reschedule.</p>
+      <button class="btn btn-block" id="acct-goto-signin">Sign in</button>`;
+    $('#acct-goto-signin').onclick = showSignin;
+    return;
+  }
   const p = state.patient;
   host.innerHTML = `
     <h2 style="font-size:20px;font-weight:700">Hi${p.name ? ', ' + esc(p.name.split(' ')[0]) : ''}</h2>
@@ -952,6 +964,7 @@ async function verifyOtp() {
     state.patient = patient;
     renderAcctMenu();
     toast('Signed in', 'info');
+    show('mybookings');
     renderAccount();
   } catch (e) {
     err.textContent = e.message; err.style.display = 'block';
