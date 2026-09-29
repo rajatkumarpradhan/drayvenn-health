@@ -611,6 +611,11 @@ function watchReveals(root) {
     (root || document).querySelectorAll('.reveal').forEach(el => el.classList.add('revealed'));
     return;
   }
+  // already above the viewport (deep link, scroll restore): reveal immediately
+  (root || document).querySelectorAll('.reveal:not(.revealed)').forEach(el => {
+    const r = el.getBoundingClientRect();
+    if (r.bottom < 0) el.classList.add('revealed');
+  });
   (root || document).querySelectorAll('.reveal:not(.revealed):not([data-rv])').forEach(el => {
     el.dataset.rv = '1';
     const sibs = [...el.parentElement.children].filter(x => x.classList && x.classList.contains('reveal'));
