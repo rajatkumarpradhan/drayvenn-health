@@ -375,11 +375,11 @@ body:has(#wizard-overlay) { overflow: hidden; }
 /* ---------- chat ---------- */
 #chat-fab {
   position: fixed; bottom: 88px; right: 18px; z-index: 200;
-  width: 54px; height: 54px; border-radius: 50%; background: var(--grad);
-  box-shadow: 0 8px 24px rgba(22,104,232,.42); display: grid; place-items: center;
+  width: 50px; height: 50px; border-radius: 50%; background: var(--grad);
+  box-shadow: 0 6px 16px rgba(22,104,232,.35); display: grid; place-items: center;
   color: #fff; position: fixed;
 }
-.chat-fab-ring { position: absolute; inset: -4px; border-radius: 50%; border: 2px solid rgba(22,104,232,.35); animation: fabPulse 2.4s ease-out infinite; }
+.chat-fab-ring { position: absolute; inset: -3px; border-radius: 50%; border: 1.5px solid rgba(22,104,232,.3); animation: fabPulse 2.4s ease-out infinite; }
 @keyframes fabPulse { 0% { transform: scale(.9); opacity: .9; } 70% { transform: scale(1.25); opacity: 0; } 100% { opacity: 0; } }
 #chat-panel {
   position: fixed; bottom: 88px; right: 18px; z-index: 200;
@@ -423,15 +423,20 @@ body:has(#wizard-overlay) { overflow: hidden; }
   .tabbar {
     display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 150;
     background: rgba(255,255,255,.95); border-top: 1px solid var(--line);
-    padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+    padding: 3px 8px calc(3px + env(safe-area-inset-bottom, 0px));
   }
-  .tabbar a { flex: 1; display: grid; justify-items: center; gap: 2px; padding: 6px 0; font-size: 10.5px; font-weight: 700; color: var(--muted); }
-  .tabbar a.active { color: var(--primary); }
-  .tabbar a svg { width: 22px; height: 22px; }
-  #chat-fab { bottom: 84px; }
+  .tabbar .tab { flex: 1; display: grid; justify-items: center; gap: 3px; padding: 5px 0 4px; font-size: 10px; font-weight: 600; color: var(--muted); background: none; border-radius: 0; }
+  .tabbar .tab.active { background: none; color: var(--primary); }
+  .tabbar .tab svg { width: 21px; height: 21px; }
+  #chat-fab { bottom: 76px; }
   .nav-full { display: none; }
   .nav-short { display: inline; }
   .hero-scene { height: 176px; }
+  .hero { padding: 16px 0 4px; }
+  .hero h1 { font-size: 25px; line-height: 1.22; letter-spacing: -.015em; }
+  .hero p { font-size: 14px; margin-top: 8px; }
+  .hero-badges { margin-top: 10px; gap: 6px; }
+  .hero-badge { font-size: 11.5px; padding: 5px 10px; }
   .hero-lockup { width: 64px; height: 64px; border-radius: 18px; }
   .hero-wordmark { font-size: 11px; }
   .topbar-inner { padding: 8px 14px; gap: 8px; }
