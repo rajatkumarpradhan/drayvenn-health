@@ -989,12 +989,12 @@ function closeDoctorModal() {
 }
 
 /* ---------- BOOKING WIZARD (v7) ---------- */
-const WIZ_STEPS = ['date', 'time', 'details', 'review'];
-const WIZ_LABELS = { date: 'Date', time: 'Time', details: 'Details', review: 'Confirm' };
+const WIZ_STEPS = ['slot', 'details'];
+const WIZ_LABELS = { slot: 'Select slot', details: 'Your details' };
 
 function openBooking(doctorId, pre) {
   const doctor = state.clinic.doctors.find(d => d.id === doctorId);
-  state.booking = { doctor, date: pre && pre.date ? pre.date : null, slot: pre && pre.slot ? pre.slot : null, step: 'date' };
+  state.booking = { doctor, date: pre && pre.date ? pre.date : null, slot: pre && pre.slot ? pre.slot : null, step: 'slot' };
   if (state.patient) {
     if (state.patient.name) state.booking.pname = state.patient.name;
     if (state.patient.phone) state.booking.pphone = state.patient.phone;
@@ -1066,37 +1066,31 @@ function renderWizard(dir) {
   const { step } = state.booking;
   const host = $('#wiz-steps');
   const anim = dir === 'back' ? 'stepInL' : dir === 'none' ? 'stepFade' : 'stepInR';
-  if (step === 'date') host.innerHTML = wizDateHTML();
-  else if (step === 'time') host.innerHTML = '<div class="slot-grid">' + '<div class="skel skel-slot"></div>'.repeat(8) + '</div>';
-  else if (step === 'details') host.innerHTML = wizDetailsHTML();
-  else host.innerHTML = wizReviewHTML();
+  if (step === 'slot') host.innerHTML = wizSlotHTML();
+  else host.innerHTML = wizDetailsHTML();
   const el = host.firstElementChild;
   if (el) { el.classList.add('wiz-step'); el.style.animation = anim + ' .34s cubic-bezier(.22,.61,.36,1) both'; }
-  if (step === 'date') wireWizDate();
-  if (step === 'time') loadSlots();
+  if (step === 'slot') wireWizSlot();
   if (step === 'details') wireWizDetails();
-  if (step === 'review') wireWizReview();
   wizRenderFoot();
 }
 
 function wizRenderFoot() {
   const { step, date, slot } = state.booking;
   const back = $('#wiz-back'), next = $('#wiz-next');
-  back.style.visibility = step === 'date' ? 'hidden' : 'visible';
-  if (step === 'review') {
-    next.style.display = '';
-    const box = $('#bk-consent');
-    next.disabled = box ? !box.checked : false;
-    next.innerHTML = '✓ Confirm booking';
+  back.style.visibility = step === 'slot' ? 'hidden' : 'visible';
+  next.style.display = '';
+  if (step === 'details') {
     next.classList.add('wiz-confirm');
-    next.onclick = submitBooking;
+    next.disabled = false;
+    next.innerHTML = '✓ Confirm Booking';
+    next.onclick = () => { if (wizValidate(true)) submitBooking(); };
     return;
   }
   next.classList.remove('wiz-confirm');
   next.onclick = wizNext;
-  next.style.display = '';
-  next.disabled = (step === 'date' && !date) || (step === 'time' && !slot);
-  next.innerHTML = step === 'details' ? 'Review booking →' : 'Continue →';
+  next.disabled = !date || !slot;
+  next.innerHTML = 'Continue →';
 }
 
 function wizGoto(step, dir) {
@@ -1109,97 +1103,82 @@ function wizBack() {
 }
 function wizNext() {
   const { step } = state.booking;
-  if (step === 'date' && state.booking.date) wizGoto('time');
-  else if (step === 'time' && state.booking.slot) wizGoto('details');
-  else if (step === 'details') { if (wizValidate(true)) wizGoto('review'); }
+  if (step === 'slot' && state.booking.date && state.booking.slot) wizGoto('details');
 }
 
-/* --- step: date --- */
-function wizDateHTML() {
+/* --- step: slot (calendar + time pills on one step) --- */
+function wizSlotHTML() {
   const days = [];
-  for (let i = 0; i < 14; i++) { const d = new Date(); d.setDate(d.getDate() + i); days.push(d); }
+  const now = new Date(Date.now() + 19800000);
+  for (let i = 0; i < 14; i++) days.push(new Date(now.getTime() + i * 86400000).toISOString().slice(0, 10));
   return `<div>
-    <div class="wiz-step-title">Pick a day</div>
-    <div class="wiz-step-sub">Next two weeks at ${esc(state.clinic.name)}</div>
+    <div class="wiz-step-title">Select a slot</div>
+    <div class="wiz-step-sub">Pick a day and time at ${esc(state.clinic.name)}</div>
     <div class="date-row wiz-date-row" id="wiz-date-row">` +
-    days.map((d, i) => {
-      const iso = toISODate(d);
-      return `<button class="date-pill" data-iso="${iso}">
-        <div class="dow">${i === 0 ? 'Today' : d.toLocaleDateString('en-IN', { weekday: 'short' })}</div>
-        <div class="dnum">${d.getDate()}</div>
-        <div class="dow">${d.toLocaleDateString('en-IN', { month: 'short' })}</div></button>`;
-    }).join('') + `</div></div>`;
+    days.map((iso, i) => {
+      const d = new Date(iso + 'T00:00:00Z');
+      return `<button class="date-pill${state.booking.date === iso ? ' active' : ''}" data-iso="${iso}">
+        <div class="dow">${i === 0 ? 'Today' : d.toLocaleDateString('en-IN', { weekday: 'short', timeZone: 'UTC' })}</div>
+        <div class="dnum">${d.getUTCDate()}</div>
+        <div class="dow">${d.toLocaleDateString('en-IN', { month: 'short', timeZone: 'UTC' })}</div></button>`;
+    }).join('') + `</div>
+    <div id="wiz-slot-host"><div class="wiz-slot-hint">Pick a day to see open times</div></div>
+  </div>`;
 }
-function wireWizDate() {
+function wireWizSlot() {
   $('#wiz-date-row').querySelectorAll('.date-pill').forEach(b => {
     b.onclick = () => {
+      if (state.booking.date !== b.dataset.iso) state.booking.slot = null;
       state.booking.date = b.dataset.iso;
-      state.booking.slot = null;
-      $('#wiz-date-row').querySelectorAll('.date-pill').forEach(p => p.classList.remove('active'));
-      b.classList.add('active');
+      $('#wiz-date-row').querySelectorAll('.date-pill').forEach(p => p.classList.toggle('active', p === b));
       wizRenderLive();
       wizRenderFoot();
-      setTimeout(() => wizGoto('time'), 260);
+      loadWizSlots();
     };
   });
+  if (state.booking.date) loadWizSlots();
 }
-
-/* --- step: time (rich slot picker) --- */
-async function loadSlots() {
+async function loadWizSlots() {
   const { doctor, date } = state.booking;
-  const host = $('#wiz-steps');
+  const host = $('#wiz-slot-host');
+  if (!host || !date) return;
+  host.innerHTML = '<div class="slot-grid">' + '<div class="skel skel-slot"></div>'.repeat(8) + '</div>';
   try {
     const { slots } = await api(`/api/slots?doctor_id=${encodeURIComponent(doctor.id)}&date=${date}`);
-    if (state.booking.step !== 'time') return;
+    if (state.booking.step !== 'slot' || state.booking.date !== date) return;
     if (!slots.length) {
-      host.innerHTML = `<div class="wiz-step" style="animation:stepFade .32s cubic-bezier(.22,.61,.36,1) both">
-        <div class="wiz-step-title">Pick a time</div>
-        <div class="empty-note">Doctor is not available on ${esc(fmtDate(date))}. <a href="#" id="wiz-pick-other">Choose another day</a>.</div></div>`;
-      const po = $('#wiz-pick-other'); if (po) po.onclick = e => { e.preventDefault(); wizGoto('date', 'back'); };
+      host.innerHTML = `<div class="empty-note">Doctor is not available on ${esc(fmtDate(date))}. Pick another day above.</div>`;
       return;
     }
     const firstOpen = slots.find(s => s.available);
     let si = 0;
-    host.innerHTML = `<div class="wiz-step" style="animation:stepFade .32s cubic-bezier(.22,.61,.36,1) both">
-      <div class="wiz-step-title">Pick a time</div>
-      <div class="wiz-step-sub">${esc(fmtDate(date))} · ${slots.filter(s => s.available).length} of ${slots.length} slots open</div>
-      <div id="slot-grid">` +
-      (() => {
-        const groups = [['Morning', s => +s.time.slice(0, 2) < 12], ['Afternoon', s => +s.time.slice(0, 2) >= 12 && +s.time.slice(0, 2) < 17], ['Evening', s => +s.time.slice(0, 2) >= 17]];
-        let html = '';
-        for (const [label, match] of groups) {
-          const g = slots.filter(match);
-          if (!g.length) continue;
-          html += `<div class="slot-group-label">${label}</div><div class="slot-grid">` + g.map(s => {
-            const isNext = firstOpen && s.time === firstOpen.time;
-            return `<button class="slot-btn ${isNext ? 'slot-next' : ''}" data-time="${s.time}" ${s.available ? '' : 'disabled'}
-              style="animation-delay:${(si++ * 18)}ms">${fmtTime(s.time)}${isNext ? '<span class="slot-next-tag">next</span>' : ''}${s.available ? '' : '<span class="slot-taken-tag">taken</span>'}</button>`;
-          }).join('') + '</div>';
-        }
-        return html;
-      })() + `</div>
-      <div class="slot-legend"><span><i class="lg lg-open"></i>Available</span><span><i class="lg lg-next"></i>Next up</span><span><i class="lg lg-taken"></i>Taken</span></div></div>`;
-    const grid = $('#slot-grid');
-    grid.querySelectorAll('.slot-btn:not(:disabled)').forEach(b => {
+    let html = `<div class="wiz-slots-title">${esc(fmtDate(date))} · ${slots.filter(s => s.available).length} of ${slots.length} open</div>`;
+    const groups = [['Morning', s => +s.time.slice(0, 2) < 12], ['Afternoon', s => +s.time.slice(0, 2) >= 12 && +s.time.slice(0, 2) < 17], ['Evening', s => +s.time.slice(0, 2) >= 17]];
+    for (const [label, match] of groups) {
+      const g = slots.filter(match);
+      if (!g.length) continue;
+      html += `<div class="slot-group-label">${label}</div><div class="slot-grid">` + g.map(s => {
+        const isNext = firstOpen && s.time === firstOpen.time;
+        return `<button class="slot-btn ${isNext ? 'slot-next' : ''}${state.booking.slot === s.time ? ' active' : ''}" data-time="${s.time}" ${s.available ? '' : 'disabled'}
+          style="animation-delay:${(si++ * 18)}ms">${fmtTime(s.time)}${isNext ? '<span class="slot-next-tag">next</span>' : ''}${s.available ? '' : '<span class="slot-taken-tag">taken</span>'}</button>`;
+      }).join('') + '</div>';
+    }
+    if (!slots.some(s => s.available)) html += '<div class="empty-note">All slots are taken for this day. Pick another day above.</div>';
+    host.innerHTML = html;
+    host.querySelectorAll('.slot-btn:not(:disabled)').forEach(b => {
       b.onclick = () => {
         state.booking.slot = b.dataset.time;
-        grid.querySelectorAll('.slot-btn').forEach(x => x.classList.remove('active'));
-        b.classList.add('active');
+        host.querySelectorAll('.slot-btn').forEach(x => x.classList.toggle('active', x === b));
         wizRenderLive();
         wizRenderFoot();
-        setTimeout(() => wizGoto('details'), 280);
       };
     });
-    if (!slots.some(s => s.available)) {
-      host.querySelector('.wiz-step').insertAdjacentHTML('beforeend',
-        '<div class="empty-note">All slots are taken for this day. <a href="#" id="wiz-pick-other2">Try another date</a>.</div>');
-      const po = $('#wiz-pick-other2'); if (po) po.onclick = e => { e.preventDefault(); wizGoto('date', 'back'); };
-    }
   } catch (e) {
-    if (state.booking.step === 'time') host.innerHTML = `<div class="empty-note">${esc(e.message)}</div>`;
+    host.innerHTML = `<div class="empty-note">${esc(e.message)}</div>`;
   }
 }
 
+/* --- step: time (rich slot picker) --- */
 /* --- step: details --- */
 function wizDetailsHTML() {
   const b = state.booking;
@@ -1208,14 +1187,22 @@ function wizDetailsHTML() {
     <div class="wiz-step-title">Your details</div>
     <div class="wiz-step-sub">For ${esc(b.doctor.name)} · ${esc(fmtDateShort(b.date))} · ${fmtTime(b.slot)}</div>
     <div class="form-grid">
-      <div class="form-2col">
-        <div class="form-row"><label for="wz-name">Patient name</label><input id="wz-name" placeholder="Full name" maxlength="60" autocomplete="name" value="${v('pname')}"></div>
-        <div class="form-row"><label for="wz-age">Age</label><input id="wz-age" placeholder="Age" inputmode="numeric" maxlength="3" value="${v('page')}"></div>
-      </div>
-      <div class="form-row"><label for="wz-phone">Mobile number</label>
+      <div class="form-row"><label for="wz-name">Full Name</label><input id="wz-name" placeholder="Full name" maxlength="60" autocomplete="name" value="${v('pname')}"></div>
+      <div class="form-row"><label for="wz-phone">Mobile Number</label>
         <div class="phone-wrap"><span class="phone-prefix">+91</span><input id="wz-phone" placeholder="98765 43210" inputmode="numeric" maxlength="10" autocomplete="tel-national" value="${v('pphone')}"></div>
       </div>
-      <div class="form-row"><label for="wz-concern">Concern <span style="color:var(--muted);font-weight:400">(optional)</span></label><textarea id="wz-concern" rows="2" placeholder="e.g. fever since 2 days" maxlength="300">${esc(b.pconcern || '')}</textarea></div>
+      <div class="form-2col">
+        <div class="form-row"><label for="wz-age">Age</label><input id="wz-age" placeholder="Age" inputmode="numeric" maxlength="3" value="${v('page')}"></div>
+        <div class="form-row"><label for="wz-gender">Gender</label><select id="wz-gender" class="wz-select">
+          <option value="">Select</option>
+          <option value="Female" ${b.pgender === 'Female' ? 'selected' : ''}>Female</option>
+          <option value="Male" ${b.pgender === 'Male' ? 'selected' : ''}>Male</option>
+          <option value="Other" ${b.pgender === 'Other' ? 'selected' : ''}>Other</option>
+        </select></div>
+      </div>
+      <div class="form-row"><label for="wz-concern">Symptoms / notes <span style="color:var(--muted);font-weight:400">(optional)</span></label><textarea id="wz-concern" rows="2" placeholder="e.g. fever since 2 days" maxlength="300">${esc(b.pconcern || '')}</textarea></div>
+      <div class="consent-row">By confirming, you agree to Drayvenn Health storing your name, mobile number and booking details so the clinic can manage this appointment, as described in the <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>. You can ask for your data to be deleted anytime.</div>
+      <div class="form-note" style="text-align:center;margin-top:2px">No payment now - pay \u20B9${b.doctor.fee} at the clinic. The clinic confirms your slot shortly.</div>
       <div class="form-error" id="wz-error"></div>
     </div></div>`;
 }
@@ -1229,7 +1216,8 @@ function wizValidate(showErr) {
   const phone = $('#wz-phone').value.trim();
   const age = $('#wz-age').value.trim();
   const concern = $('#wz-concern').value.trim();
-  Object.assign(state.booking, { pname: name, pphone: phone, page: age, pconcern: concern });
+  const gender = $('#wz-gender') ? $('#wz-gender').value : '';
+  Object.assign(state.booking, { pname: name, pphone: phone, page: age, pconcern: concern, pgender: gender });
   const err = $('#wz-error');
   let msg = '';
   if (name.length < 2) msg = 'Please enter the patient name.';
@@ -1269,7 +1257,7 @@ function wireWizReview() {
 }
 
 async function submitBooking() {
-  const err = $('#bk-error2');
+  const err = $('#wz-error');
   err.style.display = 'none';
   const b = state.booking;
   const btn = $('#wiz-next');
@@ -1283,7 +1271,7 @@ async function submitBooking() {
         clinic_id: state.clinic.id,
         doctor_id: b.doctor.id,
         patient_name: b.pname,
-        phone: b.pphone, age: b.page, concern: b.pconcern,
+        phone: b.pphone, age: b.page, gender: b.pgender || null, concern: b.pconcern,
         date: b.date, slot: b.slot, consent: true
       })
     });
@@ -1296,7 +1284,7 @@ async function submitBooking() {
     err.style.display = 'block';
     toast(e.message, 'error');
     btn.disabled = false;
-    btn.innerHTML = '✓ Confirm booking';
+    btn.innerHTML = '✓ Confirm Booking';
   }
 }
 
@@ -1340,11 +1328,13 @@ function confettiBurst() {
 function renderConfirmation(b) {
   setTimeout(confettiBurst, 250);
   $('#confirm-sub').textContent = `${b.clinic_name} will confirm your slot shortly. Save your booking reference.`;
+  $('#confirm-ref').innerHTML = `Booking ID <b>${esc(b.ref)}</b>`;
   $('#wa-bubble').innerHTML = `
     <div class="wa-head">Drayvenn Health · Appointment booked</div>
     <div class="wa-row"><span class="k">Patient</span><span class="v">${esc(b.patient_name)}${b.age ? ' · ' + esc(b.age) + ' yrs' : ''}</span></div>
     <div class="wa-row"><span class="k">Doctor</span><span class="v">${esc(b.doctor_name)}</span></div>
     <div class="wa-row"><span class="k">Clinic</span><span class="v">${esc(b.clinic_name)}</span></div>
+    <div class="wa-row"><span class="k">Address</span><span class="v">${esc(b.clinic_address || '')}</span></div>
     <div class="wa-row"><span class="k">Date</span><span class="v">${fmtDate(b.date)}</span></div>
     <div class="wa-row"><span class="k">Time</span><span class="v">${fmtTime(b.slot)}</span></div>
     <div class="wa-row"><span class="k">Consult fee</span><span class="v">₹${b.fee} (pay at clinic)</span></div>
@@ -1391,10 +1381,13 @@ function renderManageBooking(b) {
         <div class="tstep done"><div class="tdot"></div>Booked</div>
         <div class="tline ${stepIdx >= 1 ? 'done' : ''}"></div>
         <div class="tstep ${stepIdx >= 1 ? 'done' : ''}"><div class="tdot"></div>Confirmed</div>
-      </div>` : `<div style="text-align:center;margin-bottom:10px"><span class="status-badge status-cancelled">Cancelled</span></div>`}
+      </div>
+      ${stepIdx === 0 ? '<div class="track-note">Waiting for clinic confirmation</div>' : ''}
+      ${stepIdx === 1 ? '<div class="track-note track-note-ok">Confirmed - show your booking reference at the clinic</div>' : ''}` : `<div style="text-align:center;margin-bottom:10px"><span class="status-badge status-cancelled">Cancelled</span></div>`}
       <div class="wa-row"><span class="k">Patient</span><span class="v">${esc(b.patient_name)}</span></div>
       <div class="wa-row"><span class="k">Doctor</span><span class="v">${esc(b.doctor_name)} (${esc(b.specialty)})</span></div>
       <div class="wa-row"><span class="k">Clinic</span><span class="v">${esc(b.clinic_name)}, ${esc(b.clinic_area)}</span></div>
+      ${b.status === 'confirmed' && b.clinic_address ? `<div class="wa-row"><span class="k">Address</span><span class="v">${esc(b.clinic_address)}</span></div>` : ''}
       <div class="wa-row"><span class="k">Date & time</span><span class="v">${fmtDate(b.date)}, ${fmtTime(b.slot)}</span></div>
       <div class="wa-row"><span class="k">Fee</span><span class="v">₹${b.fee} (pay at clinic)</span></div>
       <div class="wa-row"><span class="k">Reference</span><span class="v"><b>${esc(b.ref)}</b></span></div>
@@ -1518,8 +1511,7 @@ $('#confirm-share').onclick = async () => {
   const b = state.lastBooking;
   if (!b) return;
   const text = `Drayvenn Health appointment\n${b.doctor_name} - ${b.clinic_name}\n${fmtDate(b.date)}, ${fmtTime(b.slot)}\nBooking ref: ${b.ref}`;
-  if (navigator.share) { try { await navigator.share({ title: 'Drayvenn Health appointment', text }); } catch {} }
-  else { try { await navigator.clipboard.writeText(text); toast('Details copied - paste anywhere to share', 'info'); } catch {} }
+  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
 };
 $('#confirm-manage').onclick = () => {
   const b = state.lastBooking;

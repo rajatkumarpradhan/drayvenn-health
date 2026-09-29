@@ -15,6 +15,7 @@ export async function onRequestPost(context) {
   if (body.consent !== true) return badRequest('Consent to the privacy policy is required to book');
   const age = body.age ? parseInt(body.age, 10) : null;
   const concern = (body.concern || '').toString().slice(0, 300).trim();
+  const gender = (body.gender || '').toString().slice(0, 12).trim() || null;
 
   if (!clinic_id || !doctor_id) return badRequest('clinic_id and doctor_id are required');
   const name = (patient_name || '').toString().trim();
@@ -51,9 +52,9 @@ export async function onRequestPost(context) {
   }
 
   await DB.prepare(
-    `INSERT INTO bookings (ref, clinic_id, clinic_name, doctor_id, doctor_name, patient_name, phone, age, concern, date, slot, status, consent_at, patient_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), ?)`
-  ).bind(ref, clinic_id, clinic.name, doctor_id, doctor.name, name, ph, age, concern || null, date, slot, patientId).run();
+    `INSERT INTO bookings (ref, clinic_id, clinic_name, doctor_id, doctor_name, patient_name, phone, age, gender, concern, date, slot, status, consent_at, patient_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), ?)`
+  ).bind(ref, clinic_id, clinic.name, doctor_id, doctor.name, name, ph, age, gender, concern || null, date, slot, patientId).run();
 
   return json({
     booking: {
