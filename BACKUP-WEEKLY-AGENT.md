@@ -14,9 +14,7 @@
 
 ## Secrets - the two hard constraints
 1. Cloudflare auth. wrangler OAuth (~/.wrangler/config/default.toml) lives only in the workspace where login ran; tokens expire hourly and the refresh token rotates (scripts/refresh-cf-auth.sh keeps it alive only in that same workspace). A fresh agent workspace has no OAuth file. Clean fix: a scoped Cloudflare API Token (Account > D1 > Edit) used as CLOUDFLARE_API_TOKEN env - wrangler accepts it with no OAuth. But see constraint 2: an agent cannot read it back out of the vault.
-2. Backup passphrase. The vault is write-only for agents (list/update/fill never return values), so "Drayvenn D1 backup passphrase" cannot be read by any agent at run time. Options:
-   a. RECOMMENDED: switch to gpg public-key encryption. Public key lives in the repo (not secret); private key is vaulted for the user. Weekly runs encrypt with no secret at all; only the user can decrypt. Removes constraint 2 entirely.
-   b. Keep AES256 and have the scheduled agent generate the passphrase itself on first run and vault it - but any workspace rebuild rotates the passphrase and strands older backups.
+2. Backup passphrase - RESOLVED 29 Sep: the script now encrypts to the GPG public key in backup-pubkey.asc (in repo). No secret is needed to run the weekly backup. The private key + key passphrase are vaulted for the user (agent-designated logins "Drayvenn D1 backup private key" / "Drayvenn D1 backup key passphrase"). See BACKUP.md for the decrypt steps and the one legacy symmetric backup.
 
 ## Suggested schedule
 Cadence wake, weekly (interval 10080 min). Prompt: run scripts/backup-d1.sh per this runbook, verify the Drive upload, report filename/size/folder link or the exact failure. One retry on wrangler auth failure after refresh; then report blocked.
