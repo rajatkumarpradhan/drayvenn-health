@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="styles.css">
 <link rel="icon" type="image/png" href="/favicon-64.png">
 <link rel="manifest" href="/manifest.webmanifest">
-<meta name="theme-color" content="#00a898">
+<meta name="theme-color" content="#0D9488">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -130,6 +130,10 @@
   </section>
   <!-- CLINICS (full browser) -->
   <section id="view-clinics" class="hidden">
+    <div class="listing-head">
+      <h2 class="listing-title">Clinics in Bengaluru</h2>
+      <p class="listing-sub">Find neighbourhood clinics near you</p>
+    </div>
     <div class="seg" id="browse-seg">
       <button type="button" class="seg-btn active" data-seg="clinics">Clinics</button>
       <button type="button" class="seg-btn" data-seg="doctors">Doctors</button>
@@ -139,6 +143,38 @@
       <select id="area-filter" aria-label="Filter by area"><option value="All">All areas</option></select>
     </div>
     <div class="chips" id="spec-chips"></div>
+
+    <button type="button" id="filters-open" class="btn btn-outline btn-small filters-open">Filters</button>
+    <div class="filters-bar" id="filters-bar">
+      <div class="fb-group">
+        <span class="fb-label">Availability</span>
+        <div class="fb-chips" id="avail-chips">
+          <button type="button" class="fchip active" data-avail="all">Any day</button>
+          <button type="button" class="fchip" data-avail="today">Today</button>
+          <button type="button" class="fchip" data-avail="tomorrow">Tomorrow</button>
+          <button type="button" class="fchip" data-avail="week">This week</button>
+        </div>
+      </div>
+      <div class="fb-group">
+        <span class="fb-label">Price</span>
+        <div class="fb-chips" id="price-chips">
+          <button type="button" class="fchip active" data-price="all">Any</button>
+          <button type="button" class="fchip" data-price="u300">Under ₹300</button>
+          <button type="button" class="fchip" data-price="p350">₹300-500</button>
+          <button type="button" class="fchip" data-price="p500">₹500+</button>
+        </div>
+      </div>
+      <div class="fb-group">
+        <span class="fb-label">Sort by</span>
+        <select id="sort-select" class="fb-select" aria-label="Sort clinics">
+          <option value="earliest">Earliest slot</option>
+          <option value="price">Price: Low to High</option>
+          <option value="nearest">Nearest</option>
+        </select>
+      </div>
+      <button type="button" id="filters-done" class="btn btn-small filters-done">Done</button>
+    </div>
+    <div class="active-filters hidden" id="active-filters"></div>
 
     <div id="clinics-pane">
       <div class="pane-head">
@@ -295,7 +331,8 @@
 <div id="toast-host"></div>
 <link rel="stylesheet" href="vendor/leaflet.css">
 <script src="vendor/leaflet.js" defer></script>
-<script src="app.js"></script>
+<script>window.__bootErrs=[];addEventListener("error",function(e){__bootErrs.push((e.message||"")+" @ "+(e.filename||"").split("/").pop()+":"+e.lineno)});</script>
+  <script src="app.js"></script>
 <script src="chat.js"></script>
 </body>
 </html>

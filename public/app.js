@@ -9,7 +9,8 @@ if ('serviceWorker' in navigator) {
 
 const state = {
   clinics: [],
-  filter: { q: '', spec: 'All', area: 'All' },
+  filter: { q: '', specs: [], area: 'All', avail: 'all', price: 'all', sort: 'earliest' },
+  geo: null,
   browse: 'clinics', mapMode: 'list',
   clinic: null,
   booking: { doctor: null, date: null, slot: null },
@@ -18,6 +19,7 @@ const state = {
 };
 
 const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 function show(view) {
@@ -125,7 +127,7 @@ function renderAreaFilter() {
     areas.map(a => `<option value="${esc(a)}">${esc(a)}</option>`).join('');
   sel.value = areas.includes(cur) ? cur : 'All';
   state.filter.area = sel.value;
-  sel.onchange = () => { state.filter.area = sel.value; renderBrowse(); };
+  sel.onchange = () => { state.filter.area = sel.value; renderActiveFilters(); renderBrowse(); };
 }
 
 /* ---------- recently viewed clinics (local only, never leaves the device) ---------- */
@@ -172,8 +174,8 @@ function renderHomeExtras() {
     host.innerHTML = [...specs.entries()].slice(0, 8).map(([s, n], i) =>
       `<button class="spec-circle-btn reveal" style="--i:${i}" data-spec="${esc(s)}" aria-label="Book a clinic for ${esc(s)}"><span class="spec-circ">${specCirc(s)}</span><span class="spec-circ-name">${esc(s)}</span></button>`).join('');
     host.querySelectorAll('.spec-circle-btn').forEach(b => b.onclick = () => {
-      state.filter.spec = b.dataset.spec;
-      renderSpecChips(); renderBrowse();
+      state.filter.specs = [b.dataset.spec];
+      renderSpecChips(); renderActiveFilters(); renderBrowse();
       show('clinics');
     });
   }
@@ -363,25 +365,87 @@ function renderSpecChips() {
   state.clinics.forEach(c => c.specialties.forEach(s => specs.add(s)));
   const host = $('#spec-chips');
   host.innerHTML = '';
-  for (const s of ['All', ...specs]) {
+  const mk = (label, active, fn) => {
     const b = document.createElement('button');
-    b.className = 'chip' + (state.filter.spec === s ? ' active' : '');
-    b.textContent = s;
-    b.onclick = () => { state.filter.spec = s; renderSpecChips(); renderBrowse(); };
+    b.className = 'chip' + (active ? ' active' : '');
+    b.textContent = label;
+    b.onclick = fn;
     host.appendChild(b);
+  };
+  mk('All', state.filter.specs.length === 0, () => { state.filter.specs = []; afterFilterChange(); });
+  for (const s of [...specs]) {
+    mk(s, state.filter.specs.includes(s), () => {
+      const i = state.filter.specs.indexOf(s);
+      if (i >= 0) state.filter.specs.splice(i, 1); else state.filter.specs.push(s);
+      afterFilterChange();
+    });
   }
 }
 
+function syncFchips(sel, key, val) { $$(sel + ' .fchip').forEach(b => b.classList.toggle('active', b.dataset[key] === val)); }
+function afterFilterChange() { renderSpecChips(); renderActiveFilters(); renderBrowse(); }
+function clearAllFilters() {
+  const f = state.filter;
+  f.q = ''; f.specs = []; f.area = 'All'; f.avail = 'all'; f.price = 'all'; f.sort = 'earliest';
+  const si = $('#search-input'); if (si) si.value = '';
+  const af = $('#area-filter'); if (af) af.value = 'All';
+  syncFchips('#avail-chips', 'avail', 'all');
+  syncFchips('#price-chips', 'price', 'all');
+  const ss = $('#sort-select'); if (ss) ss.value = 'earliest';
+  afterFilterChange();
+}
+function renderActiveFilters() {
+  const f = state.filter;
+  const host = $('#active-filters');
+  if (!host) return;
+  const items = [];
+  f.specs.forEach(s => items.push({ label: s, clear: () => { f.specs = f.specs.filter(x => x !== s); } }));
+  if (f.area !== 'All') items.push({ label: f.area, clear: () => { f.area = 'All'; const af = $('#area-filter'); if (af) af.value = 'All'; } });
+  if (f.avail !== 'all') items.push({ label: { today: 'Today', tomorrow: 'Tomorrow', week: 'This week' }[f.avail], clear: () => { f.avail = 'all'; syncFchips('#avail-chips', 'avail', 'all'); } });
+  if (f.price !== 'all') items.push({ label: { u300: 'Under \u20B9300', p350: '\u20B9300-500', p500: '\u20B9500+' }[f.price], clear: () => { f.price = 'all'; syncFchips('#price-chips', 'price', 'all'); } });
+  if (f.sort !== 'earliest') items.push({ label: f.sort === 'price' ? 'Price: Low to High' : 'Nearest', clear: () => { f.sort = 'earliest'; const ss = $('#sort-select'); if (ss) ss.value = 'earliest'; } });
+  host.classList.toggle('hidden', !items.length);
+  host.innerHTML = items.map((it, i) => `<span class="af-chip">${esc(it.label)}<button type="button" class="af-x" data-i="${i}" aria-label="Remove filter">\u00D7</button></span>`).join('') + (items.length ? '<button type="button" class="af-clear" id="af-clear-all">Clear all</button>' : '');
+  host.querySelectorAll('.af-x').forEach(b => b.onclick = () => { items[+b.dataset.i].clear(); afterFilterChange(); });
+  const ca = $('#af-clear-all');
+  if (ca) ca.onclick = clearAllFilters;
+}
+
 function filteredClinics() {
-  const q = state.filter.q.toLowerCase();
-  return state.clinics.filter(c => {
-    const inSpec = state.filter.spec === 'All' || c.specialties.includes(state.filter.spec);
-    if (!inSpec) return false;
-    if (state.filter.area !== 'All' && c.area !== state.filter.area) return false;
+  const f = state.filter;
+  const q = f.q.toLowerCase();
+  const list = state.clinics.filter(c => {
+    if (f.specs.length && !c.specialties.some(s => f.specs.includes(s))) return false;
+    if (f.area !== 'All' && c.area !== f.area) return false;
+    if (f.avail !== 'all') {
+      const na = c.next_available;
+      if (!na) return false;
+      if (f.avail === 'today' && !na.today) return false;
+      if (f.avail === 'tomorrow' && !na.tomorrow) return false;
+      if (f.avail === 'week') {
+        const t = new Date(Date.now() + 19800000);
+        const start = t.toISOString().slice(0, 10);
+        const end = new Date(t.getTime() + 6 * 86400000).toISOString().slice(0, 10);
+        if (na.date < start || na.date > end) return false;
+      }
+    }
+    if (f.price !== 'all') {
+      const fee = c.min_fee;
+      if (f.price === 'u300' && !(fee < 300)) return false;
+      if (f.price === 'p350' && !(fee >= 300 && fee <= 500)) return false;
+      if (f.price === 'p500' && !(fee > 500)) return false;
+    }
     if (!q) return true;
     const hay = [c.name, c.area, c.tagline, c.specialties.join(' '), c.doctors.map(d => d.name + ' ' + d.specialty).join(' ')].join(' ').toLowerCase();
     return hay.includes(q);
   });
+  const rank = c => c.next_available ? (c.next_available.date + c.next_available.time) : '9999';
+  if (f.sort === 'price') list.sort((a, b) => a.min_fee - b.min_fee);
+  else if (f.sort === 'nearest' && state.geo) {
+    const dist = c => { const co = CLINIC_COORDS[c.id]; if (!co) return 1e18; const dx = co[0] - state.geo[0], dy = co[1] - state.geo[1]; return dx * dx + dy * dy; };
+    list.sort((a, b) => dist(a) - dist(b));
+  } else list.sort((a, b) => rank(a).localeCompare(rank(b)) || a.name.localeCompare(b.name));
+  return list;
 }
 
 function renderClinics() {
@@ -390,12 +454,12 @@ function renderClinics() {
   if (!list.length) {
     host.innerHTML = `<div class="empty-state">
       <div class="empty-ico-disc">${uiIcon('search')}</div>
-      <div class="empty-title">No clinics match that search</div>
-      <div class="empty-sub">Try a different specialty, doctor name, or area - or clear the search to see everything.</div>
-      <button type="button" class="btn btn-outline btn-small" id="clinic-clear">Clear search</button>
+      <div class="empty-title">No clinics found</div>
+      <div class="empty-sub">Try a different specialty, area, or price range.</div>
+      <button type="button" class="btn btn-outline btn-small" id="clinic-clear">Try changing filters</button>
     </div>`;
     const clr = $('#clinic-clear');
-    if (clr) clr.onclick = () => { state.filter.q = ''; state.filter.spec = 'All'; const si = $('#search-input'); if (si) si.value = ''; renderSpecChips(); renderClinics(); };
+    if (clr) clr.onclick = clearAllFilters;
   } else {
     host.innerHTML = list.map((c, i) => clinicCardHTML(c, i)).join('');
     bindClinicCards(host);
@@ -417,7 +481,7 @@ function renderDoctorsBrowse() {
   for (const c of state.clinics) {
     if (state.filter.area !== 'All' && c.area !== state.filter.area) continue;
     for (const d of (c.doctors || [])) {
-      if (state.filter.spec !== 'All' && d.specialty !== state.filter.spec && !c.specialties.includes(state.filter.spec)) continue;
+      if (state.filter.specs.length && !state.filter.specs.some(s => d.specialty === s || c.specialties.includes(s))) continue;
       if (q) {
         const hay = [d.name, d.specialty, d.qualification, c.name, c.area].join(' ').toLowerCase();
         if (!hay.includes(q)) continue;
@@ -433,7 +497,7 @@ function renderDoctorsBrowse() {
       <button type="button" class="btn btn-outline btn-small" id="doc-clear">Clear search</button>
     </div>`;
     const dc = $('#doc-clear');
-    if (dc) dc.onclick = () => { state.filter.q = ''; state.filter.spec = 'All'; const si = $('#search-input'); if (si) si.value = ''; renderSpecChips(); renderDoctorsBrowse(); };
+    if (dc) dc.onclick = clearAllFilters;
     return;
   }
   host.innerHTML = docs.map((d, i) => {
@@ -542,7 +606,16 @@ function clinicCardHTML(c, i) {
         <span class="fee">from ₹${c.min_fee}</span>
       </div>
       ${fmtNext(c.next_available) ? `<div class="next-slot">Next slot: <b>${fmtNext(c.next_available)}</b></div>` : ''}
+      <button type="button" class="btn btn-small btn-block cc-book" data-book="${esc(c.id)}">Book Now</button>
     </div>`;
+}
+
+function bookClinicQuick(clinicId) {
+  const c = state.clinics.find(x => x.id === clinicId);
+  if (!c || !c.doctors || !c.doctors.length) { openClinic(clinicId); return; }
+  const rank = d => (d.next_available && d.next_available.date + d.next_available.time) || '9999';
+  const docs = c.doctors.slice().sort((a, b) => rank(a).localeCompare(rank(b)));
+  openBooking(docs[0].id);
 }
 
 function bindClinicCards(host) {
@@ -550,6 +623,7 @@ function bindClinicCards(host) {
     el.onclick = () => openClinic(el.dataset.id);
     el.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openClinic(el.dataset.id); } };
   });
+  host.querySelectorAll('.cc-book').forEach(b => b.onclick = e => { e.stopPropagation(); bookClinicQuick(b.dataset.book); });
 }
 
 
@@ -769,8 +843,8 @@ function initDetailMap(c) {
   detailMap = L.map('detail-map', { scrollWheelZoom: false, attributionControl: false, zoomControl: false }).setView(co, 15);
   L.control.zoom({ position: 'bottomright' }).addTo(detailMap);
   L.tileLayer('/api/tile?z={z}&x={x}&y={y}', { maxZoom: 18 }).addTo(detailMap);
-  L.circle(co, { radius: 400, color: '#00a898', weight: 1.5, opacity: .5, fillColor: '#00a898', fillOpacity: .07 }).addTo(detailMap);
-  L.circle(co, { radius: 170, color: '#00a898', weight: 1, opacity: .35, fillColor: '#00a898', fillOpacity: .10 }).addTo(detailMap);
+  L.circle(co, { radius: 400, color: '#0D9488', weight: 1.5, opacity: .5, fillColor: '#0D9488', fillOpacity: .07 }).addTo(detailMap);
+  L.circle(co, { radius: 170, color: '#0D9488', weight: 1, opacity: .35, fillColor: '#0D9488', fillOpacity: .10 }).addTo(detailMap);
   L.marker(co, {
     icon: L.divIcon({ className: 'dh-pin dh-pin-hero', html: '<span class="dh-pin-halo"></span><span class="dh-pin-mark">' + CLINIC_MARK_SVG + '</span>', iconSize: [52, 52], iconAnchor: [26, 49] })
   }).addTo(detailMap);
@@ -1279,6 +1353,21 @@ $('#home-search').addEventListener('keydown', e => {
 { const sb = $('#svc-book'); if (sb) sb.onclick = () => show('clinics'); }
 $('#cta-find').onclick = () => show('clinics');
 $('#cta-track').onclick = () => show('track');
+$$('#avail-chips .fchip').forEach(b => b.onclick = () => { state.filter.avail = b.dataset.avail; syncFchips('#avail-chips', 'avail', b.dataset.avail); renderActiveFilters(); renderBrowse(); });
+$$('#price-chips .fchip').forEach(b => b.onclick = () => { state.filter.price = b.dataset.price; syncFchips('#price-chips', 'price', b.dataset.price); renderActiveFilters(); renderBrowse(); });
+{ const ss = $('#sort-select'); if (ss) ss.onchange = () => {
+  state.filter.sort = ss.value;
+  if (ss.value === 'nearest' && !state.geo) {
+    if (!navigator.geolocation) { toast('Location not available on this device', 'info'); ss.value = 'earliest'; state.filter.sort = 'earliest'; }
+    else navigator.geolocation.getCurrentPosition(
+      p => { state.geo = [p.coords.latitude, p.coords.longitude]; renderActiveFilters(); renderBrowse(); },
+      () => { toast('Location needed for Nearest - showing earliest slots', 'info'); ss.value = 'earliest'; state.filter.sort = 'earliest'; renderActiveFilters(); renderBrowse(); }
+    );
+  }
+  renderActiveFilters(); renderBrowse();
+}; }
+{ const fo = $('#filters-open'); if (fo) fo.onclick = () => $('#filters-bar').classList.add('open'); }
+{ const fd = $('#filters-done'); if (fd) fd.onclick = () => $('#filters-bar').classList.remove('open'); }
 const vac = $('#view-all-clinics'); if (vac) vac.onclick = e => { e.preventDefault(); show('clinics'); };
 $('#home-area').onchange = e => {
   state.filter.area = e.target.value;
