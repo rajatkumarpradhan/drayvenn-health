@@ -766,6 +766,7 @@ document.querySelectorAll('.tabbar .tab').forEach(tab => {
     if (window.closeChat) window.closeChat();
     if (t === 'clinics') {
       show('home');
+      document.querySelectorAll('.tabbar .tab').forEach(x => x.classList.toggle('active', x === tab));
       setTimeout(() => $('#clinic-list') && $('#clinic-list').scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
       return;
     }
