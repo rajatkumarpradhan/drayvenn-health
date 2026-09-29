@@ -865,7 +865,7 @@ body:has(#wizard-overlay) { overflow: hidden; }
    Appended last so every rule here wins by cascade. */
 :root {
   color-scheme: dark;
-  --bg: #061a15;
+  --bg: #0a241d;
   --surface: #0d2a23;
   --ink: #edf7f3;
   --body: #b9d2ca;
@@ -887,9 +887,9 @@ body:has(#wizard-overlay) { overflow: hidden; }
 body { background: var(--bg); color: var(--body); }
 body::before {
   background:
-    radial-gradient(60vw 60vw at 85% -10%, rgba(0,194,174,.14), transparent 62%),
-    radial-gradient(50vw 50vw at -12% 32%, rgba(14,90,72,.4), transparent 60%),
-    radial-gradient(75vw 55vw at 50% 112%, rgba(0,133,122,.16), transparent 62%),
+    radial-gradient(60vw 60vw at 85% -10%, rgba(0,214,188,.16), transparent 62%),
+    radial-gradient(50vw 50vw at -12% 32%, rgba(18,104,84,.42), transparent 60%),
+    radial-gradient(75vw 55vw at 50% 112%, rgba(0,150,135,.18), transparent 62%),
     var(--bg);
 }
 ::placeholder { color: #5d8377 !important; }
@@ -901,9 +901,9 @@ body::before {
 /* hero - deep botanical scene */
 .hero-scene {
   background:
-    radial-gradient(120% 140% at 18% 0%, rgba(0,194,174,.20), transparent 55%),
-    radial-gradient(100% 120% at 88% 100%, rgba(9,84,68,.55), transparent 60%),
-    linear-gradient(150deg, #0a2e26 0%, #0d3a2f 48%, #071f19 100%);
+    radial-gradient(120% 140% at 18% 0%, rgba(0,214,188,.24), transparent 55%),
+    radial-gradient(100% 120% at 88% 100%, rgba(11,96,76,.55), transparent 60%),
+    linear-gradient(150deg, #0e3a2e 0%, #12493a 48%, #0a281f 100%);
   border: 1px solid rgba(53,214,195,.22);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.10), 0 20px 60px rgba(0,20,16,.5);
 }
@@ -992,9 +992,9 @@ body::before {
 /* toast + misc */
 .toast { background: rgba(18,58,49,.96); color: #eaf7f2; border: 1px solid rgba(255,255,255,.14); }
 .dev-code { background: rgba(251,191,36,.10); border: 1px dashed rgba(251,191,36,.45); color: #ffd97a; }
-.footer { background: linear-gradient(168deg, #06231d 0%, #08291f 55%, #061a15 100%); border-top: 1px solid rgba(255,255,255,.08); }
+.footer { background: linear-gradient(168deg, #08281f 0%, #0a2f24 55%, #081f19 100%); border-top: 1px solid rgba(255,255,255,.08); }
 
 /* splash - dark botanical to match */
-.splash { background: linear-gradient(160deg, #081f1a, #0a2a22 55%, #061712); }
+.splash { background: linear-gradient(160deg, #0a2620, #0c3229 55%, #081d17); }
 .splash-word { color: #edf7f3; }
 .splash-ecg path { stroke: #35d6c3; }

@@ -969,17 +969,16 @@ function wizReviewHTML() {
       ${b.pconcern ? row('Concern', b.pconcern) : ''}
       <div class="wiz-review-row wiz-review-total"><span>Consult fee</span><b>₹${b.doctor.fee} <span class="wiz-pay-note">pay at clinic</span></b></div>
     </div>
-    <label class="consent-row"><input type="checkbox" id="bk-consent"><span>I agree to Drayvenn Health storing my name, mobile number and booking details so the clinic can manage this appointment, as described in the <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>. I can ask for my data to be deleted anytime.</span></label>
+    <div class="consent-row">By confirming, you agree to Drayvenn Health storing your name, mobile number and booking details so the clinic can manage this appointment, as described in the <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>. You can ask for your data to be deleted anytime.</div>
     <div class="form-error" id="bk-error2"></div>
     <div class="form-note" style="text-align:center;margin-top:2px">The clinic confirms your slot shortly.</div></div>`;
 }
 function wireWizReview() {
+  /* No checkbox gate: the confirm button is always live, consent sits as a
+     plain line above it (Practo-style). A disabled final button read as
+     "booking is broken" on phones. */
   const btn = $('#wiz-next');
-  const box = $('#bk-consent');
-  if (!box) return;
-  box.checked = false;
-  btn.disabled = true;
-  box.onchange = () => { btn.disabled = !box.checked; };
+  if (btn) btn.disabled = false;
 }
 
 async function submitBooking() {
@@ -1009,8 +1008,7 @@ async function submitBooking() {
     err.textContent = e.message;
     err.style.display = 'block';
     toast(e.message, 'error');
-    const box = $('#bk-consent');
-    btn.disabled = box ? !box.checked : false;
+    btn.disabled = false;
     btn.innerHTML = '✓ Confirm booking';
   }
 }
@@ -1165,7 +1163,7 @@ $('#home-search').addEventListener('keydown', e => {
   show('clinics');
 });
 $('#view-all-clinics').onclick = e => { e.preventDefault(); show('clinics'); };
-$('#svc-book').onclick = () => show('clinics');
+{ const sb = $('#svc-book'); if (sb) sb.onclick = () => show('clinics'); }
 $('#svc-track').onclick = () => show('mybookings');
 $('#svc-chat').onclick = () => { if (window.openChat) window.openChat(); };
 $('#home-area').onchange = e => {
