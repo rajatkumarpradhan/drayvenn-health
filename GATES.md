@@ -23,3 +23,15 @@
 Deploy mechanism: wrangler OAuth (~/.wrangler/config/default.toml), project drayvenn-health,
 D1 drayvenn-health-db (id 9ef176b1-d282-4a5e-83d6-2aacc1be0d20), migrations in ./migrations.
 Redeploy: npx wrangler pages deploy public --project-name drayvenn-health --branch main
+
+## Step 3 decisions (29 Sep 2026)
+- Patient auth: Google sign-in + email OTP are the two live methods.
+- Phone (SMS) OTP is BUILT but OFF - DLT registration in India costs Rs 5,000+GST,
+  deferred. The provider interface (_sms.js, MSG91) and endpoints stay; they answer
+  a clean provider-not-configured 503. WhatsApp OTP is the pilot-stage upgrade (no DLT).
+- Email OTP goes through hello@drayvennlab.in (mailbox recovery in progress) via a
+  transactional provider (Brevo first target); login-alert emails use the same mailbox.
+- Security bar for both: 10-min code expiry, 5 attempts then 15-min identifier block,
+  PBKDF2-hashed codes with per-code salt, SHA-256-hashed session tokens (30-day expiry,
+  7-day rotation), rate limits on all auth endpoints, generic no-enumeration responses,
+  login-alert hook (email when the mailbox is live), CSP + HSTS shipped.

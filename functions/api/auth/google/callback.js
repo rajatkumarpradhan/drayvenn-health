@@ -1,6 +1,6 @@
 import { json } from '../../_lib.js';
 import { createSession, sessionCookie, logAuthEvent } from '../../_auth.js';
-import { sendLoginAlert } from '../../_sms.js';
+import { notifyLogin } from '../../_alerts.js';
 
 /* GET /api/auth/google/callback?code&state
    Exchanges the code, verifies the id_token (aud + iss), then either links
@@ -63,7 +63,7 @@ export async function onRequestGet(context) {
   }
   const { token, maxAge } = await createSession(DB, patient.id, context.request);
   await logAuthEvent(DB, patient.id, 'login_google', { email });
-  await sendLoginAlert(context.env, patient, 'google', context.request);
+  await notifyLogin(context.env, patient, 'google', context.request);
 
   const res = Response.redirect(origin + '/?login=google#account', 302);
   res.headers.append('Set-Cookie', sessionCookie(token, maxAge));

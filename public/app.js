@@ -694,7 +694,7 @@ function renderAccount() {
   host.innerHTML = `
     <h2 style="font-size:20px;font-weight:700">Hi${p.name ? ', ' + esc(p.name.split(' ')[0]) : ''}</h2>
     <p style="color:var(--muted);font-size:13.5px;margin:4px 0 14px">
-      ${p.phone ? 'Signed in with ' + esc(maskPhone(p.phone)) : 'Signed in with Google'}
+      ${p.phone ? 'Signed in with ' + esc(maskPhone(p.phone)) : (p.email ? 'Signed in with ' + esc(p.email) : 'Signed in with Google')}
       ${p.has_google ? ' &middot; Google linked' + (p.google_email ? ' (' + esc(p.google_email) + ')' : '') : ''}
     </p>
     ${!p.has_google ? '<a class="btn btn-block" href="/api/auth/google/start" style="margin-bottom:14px;display:block;text-align:center">Link Google account</a>' : ''}
@@ -717,22 +717,21 @@ function renderLogin(host) {
     <h2 style="font-size:20px;font-weight:700">Sign in to Drayvenn Health</h2>
     <p style="color:var(--muted);font-size:13.5px;margin:4px 0 16px">Faster booking with saved details, plus your full history with cancel and reschedule.</p>
     <div class="form-grid" id="login-phone-step">
-      <div class="form-row"><label for="login-phone">Mobile number</label>
-        <div class="phone-wrap"><span class="phone-prefix">+91</span><input id="login-phone" placeholder="98765 43210" inputmode="numeric" maxlength="10" autocomplete="tel-national"></div>
+      <div class="form-row"><label for="login-phone">Email address</label>
+        <input id="login-phone" type="email" placeholder="you@example.com" autocomplete="email" style="width:100%">
       </div>
       <div class="form-error" id="login-error"></div>
-      <button class="btn btn-block" id="login-send">Send login code</button>
+      <button class="btn btn-block" id="login-send">Email me a login code</button>
     </div>
     <div class="form-grid hidden" id="login-otp-step">
       <div class="form-row"><label for="login-otp">6-digit code</label><input id="login-otp" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;" inputmode="numeric" maxlength="6" autocomplete="one-time-code" style="letter-spacing:6px;text-align:center;font-size:18px"></div>
       <div class="form-error" id="otp-error"></div>
       <button class="btn btn-block" id="login-verify">Verify &amp; sign in</button>
-      <button class="btn btn-block btn-ghost" id="login-back">Use a different number</button>
+      <button class="btn btn-block btn-ghost" id="login-back">Use a different email</button>
     </div>
     <div style="display:flex;align-items:center;gap:10px;margin:14px 0;color:var(--muted);font-size:12px"><span style="flex:1;height:1px;background:var(--line,rgba(190,220,215,.4))"></span>or<span style="flex:1;height:1px;background:var(--line,rgba(190,220,215,.4))"></span></div>
     <a class="btn btn-block btn-ghost" href="/api/auth/google/start" style="display:block;text-align:center">Continue with Google</a>
     <div class="privacy-line" style="margin-top:14px">Sign-in doubles as registration. Codes expire in 10 minutes.</div>`;
-  $('#login-phone').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10); });
   $('#login-otp').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6); });
   $('#login-send').onclick = requestOtp;
   $('#login-verify').onclick = verifyOtp;
@@ -742,31 +741,31 @@ function renderLogin(host) {
 async function requestOtp() {
   const err = $('#login-error');
   err.style.display = 'none';
-  const phone = $('#login-phone').value.trim();
-  if (!/^[6-9]\d{9}$/.test(phone)) { err.textContent = 'Enter a valid 10-digit mobile number.'; err.style.display = 'block'; return; }
+  const email = $('#login-phone').value.trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { err.textContent = 'Enter a valid email address.'; err.style.display = 'block'; return; }
   const btn = $('#login-send');
   btn.disabled = true; btn.textContent = 'Sending...';
   try {
-    await api('/api/auth/otp/request', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone }) });
+    await api('/api/auth/otp/request', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
     $('#login-phone-step').classList.add('hidden');
     $('#login-otp-step').classList.remove('hidden');
     $('#login-otp').focus();
   } catch (e) {
     err.textContent = e.message; err.style.display = 'block';
   }
-  btn.disabled = false; btn.textContent = 'Send login code';
+  btn.disabled = false; btn.textContent = 'Email me a login code';
 }
 
 async function verifyOtp() {
   const err = $('#otp-error');
   err.style.display = 'none';
-  const phone = $('#login-phone').value.trim();
+  const email = $('#login-phone').value.trim();
   const code = $('#login-otp').value.trim();
   if (!/^\d{6}$/.test(code)) { err.textContent = 'Enter the 6-digit code.'; err.style.display = 'block'; return; }
   const btn = $('#login-verify');
   btn.disabled = true; btn.textContent = 'Verifying...';
   try {
-    const { patient } = await api('/api/auth/otp/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone, code }) });
+    const { patient } = await api('/api/auth/otp/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, code }) });
     state.patient = patient;
     toast('Signed in', 'info');
     renderAccount();
