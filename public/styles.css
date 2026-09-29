@@ -895,7 +895,7 @@ body:has(#wizard-overlay) { overflow: hidden; }
 }
 body::before {
   background:
-    radial-gradient(58vw 58vw at 88% -12%, rgba(0,210,190,.30), transparent 60%),
+    radial-gradient(58vw 58vw at 88% -12%, rgba(0,224,201,.30), transparent 60%),
     radial-gradient(46vw 46vw at -14% 26%, rgba(56,189,248,.22), transparent 60%),
     radial-gradient(70vw 50vw at 50% 112%, rgba(0,168,152,.26), transparent 62%),
     radial-gradient(30vw 30vw at 18% 78%, rgba(163,230,214,.35), transparent 65%),
@@ -936,7 +936,7 @@ body::before {
 }
 /* buttons: gloss pill */
 .btn { border-radius: 999px; position: relative; overflow: hidden;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.5), inset 0 -2px 4px rgba(0,90,80,.18), 0 8px 22px rgba(0,168,152,.38); }
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.5), inset 0 -2px 4px rgba(0,85,80,.18), 0 8px 22px rgba(0,168,152,.38); }
 .btn::after { content: ''; position: absolute; left: 8%; right: 8%; top: 2px; height: 46%; border-radius: 999px;
   background: linear-gradient(180deg, rgba(255,255,255,.38), rgba(255,255,255,0)); pointer-events: none; }
 .btn-glass, .btn-ghost {
@@ -963,7 +963,7 @@ input, select, textarea, .phone-wrap {
 }
 input:focus, select:focus, textarea:focus, .phone-wrap:focus-within { border-color: var(--primary) !important; }
 /* account menu + toasts + modals float like glass */
-#acct-menu, .toast, .dd-menu {
+#acct-menu, .dd-menu {
   background: rgba(255,255,255,.55) !important;
   backdrop-filter: blur(24px) saturate(190%) !important;
   -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
@@ -997,3 +997,167 @@ input:focus, select:focus, textarea:focus, .phone-wrap:focus-within { border-col
 /* v40d: wizard chips must not shrink onto the step title */
 .wiz-live { flex-shrink: 0; flex-wrap: wrap; row-gap: 6px; padding-bottom: 8px; }
 .wiz-head, .wiz-progress, .wiz-foot { flex-shrink: 0; }
+
+/* ---------- v41: Apple iOS-26 Liquid Glass benchmark pass ----------
+   Apple's HIG: glass is a floating functional layer; content peeks through.
+   Two variants - "regular" (text-bearing) and "clear" (controls over vivid bg).
+   The wallpaper must carry saturated color or glass has nothing to refract. */
+:root {
+  --glass-bg: rgba(255,255,255,.40);
+  --glass-brd: rgba(255,255,255,.72);
+  --spec: inset 0 1px 0 rgba(255,255,255,.92), inset 1px 0 0 rgba(255,255,255,.30), inset 0 -1px 1px rgba(10,40,60,.05);
+  --spring: cubic-bezier(.34,1.28,.4,1);
+}
+/* vivid iOS-wallpaper aurora: teal + sky + aqua + a breath of violet */
+body::before {
+  background:
+    radial-gradient(56vw 56vw at 94% -12%, rgba(0,224,201,.78), transparent 62%),
+    radial-gradient(50vw 50vw at -18% 20%, rgba(56,189,248,.62), transparent 60%),
+    radial-gradient(70vw 50vw at 50% 116%, rgba(0,168,152,.72), transparent 62%),
+    radial-gradient(34vw 34vw at 10% 80%, rgba(139,92,246,.30), transparent 66%),
+    radial-gradient(30vw 30vw at 80% 56%, rgba(45,212,191,.44), transparent 64%),
+    radial-gradient(38vw 30vw at 30% 6%, rgba(125,211,252,.35), transparent 68%),
+    linear-gradient(180deg, #e6f9f6 0%, #eef7f4 100%);
+}
+/* REGULAR variant: text-bearing cards - clear enough to refract the aurora */
+.track-card, .mb-card, .admin-login, .hero-scene, .signin-brand, .booking-row, .clinic-card, .how-card, .browse-card,
+.doc-card, .soon-card, .acctp-card, .acctp-list, .acctp-editbox, .confirm-card, .wiz-panel, .chat-panel, .doc-modal-card, .svc-tile {
+  background: linear-gradient(135deg, rgba(255,255,255,.55), rgba(255,255,255,.26) 42%, rgba(255,255,255,.16));
+  border: 1px solid var(--glass-brd);
+  box-shadow: var(--spec), 0 18px 44px rgba(0,85,80,.14), 0 2px 6px rgba(13,36,64,.05);
+  backdrop-filter: blur(30px) saturate(210%) brightness(1.04);
+  -webkit-backdrop-filter: blur(30px) saturate(210%) brightness(1.04);
+}
+/* CLEAR variant: controls floating over vivid content */
+.topbar {
+  background: linear-gradient(180deg, rgba(255,255,255,.34), rgba(255,255,255,.20));
+  backdrop-filter: blur(26px) saturate(220%) brightness(1.05);
+  -webkit-backdrop-filter: blur(26px) saturate(220%) brightness(1.05);
+  border-bottom: 1px solid rgba(255,255,255,.60);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.75), 0 8px 28px rgba(0,85,80,.08);
+}
+@media (max-width: 760px) {
+  .tabbar {
+    background: linear-gradient(180deg, rgba(255,255,255,.32), rgba(255,255,255,.16));
+    backdrop-filter: blur(30px) saturate(230%) brightness(1.05);
+    -webkit-backdrop-filter: blur(30px) saturate(230%) brightness(1.05);
+    border: 1px solid rgba(255,255,255,.72);
+    box-shadow: 0 18px 44px rgba(0,85,80,.22), inset 0 1px 0 rgba(255,255,255,.85), inset 0 -1px 1px rgba(10,40,60,.05);
+  }
+  .tabbar .tab { transition: transform .25s var(--spring), color .2s ease; }
+  .tabbar .tab:active { transform: scale(.92); }
+  .tabbar .tab.active svg {
+    background: linear-gradient(135deg, #00c9b2, #00a898);
+    box-shadow: 0 10px 22px rgba(0,168,152,.48), inset 0 1.5px 0 rgba(255,255,255,.65), inset 0 -2px 3px rgba(0,80,72,.25);
+  }
+}
+/* buttons: convex glass lens with specular sweep + spring press */
+.btn { transition: transform .22s var(--spring), box-shadow .22s ease, filter .2s ease; }
+.btn:active { transform: scale(.955); }
+.btn-primary, .btn:not(.btn-glass):not(.btn-ghost) {
+  background: linear-gradient(135deg, #00c9b2, #00a898 60%, #009688);
+  box-shadow: inset 0 1.5px 0 rgba(255,255,255,.55), inset 0 -2px 5px rgba(0,80,72,.28), 0 10px 26px rgba(0,168,152,.42);
+}
+.btn-glass, .btn-ghost {
+  background: linear-gradient(135deg, rgba(255,255,255,.48), rgba(255,255,255,.22));
+  backdrop-filter: blur(22px) saturate(200%);
+  -webkit-backdrop-filter: blur(22px) saturate(200%);
+  border: 1px solid rgba(255,255,255,.70);
+  box-shadow: var(--spec), 0 10px 24px rgba(0,85,80,.12);
+}
+/* chips + pills: clear glass, lens when active */
+.chips button, .date-pill, .slot-btn {
+  background: linear-gradient(135deg, rgba(255,255,255,.40), rgba(255,255,255,.18));
+  backdrop-filter: blur(16px) saturate(190%);
+  -webkit-backdrop-filter: blur(16px) saturate(190%);
+  border: 1px solid rgba(255,255,255,.62);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.78), 0 4px 12px rgba(0,85,80,.07);
+  transition: transform .2s var(--spring), background .2s ease, box-shadow .2s ease;
+}
+.chips button:active, .date-pill:active, .slot-btn:active { transform: scale(.94); }
+.chips button.active, .date-pill.active, .slot-btn.active {
+  background: linear-gradient(135deg, #00c9b2, #00a898);
+  box-shadow: 0 6px 18px rgba(0,168,152,.40), inset 0 1.5px 0 rgba(255,255,255,.55);
+}
+/* inputs: thin material, soft inner light */
+input, select, textarea, .phone-wrap {
+  background: rgba(255,255,255,.58) !important;
+  border: 1px solid rgba(255,255,255,.70) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.80), inset 0 2px 6px rgba(13,36,64,.04), 0 2px 10px rgba(0,85,80,.05) !important;
+  border-radius: 14px !important;
+}
+/* floating menus + toasts: clear glass sheets */
+#acct-menu, .dd-menu {
+  background: linear-gradient(150deg, rgba(255,255,255,.52), rgba(255,255,255,.28)) !important;
+  backdrop-filter: blur(28px) saturate(220%) brightness(1.05) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(220%) brightness(1.05) !important;
+  border: 1px solid rgba(255,255,255,.70) !important;
+  box-shadow: var(--spec), 0 20px 48px rgba(0,85,80,.20) !important;
+}
+/* flagship type: tighter, heavier headings */
+h1, h2, h3, .sec-title { font-family: 'Manrope'; letter-spacing: -.022em; }
+/* card hover lift (pointer devices only; transform-only so GPU cheap) */
+@media (hover: hover) {
+  .clinic-card, .svc-tile, .how-card { transition: transform .28s var(--spring), box-shadow .28s ease; }
+  .clinic-card:hover, .svc-tile:hover, .how-card:hover { transform: translateY(-3px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn, .tabbar .tab, .chips button, .date-pill, .slot-btn, .clinic-card, .svc-tile, .how-card { transition: none !important; }
+  .btn:active, .tabbar .tab:active, .chips button:active { transform: none !important; }
+}
+
+/* ---------- v41b: toast legibility + layering (reads above floating tabbar) ---------- */
+#toast-host { bottom: calc(112px + env(safe-area-inset-bottom, 0px)); z-index: 500; }
+@media (min-width: 761px) { #toast-host { bottom: 40px; } }
+.toast {
+  background: rgba(13,32,58,.92) !important; color: #fff;
+  backdrop-filter: blur(14px) saturate(150%) !important; -webkit-backdrop-filter: blur(14px) saturate(150%) !important;
+  border: 1px solid rgba(255,255,255,.20) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 14px 34px rgba(13,36,64,.40) !important;
+}
+.toast.success { background: rgba(0,133,122,.94) !important; }
+.toast.error { background: rgba(185,28,28,.94) !important; }
+
+/* ---------- v42: icon-avatar system + real desktop layout ---------- */
+.clinic-mark svg { width: 52%; height: 52%; }
+.dh-pin span.dh-pin-mark svg { width: 16px; height: 16px; }
+.doc-avatar svg { width: 52%; height: 52%; }
+
+@media (min-width: 900px) {
+  .wrap { max-width: 1160px; padding: 0 32px 90px; }
+  .topbar-inner { max-width: 1160px; padding: 12px 32px; }
+  .topbar-links a { font-size: 14.5px; }
+  /* flagship two-column hero: story left, living glass scene right */
+  .hero {
+    max-width: none; padding: 44px 0 16px;
+    display: grid; grid-template-columns: 1.06fr .94fr; gap: 48px; align-items: center;
+  }
+  .hero > * { grid-column: 1; min-width: 0; }
+  .hero-scene { grid-column: 2; grid-row: 1 / span 6; height: 400px; margin-bottom: 0; border-radius: 32px; }
+  .hero-lockup { width: 110px; height: 110px; border-radius: 28px; }
+  .hero-wordmark { font-size: 15px; }
+  .hero-ecg { top: 52px; width: 340px; height: 38px; }
+  .hero h1 { font-size: clamp(40px, 4.2vw, 58px); letter-spacing: -.034em; }
+  .hero p { font-size: 17px; max-width: 520px; }
+  .hero-badges { margin-top: 16px; }
+  .hero-badge { font-size: 13px; padding: 8px 14px; }
+  .searchbar { max-width: 540px; margin-top: 18px; }
+  .svc-grid { max-width: 540px; grid-template-columns: repeat(2, 1fr); margin-top: 14px; }
+  .section-title { font-size: 23px; letter-spacing: -.02em; }
+  .spec-circles { grid-template-columns: repeat(8, 1fr); max-width: none; gap: 20px 14px; }
+  .spec-circ { width: 76px; height: 76px; }
+  .spec-ic { width: 38px; height: 38px; }
+  .clinic-grid { grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .browse-grid { grid-template-columns: repeat(6, 1fr); gap: 14px; }
+  .how-grid { gap: 18px; }
+  .how-card { padding: 24px 20px; }
+  .why-strip { grid-template-columns: repeat(4, 1fr); padding: 20px 24px; gap: 12px 20px; }
+  .soon-card { min-width: 210px; }
+  /* clinic detail: info + map side by side */
+  #clinic-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+  #clinic-detail > * { grid-column: 1 / -1; }
+  #clinic-detail > .info-card { grid-column: 1; }
+  #clinic-detail > .detail-map-card { grid-column: 2; }
+  #detail-map { height: 300px; }
+  .footer-cols, .footer-base { max-width: 1160px; }
+}

@@ -41,19 +41,32 @@ function show(view) {
   window.scrollTo({ top: 0 });
 }
 
+const toastQueue = [];
+let toastActive = false;
 function toast(msg, kind) {
+  toastQueue.push({ msg, kind: kind || 'info' });
+  if (!toastActive) nextToast();
+}
+function nextToast() {
+  const item = toastQueue.shift();
+  if (!item) { toastActive = false; return; }
+  toastActive = true;
   let host = document.getElementById('toast-host');
   if (!host) {
     host = document.createElement('div');
     host.id = 'toast-host';
     document.body.appendChild(host);
   }
+  host.innerHTML = '';
   const t = document.createElement('div');
-  t.className = 'toast ' + (kind || 'info');
-  t.textContent = msg;
+  t.className = 'toast ' + item.kind;
+  t.textContent = item.msg;
   host.appendChild(t);
   requestAnimationFrame(() => t.classList.add('show'));
-  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3600);
+  setTimeout(() => {
+    t.classList.remove('show');
+    setTimeout(() => { t.remove(); nextToast(); }, 260);
+  }, 3200);
 }
 
 function fmtDate(dstr) {
@@ -146,7 +159,7 @@ function renderHomeExtras() {
   };
   const specCirc = s => {
     const ic = SPEC_ICON[s] || (!SPEC_EMOJI[s] ? 'hospital' : null);
-    return ic ? `<img class="spec-ic" src="brand/icons/${ic}.webp" alt="" loading="lazy" decoding="async">` : `<span class="spec-letter" aria-hidden="true">${esc((s || 'M').trim()[0].toUpperCase())}</span>`;
+    return `<img class="spec-ic" src="brand/icons/${ic || 'hospital'}.webp" alt="" loading="lazy" decoding="async">`;
   };
   const SPEC_EMOJI = {
     'General Medicine': '🩺', 'Diabetology': '🩸', 'Fever Care': '🌡️', 'Paediatrics': '🧸',
@@ -200,9 +213,10 @@ const UI_ICONS = {
 function uiIcon(name) {
   return `<svg class="pin-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${UI_ICONS[name]}</svg>`;
 }
+const DOC_AVATAR_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>';
+const CLINIC_MARK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-4h6v4"/><path d="M12 7v4M10 9h4"/></svg>';
 function clinicMark(c, cls) {
-  const initial = esc(((c.name || 'C').trim()[0] || 'C').toUpperCase());
-  return `<div class="clinic-mark ${cls || ''}" aria-hidden="true">${initial}</div>`;
+  return `<div class="clinic-mark ${cls || ''}" aria-hidden="true">${CLINIC_MARK_SVG}</div>`;
 }
 
 function renderSoonRow() {
@@ -423,11 +437,11 @@ function renderDoctorsBrowse() {
     return;
   }
   host.innerHTML = docs.map((d, i) => {
-    const initials = d.name.replace(/^Dr\.?\s+/i, '').split(' ').map(w => w[0] || '').slice(0, 2).join('').toUpperCase();
+    const initials = '';
     return `
     <div class="clinic-card doc-browse-card reveal" style="--i:${Math.min(i, 9)}" data-clinic="${esc(d.clinic_id)}" role="button" tabindex="0" aria-label="View ${esc(d.name)} at ${esc(d.clinic_name)}">
       <div class="doc-browse-top">
-        <div class="doc-avatar">${esc(initials)}</div>
+        <div class="doc-avatar">${DOC_AVATAR_SVG}</div>
         <div>
           <div class="db-name">${esc(d.name)}</div>
           <div class="db-qual">${esc(d.qualification)}${d.experience_years ? ' · ' + d.experience_years + ' yrs exp' : ''}</div>
@@ -452,7 +466,11 @@ let map = null, mapMarkers = [];
 
 function setMapMode(mode) {
   state.mapMode = mode;
-  document.querySelectorAll('#clinic-view-toggle .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.vt === mode));
+  const topnav = (id, fn) => { const el = document.getElementById(id); if (el) el.onclick = e => { e.preventDefault(); fn(); }; };
+  topnav('topnav-home', () => show('home'));
+  topnav('topnav-bookings', () => show('mybookings'));
+  topnav('topnav-clinics', () => show('clinics'));
+document.querySelectorAll('#clinic-view-toggle .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.vt === mode));
   const listEl = $('#clinic-list'), mapEl = $('#clinic-map');
   if (mode === 'map') {
     listEl.classList.add('hidden');
@@ -492,7 +510,7 @@ function updateMapMarkers(list) {
     if (!co) continue;
     pts.push(co);
     const m = L.marker(co, {
-      icon: L.divIcon({ className: 'dh-pin', html: '<span class="dh-pin-mark">' + esc(((c.name || 'C').trim()[0] || 'C').toUpperCase()) + '</span>', iconSize: [34, 34], iconAnchor: [17, 17], popupAnchor: [0, -16] })
+      icon: L.divIcon({ className: 'dh-pin', html: '<span class="dh-pin-mark">' + CLINIC_MARK_SVG + '</span>', iconSize: [34, 34], iconAnchor: [17, 17], popupAnchor: [0, -16] })
     }).addTo(map);
     m.bindPopup(`<div class="map-card">
       <div class="mc-name">${esc(c.name)}</div>
@@ -542,7 +560,7 @@ function renderHomeHighlights() {
 
 
 /* ---------- hero video slot ----------
-   Stays on the static hero unless /brand/hero-loop-v2.mp4 actually exists.
+   Stays on the static hero unless /brand/hero-loop.mp4 actually exists.
    Lazy: HEAD-checks on idle, streams same-origin only after canplay.
    Reduced-motion users keep the static hero (it acts as the poster). */
 (function heroVideo() {
@@ -551,9 +569,9 @@ function renderHomeHighlights() {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const arm = () => {
     const isVideo = r => r && r.ok && (r.headers.get('content-type') || '').startsWith('video/');
-    fetch('brand/hero-loop-v2.mp4', { method: 'HEAD' }).then(r => {
+    fetch('brand/hero-loop.mp4', { method: 'HEAD' }).then(r => {
       if (!isVideo(r)) return;
-      const src = 'brand/hero-loop-v2.mp4';
+      const src = 'brand/hero-loop.mp4';
       v.addEventListener('canplay', () => {
         v.classList.add('ready');
         const scene = v.closest('.hero-scene');
@@ -658,7 +676,7 @@ function renderClinicDetail() {
   watchReveals($('#clinic-detail'));
   $('#doctor-list').innerHTML = '<h2 class="section-title reveal" style="margin-top:24px">Doctors</h2>' + c.doctors.map(d => `
     <div class="doctor-card reveal">
-      <div class="doc-avatar">${esc(d.name.replace('Dr. ', '').charAt(0))}</div>
+      <div class="doc-avatar">${DOC_AVATAR_SVG}</div>
       <div class="doc-info">
         <div class="doc-name">${esc(d.name)}</div>
         <div class="doc-spec">${esc(d.specialty)}</div>
@@ -690,7 +708,7 @@ function initDetailMap(c) {
   detailMap = L.map('detail-map', { scrollWheelZoom: false, attributionControl: false }).setView(co, 15);
   L.tileLayer('/api/tile?z={z}&x={x}&y={y}', { maxZoom: 18 }).addTo(detailMap);
   L.marker(co, {
-    icon: L.divIcon({ className: 'dh-pin', html: '<span class="dh-pin-mark">' + esc(((c.name || 'C').trim()[0] || 'C').toUpperCase()) + '</span>', iconSize: [34, 34], iconAnchor: [17, 17] })
+    icon: L.divIcon({ className: 'dh-pin', html: '<span class="dh-pin-mark">' + CLINIC_MARK_SVG + '</span>', iconSize: [34, 34], iconAnchor: [17, 17] })
   }).addTo(detailMap);
   setTimeout(() => detailMap && detailMap.invalidateSize(), 80);
 }
@@ -706,7 +724,7 @@ function openDoctorModal(doctorId) {
     <div class="doc-modal" role="dialog" aria-modal="true" aria-label="Doctor profile">
       <button class="modal-close" id="dm-close" aria-label="Close">✕</button>
       <div class="doc-modal-head">
-        <div class="doc-avatar">${esc(d.name.replace(/^Dr\.?\s*/i, '').trim().charAt(0))}</div>
+        <div class="doc-avatar">${DOC_AVATAR_SVG}</div>
         <div>
           <div class="doc-name" style="font-size:19px">${esc(d.name)}</div>
           <div class="doc-spec">${esc(d.specialty)}</div>
@@ -750,7 +768,7 @@ function openBooking(doctorId) {
   ov.innerHTML = `
     <div class="wizard" role="dialog" aria-modal="true" aria-label="Book appointment">
       <div class="wiz-head">
-        <div class="doc-avatar wiz-avatar">${esc((doctor.name.replace(/^Dr\.?\s*/i, '').trim()[0] || 'D').toUpperCase())}</div>
+        <div class="doc-avatar wiz-avatar">${DOC_AVATAR_SVG}</div>
         <div class="wiz-head-info">
           <div class="wiz-doc">${esc(doctor.name)}</div>
           <div class="wiz-doc-sub">${esc(doctor.specialty)} · ${esc(state.clinic.name)}</div>
