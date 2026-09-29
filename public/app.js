@@ -1660,8 +1660,8 @@ async function loadPatient() {
   catch { state.patient = null; }
 }
 
-const CAL_ICON = `<picture><source media="(prefers-reduced-motion: reduce)" srcset="/brand/anim/cal.png"><img src="/brand/anim/cal.gif" alt="" class="anim-recolor anim-empty"></picture>`;
-const ECG_ANIM = `<picture><source media="(prefers-reduced-motion: reduce)" srcset="/brand/anim/ecg.png"><img src="/brand/anim/ecg.gif" alt="" class="anim-recolor"></picture>`;
+const CAL_ICON = `<picture><source media="(prefers-reduced-motion: reduce)" srcset="/brand/anim/cal.png"><img src="/brand/anim/cal.webp" alt="" class="anim-recolor anim-empty"></picture>`;
+const ECG_ANIM = `<picture><source media="(prefers-reduced-motion: reduce)" srcset="/brand/anim/ecg.png"><img src="/brand/anim/ecg.webp" alt="" class="anim-recolor"></picture>`;
 const LOADER = (label) => `<div class="anim-load">${ECG_ANIM}<div>${label}</div></div>`;
 
 function maskPhone(p) { return p ? '+91 ' + p.slice(0, 5) + ' ' + p.slice(5) : ''; }
