@@ -645,9 +645,9 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) both; }
 .signin-brand { border-radius: var(--r-card); overflow: hidden; margin-bottom: 18px; background: linear-gradient(140deg, #0b3f39, #00857a 60%, #00a898); padding: 26px 20px; text-align: center; position: relative; }
 .signin-brand::after { content: ''; position: absolute; inset: 0; background: radial-gradient(220px 140px at 80% -20%, rgba(255,255,255,.22), transparent 70%); pointer-events: none; }
 /* sign-in ambient scene: self-generated brand loop, static fallback */
-.auth-scene { position: relative; height: 150px; border-radius: var(--r-panel); overflow: hidden; margin-bottom: 14px; display: grid; place-items: center; background: linear-gradient(160deg, #eafaf7, #dcf5f0 55%, #d2efe9); border: 1px solid var(--line); box-shadow: var(--shadow-sm); }
+.auth-scene { position: relative; aspect-ratio: 16 / 9; max-width: 640px; margin: 0 auto 14px; border-radius: var(--r-panel); overflow: hidden; display: grid; place-items: center; background: linear-gradient(160deg, #eafaf7, #dcf5f0 55%, #d2efe9); border: 1px solid var(--line); box-shadow: var(--shadow-sm); }
 .auth-static { width: 150px; height: auto; position: relative; z-index: 1; transition: opacity .5s ease; }
-.auth-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 42%; opacity: 0; transition: opacity .7s ease; pointer-events: none; z-index: 0; }
+.auth-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; opacity: 0; transition: opacity .7s ease; pointer-events: none; z-index: 0; }
 .auth-video.ready { opacity: 1; }
 .auth-scene.video-on .auth-static { opacity: 0; }
 
