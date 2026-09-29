@@ -73,16 +73,21 @@
           </select>
         </div>
       </div>
-      <div class="hero-scene">
-        <div class="hero-halo"></div>
-        <video class="hero-video" id="hero-video" muted autoplay loop playsinline preload="metadata" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>
-        <img src="brand/icon.png" alt="Drayvenn Lab" class="hero-lockup"><div class="hero-wordmark">Drayvenn <b>Lab</b></div>
-        <svg class="hero-ecg" viewBox="0 0 560 64" fill="none" aria-hidden="true">
-          <path class="ecg-base" d="M0 32 H180 L196 32 204 12 216 52 226 22 232 32 H330 L344 32 352 10 364 54 374 20 380 32 H560" stroke="rgba(139,223,208,.20)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path class="ecg-pulse" d="M0 32 H180 L196 32 204 12 216 52 226 22 232 32 H330 L344 32 352 10 364 54 374 20 380 32 H560" stroke="#5eead4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle class="ecg-dot" r="4.5" fill="#8bdfd0" style="filter:drop-shadow(0 0 6px #5eead4)"/>
-        </svg>
-      </div>
+      <div class="hero-scene" aria-hidden="true">
+              <div class="scene-blob sb1"></div>
+              <div class="scene-blob sb2"></div>
+              <div class="scene-blob sb3"></div>
+              <i class="pt pt1"></i><i class="pt pt2"></i><i class="pt pt3"></i><i class="pt pt4"></i><i class="pt pt5"></i><i class="pt pt6"></i>
+              <i class="pl pl1"></i><i class="pl pl2"></i><i class="pl pl3"></i>
+              <div class="holo">
+                <svg class="scan-ring" viewBox="0 0 320 320" fill="none"><circle cx="160" cy="160" r="146" stroke="rgba(13,148,134,.3)" stroke-width="1.4" stroke-dasharray="3 9"/></svg>
+                <div class="holo-platform"></div>
+                <svg class="dna" viewBox="0 0 120 212" fill="none" aria-hidden="true"><path d="M60 6 C 104 18, 104 34, 60 46 C 16 58, 16 74, 60 86 C 104 98, 104 114, 60 126 C 16 138, 16 154, 60 166 C 104 178, 104 194, 60 206" stroke="#0D9488" stroke-width="4.5" stroke-linecap="round"/><path d="M60 6 C 16 18, 16 34, 60 46 C 104 58, 104 74, 60 86 C 16 98, 16 114, 60 126 C 104 138, 104 154, 60 166 C 16 178, 16 194, 60 206" stroke="#2dd4bf" stroke-width="4.5" stroke-linecap="round"/><g stroke="rgba(15,118,110,.5)" stroke-width="3" stroke-linecap="round"><line x1="84.8" y1="15.6" x2="35.2" y2="15.6"/><line x1="93.0" y1="26.0" x2="27.0" y2="26.0"/><line x1="84.8" y1="36.4" x2="35.2" y2="36.4"/><line x1="35.2" y1="55.6" x2="84.8" y2="55.6"/><line x1="27.0" y1="66.0" x2="93.0" y2="66.0"/><line x1="35.2" y1="76.4" x2="84.8" y2="76.4"/><line x1="84.8" y1="95.6" x2="35.2" y2="95.6"/><line x1="93.0" y1="106.0" x2="27.0" y2="106.0"/><line x1="84.8" y1="116.4" x2="35.2" y2="116.4"/><line x1="35.2" y1="135.6" x2="84.8" y2="135.6"/><line x1="27.0" y1="146.0" x2="93.0" y2="146.0"/><line x1="35.2" y1="156.4" x2="84.8" y2="156.4"/><line x1="84.8" y1="175.6" x2="35.2" y2="175.6"/><line x1="93.0" y1="186.0" x2="27.0" y2="186.0"/><line x1="84.8" y1="196.4" x2="35.2" y2="196.4"/></g></svg>
+                <div class="gcard g-heart"><svg class="g-ico" viewBox="0 0 48 24" fill="none"><path d="M1 12 H13 L17 4 23 20 27 9 29 12 H47" stroke="#0D9488" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="g-lab">Cardiology</span></div>
+                <div class="gcard g-cross"><svg class="g-ico" viewBox="0 0 24 24" fill="none"><path d="M9 2.5h6v6.5h6.5v6h-6.5v6.5h-6v-6.5H2.5V9H9z" fill="#0D9488"/></svg><span class="g-lab">24&times;7 care</span></div>
+                <div class="gcard g-chart"><span class="bar b1"></span><span class="bar b2"></span><span class="bar b3"></span><span class="bar b4"></span><span class="g-lab">Reports</span></div>
+              </div>
+            </div>
       <h1>Book a doctor near you,<br><span>without the phone calls.</span></h1>
       <p>Neighbourhood clinics across Bengaluru. Pick a doctor, choose a time, done in under a minute.</p>
       <div class="hero-ctas">
@@ -90,6 +95,11 @@
         <button type="button" class="btn btn-outline btn-hero" id="cta-track">Track Booking</button>
       </div>
       </div>
+    <svg class="hero-ecg" viewBox="0 0 560 64" preserveAspectRatio="none" fill="none" aria-hidden="true">
+          <path class="ecg-base" d="M0 32 H180 L196 32 204 12 216 52 226 22 232 32 H330 L344 32 352 10 364 54 374 20 380 32 H560" stroke="rgba(13,148,134,.22)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path class="ecg-pulse" d="M0 32 H180 L196 32 204 12 216 52 226 22 232 32 H330 L344 32 352 10 364 54 374 20 380 32 H560" stroke="#0D9488" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle class="ecg-dot" r="4.5" fill="#0D9488" style="filter:drop-shadow(0 0 6px #2dd4bf)"/>
+        </svg>
     </div>
     <div class="searchbar hero-search">
       <input type="text" id="home-search" placeholder="Search clinics, doctors, specialties... e.g. dentist">
