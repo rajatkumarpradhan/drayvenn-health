@@ -8,15 +8,12 @@ export async function onRequestGet(context) {
   const state = await getPatientSession(DB, context.request);
   if (!state) return unauthorized();
   const p = state.patient;
+  const cols = `SELECT b.ref, b.clinic_id, b.doctor_id, b.clinic_name, b.doctor_name, d.specialty,
+         b.patient_name, b.age, b.concern, b.date, b.slot, b.status, b.created_at
+         FROM bookings b LEFT JOIN doctors d ON d.id = b.doctor_id`;
   const rows = p.phone
-    ? await DB.prepare(
-        `SELECT ref, clinic_id, doctor_id, clinic_name, clinic_area, doctor_name, specialty, fee, patient_name, age, concern, date, slot, status, created_at
-         FROM bookings WHERE patient_id = ? OR phone = ? ORDER BY date DESC, slot DESC LIMIT 50`
-      ).bind(p.id, p.phone).all()
-    : await DB.prepare(
-        `SELECT ref, clinic_id, doctor_id, clinic_name, clinic_area, doctor_name, specialty, fee, patient_name, age, concern, date, slot, status, created_at
-         FROM bookings WHERE patient_id = ? ORDER BY date DESC, slot DESC LIMIT 50`
-      ).bind(p.id).all();
+    ? await DB.prepare(cols + ` WHERE b.patient_id = ? OR b.phone = ? ORDER BY b.date DESC, b.slot DESC LIMIT 50`).bind(p.id, p.phone).all()
+    : await DB.prepare(cols + ` WHERE b.patient_id = ? ORDER BY b.date DESC, b.slot DESC LIMIT 50`).bind(p.id).all();
   const res = json({ bookings: rows.results });
   return withSessionMaintenance(DB, state, context.request, res);
 }

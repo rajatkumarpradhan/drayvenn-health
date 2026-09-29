@@ -9,7 +9,7 @@ export async function onRequestGet(context) {
   const { DB, GOOGLE_CLIENT_ID } = context.env;
   if (!GOOGLE_CLIENT_ID || !context.env.GOOGLE_CLIENT_SECRET) {
     return json({ ok: false, error: 'google_not_configured',
-      message: 'Google sign-in is being switched on. Please use mobile OTP or track with your booking reference for now.' }, 503);
+      message: 'Google sign-in is being switched on. Please use an email code or track with your booking reference for now.' }, 503);
   }
   const state = randomToken(16);
   const session = await getPatientSession(DB, context.request);

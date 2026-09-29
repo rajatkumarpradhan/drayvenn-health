@@ -96,7 +96,7 @@ export async function getPatientSession(DB, request) {
   const ageSec = (Date.now() - new Date(row.session_created + 'Z')) / 1000;
   return {
     patient: {
-      id: row.id, phone: row.phone, google_sub: row.google_sub,
+      id: row.id, phone: row.phone, email: row.email, google_sub: row.google_sub,
       google_email: row.google_email, name: row.name, age: row.age
     },
     sessionId: row.session_id,
