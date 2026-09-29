@@ -865,12 +865,12 @@ body:has(#wizard-overlay) { overflow: hidden; }
    Appended last so every rule here wins by cascade. */
 :root {
   color-scheme: dark;
-  --bg: #0a241d;
-  --surface: #0d2a23;
+  --bg: #0f3227;
+  --surface: #143c30;
   --ink: #edf7f3;
   --body: #b9d2ca;
   --muted: #7fa396;
-  --line: #1a3a31;
+  --line: #234d3f;
   --primary: #00c2ae;
   --primary-2: #00e0c8;
   --primary-soft: rgba(0,194,174,.16);
@@ -895,15 +895,15 @@ body::before {
 ::placeholder { color: #5d8377 !important; }
 
 /* top bar */
-.topbar { background: rgba(8,26,21,.55); border-bottom: 1px solid rgba(255,255,255,.09); box-shadow: 0 1px 0 rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.06); }
+.topbar { background: rgba(13,43,34,.55); border-bottom: 1px solid rgba(255,255,255,.09); box-shadow: 0 1px 0 rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.06); }
 .topbar-links a { color: var(--body); }
 
 /* hero - deep botanical scene */
 .hero-scene {
   background:
-    radial-gradient(120% 140% at 18% 0%, rgba(0,214,188,.24), transparent 55%),
-    radial-gradient(100% 120% at 88% 100%, rgba(11,96,76,.55), transparent 60%),
-    linear-gradient(150deg, #0e3a2e 0%, #12493a 48%, #0a281f 100%);
+    radial-gradient(120% 140% at 18% 0%, rgba(0,224,196,.26), transparent 55%),
+    radial-gradient(100% 120% at 88% 100%, rgba(14,110,88,.55), transparent 60%),
+    linear-gradient(150deg, #154a3a 0%, #1b5d48 48%, #0f3628 100%);
   border: 1px solid rgba(53,214,195,.22);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.10), 0 20px 60px rgba(0,20,16,.5);
 }
@@ -917,8 +917,8 @@ body::before {
 .searchbar input, #area-filter { background: rgba(255,255,255,.07); border: 1.5px solid rgba(255,255,255,.16); color: var(--ink); box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 1px 2px rgba(0,0,0,.3); }
 .chips button { background: rgba(255,255,255,.06); color: var(--body); border: 1.5px solid rgba(255,255,255,.14); box-shadow: inset 0 1px 0 rgba(255,255,255,.08); }
 .chips button.active { background: var(--grad); color: #fff; border-color: transparent; }
-.form-row input, .form-row select, .form-row textarea, .rs-grid input, .rs-grid select { background: rgba(255,255,255,.05); border: 1.5px solid #1e4036; color: var(--ink); }
-.phone-prefix { background: rgba(255,255,255,.06); border: 1.5px solid #1e4036; }
+.form-row input, .form-row select, .form-row textarea, .rs-grid input, .rs-grid select { background: rgba(255,255,255,.05); border: 1.5px solid #2a5a49; color: var(--ink); }
+.phone-prefix { background: rgba(255,255,255,.06); border: 1.5px solid #2a5a49; }
 .phone-wrap { background: rgba(255,255,255,.06); border: 1.5px solid rgba(255,255,255,.16); }
 .consent-row { background: rgba(255,255,255,.04); }
 
@@ -933,10 +933,10 @@ body::before {
 .acctp-editbox, .acctp-list, .acctp-about { background: rgba(255,255,255,.05); }
 .acctp-row { border-bottom: 1px solid rgba(255,255,255,.08); }
 .acctp-row:active { background: rgba(255,255,255,.06); }
-.doc-modal { background: rgba(15,36,30,.82); box-shadow: 0 20px 60px rgba(0,0,0,.55); }
+.doc-modal { background: rgba(19,50,40,.84); box-shadow: 0 20px 60px rgba(0,0,0,.55); }
 .doc-modal-cell { background: rgba(255,255,255,.05); }
 .doc-modal-overlay, #wizard-overlay { background: rgba(3,14,11,.62); }
-.wizard { background: rgba(15,36,30,.82); box-shadow: 0 20px 60px rgba(0,0,0,.55); }
+.wizard { background: rgba(19,50,40,.84); box-shadow: 0 20px 60px rgba(0,0,0,.55); }
 .detail-hero { background: linear-gradient(150deg, rgba(53,214,195,.10), rgba(255,255,255,.04) 55%); }
 .detail-emoji { background: rgba(255,255,255,.07); box-shadow: inset 0 1px 0 rgba(255,255,255,.10), 0 6px 16px rgba(0,0,0,.3); }
 .modal-close, .wiz-close, .book-close, #chat-close { background: rgba(255,255,255,.08); color: var(--muted); }
@@ -971,12 +971,12 @@ body::before {
 .wiz-chip { background: rgba(255,255,255,.05); border: 1px dashed rgba(255,255,255,.18); color: var(--muted); }
 .wiz-chip.set { background: var(--teal-soft); border: 1px solid var(--teal); color: #5eead4; }
 .wiz-chip-ph { color: #4a6a60; }
-.date-pill, .slot-btn { background: rgba(255,255,255,.05); border: 1.5px solid #1e4036; }
+.date-pill, .slot-btn { background: rgba(255,255,255,.05); border: 1.5px solid #2a5a49; }
 .date-pill.active, .slot-btn.active { background: var(--grad); border-color: transparent; }
 .date-pill.active .dow, .date-pill.active .dnum { color: #fff; }
 
 /* chat */
-#chat-panel { background: rgba(11,29,24,.82); }
+#chat-panel { background: rgba(15,45,36,.84); }
 #chat-head, #chat-form { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.10); }
 .chat-msg.bot { background: rgba(255,255,255,.08); }
 .chat-disclaimer { color: #ffd97a; background: rgba(251,191,36,.10); border-bottom: 1px solid rgba(251,191,36,.25); }
@@ -985,16 +985,16 @@ body::before {
 
 /* tabbar (mobile floating nav) */
 @media (max-width: 760px) {
-  .tabbar { background: rgba(11,29,24,.62); border: 1px solid rgba(255,255,255,.12); box-shadow: 0 10px 30px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.08); }
-  .tabbar .tab.active svg { border: 3px solid #0a231d; box-shadow: 0 8px 18px rgba(0,194,174,.35), inset 0 1px 0 rgba(255,255,255,.3); }
+  .tabbar { background: rgba(14,44,35,.62); border: 1px solid rgba(255,255,255,.12); box-shadow: 0 10px 30px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.08); }
+  .tabbar .tab.active svg { border: 3px solid #0f3227; box-shadow: 0 8px 18px rgba(0,194,174,.35), inset 0 1px 0 rgba(255,255,255,.3); }
 }
 
 /* toast + misc */
 .toast { background: rgba(18,58,49,.96); color: #eaf7f2; border: 1px solid rgba(255,255,255,.14); }
 .dev-code { background: rgba(251,191,36,.10); border: 1px dashed rgba(251,191,36,.45); color: #ffd97a; }
-.footer { background: linear-gradient(168deg, #08281f 0%, #0a2f24 55%, #081f19 100%); border-top: 1px solid rgba(255,255,255,.08); }
+.footer { background: linear-gradient(168deg, #0c3326 0%, #0e3b2c 55%, #0a291f 100%); border-top: 1px solid rgba(255,255,255,.08); }
 
 /* splash - dark botanical to match */
-.splash { background: linear-gradient(160deg, #0a2620, #0c3229 55%, #081d17); }
+.splash { background: linear-gradient(160deg, #0e3328, #11402f 55%, #0b281e); }
 .splash-word { color: #edf7f3; }
 .splash-ecg path { stroke: #35d6c3; }
