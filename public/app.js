@@ -501,7 +501,7 @@ function renderHomeHighlights() {
 
 
 /* ---------- hero video slot ----------
-   Stays on the static hero unless /brand/hero-video.mp4 actually exists.
+   Stays on the static hero unless /brand/hero-loop.mp4 actually exists.
    Lazy: HEAD-checks on idle, streams same-origin only after canplay.
    Reduced-motion users keep the static hero (it acts as the poster). */
 (function heroVideo() {
@@ -510,13 +510,9 @@ function renderHomeHighlights() {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const arm = () => {
     const isVideo = r => r && r.ok && (r.headers.get('content-type') || '').startsWith('video/');
-    fetch('brand/hero-video.mp4', { method: 'HEAD' }).then(async r => {
-      let src = 'brand/hero-video.mp4';
-      if (!isVideo(r)) {
-        const r2 = await fetch('brand/hero-video.webm', { method: 'HEAD' }).catch(() => null);
-        if (!isVideo(r2)) return;
-        src = 'brand/hero-video.webm';
-      }
+    fetch('brand/hero-loop.mp4', { method: 'HEAD' }).then(r => {
+      if (!isVideo(r)) return;
+      const src = 'brand/hero-loop.mp4';
       v.addEventListener('canplay', () => {
         v.classList.add('ready');
         const scene = v.closest('.hero-scene');
