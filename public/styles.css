@@ -988,6 +988,27 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
   .ecg-pulse { animation: none; stroke-dasharray: none; }
 }
 
+
+/* ---------- site-wide motion polish (transform/opacity only; reduced-motion gate above neutralizes) ---------- */
+/* tactile press feedback - buttons never feel dead on touch */
+.btn:active, .chip:active, .tab:active, .seg button:active, .slot-btn:active, .week-day:active, .gcard:active { transform: scale(.96); }
+/* smooth state changes on every interactive control */
+.chip, .tab, .seg button, .slot-btn, .week-day { transition: transform var(--t-fast) var(--spring), background var(--t-fast), color var(--t-fast), border-color var(--t-fast), box-shadow var(--t-fast); }
+/* hover lift on interactive cards (mouse pointers only) */
+@media (hover: hover) {
+  .doctor-card, .bk-card { transition: transform var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease); }
+  .doctor-card:hover, .bk-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+}
+/* staggered card entrances on every view, hero-video feel carried through the app */
+.view.active .clinic-card, .view.active .doctor-card, .view.active .bk-card, .view.active .stat-card { animation: fadeUp .35s var(--ease) both; }
+.view.active .clinic-card:nth-child(2), .view.active .doctor-card:nth-child(2), .view.active .bk-card:nth-child(2) { animation-delay: .04s; }
+.view.active .clinic-card:nth-child(3), .view.active .doctor-card:nth-child(3), .view.active .bk-card:nth-child(3) { animation-delay: .08s; }
+.view.active .clinic-card:nth-child(4), .view.active .doctor-card:nth-child(4), .view.active .bk-card:nth-child(4) { animation-delay: .12s; }
+.view.active .clinic-card:nth-child(5), .view.active .doctor-card:nth-child(5), .view.active .bk-card:nth-child(5) { animation-delay: .16s; }
+.view.active .clinic-card:nth-child(n+6), .view.active .doctor-card:nth-child(n+6), .view.active .bk-card:nth-child(n+6) { animation-delay: .2s; }
+/* slot picker + day strip spring in the booking flow */
+.wizard .slot-btn, .wizard .week-day { animation: fadeUp .3s var(--ease) both; }
+
 /* ---------- reduced transparency: glass becomes solid ---------- */
 @media (prefers-reduced-transparency: reduce) {
   .topbar, #tabbar, #chat-panel, .toast, .map-chip, .detail-map-card .map-chip,
