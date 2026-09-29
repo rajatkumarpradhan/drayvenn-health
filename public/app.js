@@ -464,13 +464,15 @@ function renderDoctorsBrowse() {
 /* ---------- MAP (OpenStreetMap + Leaflet) ---------- */
 let map = null, mapMarkers = [];
 
+/* desktop topnav (bound once at load; lives outside any view render) */
+const topnav = (id, fn) => { const el = document.getElementById(id); if (el) el.onclick = e => { e.preventDefault(); fn(); }; };
+topnav('topnav-home', () => show('home'));
+topnav('topnav-bookings', () => show('mybookings'));
+topnav('topnav-clinics', () => show('clinics'));
+
 function setMapMode(mode) {
   state.mapMode = mode;
-  const topnav = (id, fn) => { const el = document.getElementById(id); if (el) el.onclick = e => { e.preventDefault(); fn(); }; };
-  topnav('topnav-home', () => show('home'));
-  topnav('topnav-bookings', () => show('mybookings'));
-  topnav('topnav-clinics', () => show('clinics'));
-document.querySelectorAll('#clinic-view-toggle .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.vt === mode));
+  document.querySelectorAll('#clinic-view-toggle .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.vt === mode));
   const listEl = $('#clinic-list'), mapEl = $('#clinic-map');
   if (mode === 'map') {
     listEl.classList.add('hidden');
