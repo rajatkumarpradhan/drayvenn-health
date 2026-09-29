@@ -481,6 +481,7 @@ body:has(#wizard-overlay) { overflow: hidden; }
   .logo-name { font-size: 15px; }
   .logo-sub { font-size: 10px; }
   .topbar-links { gap: 12px; }
+  #nav-bookings { display: none; }
   .topbar-links a { font-size: 13px; }
   .clinic-grid { grid-template-columns: 1fr; }
   .doctor-card { flex-wrap: wrap; }
