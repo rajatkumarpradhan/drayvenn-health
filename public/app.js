@@ -1275,7 +1275,7 @@ $('#home-search').addEventListener('keydown', e => {
   renderBrowse();
   show('clinics');
 });
-$('#home-browse-cta').onclick = e => { e.preventDefault(); show('clinics'); };
+{ const hbc = $('#home-browse-cta'); if (hbc) hbc.onclick = e => { e.preventDefault(); show('clinics'); }; }
 { const sb = $('#svc-book'); if (sb) sb.onclick = () => show('clinics'); }
 $('#cta-find').onclick = () => show('clinics');
 $('#cta-track').onclick = () => show('track');
