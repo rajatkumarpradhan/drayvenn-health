@@ -205,8 +205,8 @@
   // restore
   for (const m of history) addMsg(m.role === 'assistant' ? 'bot' : 'user', m.content, false);
   setChips([
-    { label: '📅 Book an appointment', q: 'I want to book an appointment' },
-    { label: '🔎 Track my booking', goto: 'mybookings' },
+    { label: 'Book an appointment', q: 'I want to book an appointment' },
+    { label: 'Track my booking', goto: 'track' },
     { label: '🕐 Clinic timings', q: 'What are the clinic timings?' },
     { label: '💰 Fees', q: 'What are the consultation fees?' }
   ]);

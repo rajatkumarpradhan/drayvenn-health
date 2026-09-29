@@ -61,7 +61,7 @@
   <!-- HOME -->
   <section id="view-home">
     <div class="loc-row">
-      <span class="loc-pin">📍</span>
+      <span class="loc-pin"><svg class="pin-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
       <div class="loc-sel-wrap">
         <select id="home-area" aria-label="Choose your area">
           <option value="All">Bengaluru - all areas</option>
@@ -166,7 +166,7 @@
       <div class="confirm-check">✓</div>
       <h1 style="font-size:26px;font-weight:800;letter-spacing:-.02em">Appointment booked</h1>
       <p style="color:var(--muted);margin-top:8px" id="confirm-sub"></p>
-      <img class="confirm-illus" src="brand/confirm-illustration.webp" alt="Illustration of a doctor with a confirmed appointment card" width="220" height="391" loading="lazy" decoding="async">
+      
       <div class="wa-bubble" id="wa-bubble"></div>
       <div class="wa-caption">This is the confirmation message. In the full version it is also sent to the patient on WhatsApp / SMS.</div>
       <div class="confirm-actions">
@@ -185,6 +185,10 @@
     <div class="track-card mb-card" id="account-card">
       <div id="account-panel"><div class="loading">Loading&hellip;</div></div>
     </div>
+  </section>
+  <!-- TRACK BOOKING -->
+  <section id="view-track" class="hidden">
+    <a class="back-link" id="back-home-5">&larr; All clinics</a>
     <div class="track-card mb-card">
       <h2 style="font-size:20px;font-weight:700">Track with a booking reference</h2>
       <p style="color:var(--muted);font-size:14px;margin:6px 0 18px">Enter your booking reference and the mobile number you booked with - both are needed, that keeps your booking private.</p>

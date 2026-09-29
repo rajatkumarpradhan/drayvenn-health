@@ -25,7 +25,7 @@ function show(view) {
   if (!document.getElementById('wizard-overlay')) document.body.classList.remove('wiz-open');
   if (view === 'mybookings') renderAccount();
   if (view === 'account') renderAccountPage();
-  for (const v of ['home', 'clinics', 'clinic', 'confirm', 'mybookings', 'signin', 'account']) {
+  for (const v of ['home', 'clinics', 'clinic', 'confirm', 'mybookings', 'track', 'signin', 'account']) {
     const el = document.getElementById('view-' + v);
     el.classList.toggle('hidden', v !== view);
     if (v === view) {
@@ -35,7 +35,7 @@ function show(view) {
       requestAnimationFrame(segSlideAll);
     }
   }
-  const tabFor = { home: 'home', clinics: 'clinics', clinic: 'clinics', confirm: 'home', mybookings: 'mybookings', account: 'none' };
+  const tabFor = { home: 'home', clinics: 'clinics', clinic: 'clinics', confirm: 'home', mybookings: 'mybookings', track: 'mybookings', account: 'none' };
   document.querySelectorAll('.tabbar .tab').forEach(t =>
     t.classList.toggle('active', t.dataset.tab === tabFor[view]));
   window.scrollTo({ top: 0 });
@@ -132,7 +132,7 @@ function renderRecentClinics() {
   const valid = list.filter(x => state.clinics.some(c => c.id === x.id));
   if (!valid.length) { wrap.classList.add('hidden'); return; }
   wrap.classList.remove('hidden');
-  host.innerHTML = valid.map(x => `<button class="chip" data-id="${esc(x.id)}">${esc(x.emoji)} ${esc(x.name)}</button>`).join('');
+  host.innerHTML = valid.map(x => `<button class="chip" data-id="${esc(x.id)}">${esc(x.name)}</button>`).join('');
   host.querySelectorAll('.chip').forEach(b => b.onclick = () => openClinic(b.dataset.id));
 }
 
@@ -146,7 +146,7 @@ function renderHomeExtras() {
   };
   const specCirc = s => {
     const ic = SPEC_ICON[s] || (!SPEC_EMOJI[s] ? 'hospital' : null);
-    return ic ? `<img class="spec-ic" src="brand/icons/${ic}.webp" alt="" loading="lazy" decoding="async">` : SPEC_EMOJI[s];
+    return ic ? `<img class="spec-ic" src="brand/icons/${ic}.webp" alt="" loading="lazy" decoding="async">` : `<span class="spec-letter" aria-hidden="true">${esc((s || 'M').trim()[0].toUpperCase())}</span>`;
   };
   const SPEC_EMOJI = {
     'General Medicine': '🩺', 'Diabetology': '🩸', 'Fever Care': '🌡️', 'Paediatrics': '🧸',
@@ -167,7 +167,7 @@ function renderHomeExtras() {
   const ah = $('#home-areas');
   if (ah) {
     const areas = [...new Set(state.clinics.map(c => c.area))].sort();
-    ah.innerHTML = areas.map(a => `<button class="chip" data-area="${esc(a)}">📍 ${esc(a)}</button>`).join('');
+    ah.innerHTML = areas.map(a => `<button class="chip" data-area="${esc(a)}">${PIN_SVG} ${esc(a)}</button>`).join('');
     ah.querySelectorAll('.chip').forEach(b => b.onclick = () => {
       state.filter.area = b.dataset.area;
       const sel = $('#area-filter');
@@ -180,12 +180,29 @@ function renderHomeExtras() {
   if (ha && ha.options.length <= 1) {
     [...new Set(state.clinics.map(c => c.area))].sort().forEach(a => {
       const o = document.createElement('option');
-      o.value = a; o.textContent = '📍 ' + a;
+      o.value = a; o.textContent = a;
       ha.appendChild(o);
     });
   }
   renderSoonRow();
   watchReveals(host);
+}
+
+const PIN_SVG = '<svg class="pin-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+const UI_ICONS = {
+  cal: '<rect x="3" y="4.5" width="18" height="17" rx="3"/><path d="M8 2.5v4M16 2.5v4M3 10h18"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  phone: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>',
+  card: '<rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 10h19M6 15h4"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+  pulse: '<path d="M3 12h4l2-7 4 14 2-7h6"/>'
+};
+function uiIcon(name) {
+  return `<svg class="pin-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${UI_ICONS[name]}</svg>`;
+}
+function clinicMark(c, cls) {
+  const initial = esc(((c.name || 'C').trim()[0] || 'C').toUpperCase());
+  return `<div class="clinic-mark ${cls || ''}" aria-hidden="true">${initial}</div>`;
 }
 
 function renderSoonRow() {
@@ -196,7 +213,7 @@ function renderSoonRow() {
     .sort((a, b) => rank(a.next_available).localeCompare(rank(b.next_available)));
   host.innerHTML = soon.map((c, i) => `
     <div class="soon-card reveal" style="--i:${i}" data-id="${esc(c.id)}" role="button" tabindex="0" aria-label="View ${esc(c.name)}, next slot ${esc(fmtNext(c.next_available))}">
-      <div class="soon-emoji">${c.emoji}</div>
+      ${clinicMark(c, 'sm')}
       <div class="soon-name">${esc(c.name)}</div>
       <div class="soon-slot">${esc(fmtNext(c.next_available))}</div>
     </div>`).join('');
@@ -208,9 +225,23 @@ function renderSoonRow() {
 }
 
 /* ---------- ACCOUNT PAGE ---------- */
+const ACCT_ICONS = {
+  calendar: '<rect x="3" y="4.5" width="18" height="17" rx="3"/><path d="M8 2.5v4M16 2.5v4M3 10h18"/><path d="M9 15.5l2 2 4-4"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+  chat: '<path d="M21 12a8 8 0 0 1-8 8H4l2-3.2A8 8 0 1 1 21 12z"/>',
+  lock: '<rect x="5" y="11" width="14" height="9" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+  link: '<path d="M10 14a4 4 0 0 0 6 .4l3-3a4 4 0 0 0-5.6-5.6l-1.5 1.5"/><path d="M14 10a4 4 0 0 0-6-.4l-3 3a4 4 0 0 0 5.6 5.6l1.5-1.5"/>',
+  logout: '<path d="M9 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3"/><path d="m16 17 5-5-5-5M21 12H9"/>',
+  hospital: '<path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-4h6v4"/><path d="M12 9v6M9 12h6"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/>'
+};
+function acctIcon(name) {
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ACCT_ICONS[name] || ACCT_ICONS.info}</svg>`;
+}
 function acctRow(id, icon, label, danger) {
   return `<button type="button" class="acctp-row${danger ? ' danger' : ''}" id="${id}">
-    <span class="acctp-ico">${icon}</span><span class="acctp-label">${label}</span><span class="acctp-chev">›</span>
+    <span class="acctp-ico">${acctIcon(icon)}</span><span class="acctp-label">${label}</span><span class="acctp-chev">›</span>
   </button>`;
 }
 
@@ -244,25 +275,25 @@ function renderAccountPage() {
     </div>
     <div class="acctp-group">Bookings</div>
     <div class="acctp-list">
-      ${acctRow('acp-bookings', '🗓️', 'My bookings')}
-      ${acctRow('acp-track', '🔎', 'Track a booking')}
+      ${acctRow('acp-bookings', 'calendar', 'My bookings')}
+      ${acctRow('acp-track', 'search', 'Track a booking')}
     </div>
     <div class="acctp-group">Support</div>
     <div class="acctp-list">
-      ${acctRow('acp-chat', '💬', 'Talk to the assistant')}
-      ${acctRow('acp-privacy', '🔒', 'Privacy & data')}
-      ${acctRow('acp-about', 'ℹ️', 'About Drayvenn Health')}
+      ${acctRow('acp-chat', 'chat', 'Talk to the assistant')}
+      ${acctRow('acp-privacy', 'lock', 'Privacy & data')}
+      ${acctRow('acp-about', 'info', 'About Drayvenn Health')}
     </div>
     ${about}
     <div class="acctp-group">Account</div>
     <div class="acctp-list">
-      ${!p.has_google ? acctRow('acp-google', '🔗', 'Link Google account') : ''}
-      ${acctRow('acp-logout', '↩️', 'Sign out', true)}
+      ${!p.has_google ? acctRow('acp-google', 'link', 'Link Google account') : ''}
+      ${acctRow('acp-logout', 'logout', 'Sign out', true)}
     </div>`;
   } else {
     html += `
     <div class="acctp-card">
-      <div class="acctp-avatar guest">👤</div>
+      <div class="acctp-avatar guest"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg></div>
       <div class="acctp-info">
         <div class="acctp-name">Not signed in</div>
         <div class="acctp-sub">Sign in for saved details &amp; booking history</div>
@@ -271,18 +302,18 @@ function renderAccountPage() {
     </div>
     <div class="acctp-group">Bookings</div>
     <div class="acctp-list">
-      ${acctRow('acp-track', '🔎', 'Track a booking')}
+      ${acctRow('acp-track', 'search', 'Track a booking')}
     </div>
     <div class="acctp-group">Support</div>
     <div class="acctp-list">
-      ${acctRow('acp-chat', '💬', 'Talk to the assistant')}
-      ${acctRow('acp-privacy', '🔒', 'Privacy & data')}
-      ${acctRow('acp-about', 'ℹ️', 'About Drayvenn Health')}
+      ${acctRow('acp-chat', 'chat', 'Talk to the assistant')}
+      ${acctRow('acp-privacy', 'lock', 'Privacy & data')}
+      ${acctRow('acp-about', 'info', 'About Drayvenn Health')}
     </div>
     ${about}
     <div class="acctp-group">For clinics</div>
     <div class="acctp-list">
-      <a class="acctp-row" href="admin.html"><span class="acctp-ico">🏥</span><span class="acctp-label">Clinic sign-in</span><span class="acctp-chev">›</span></a>
+      <a class="acctp-row" href="admin.html"><span class="acctp-ico">${acctIcon('hospital')}</span><span class="acctp-label">Clinic sign-in</span><span class="acctp-chev">›</span></a>
     </div>`;
   }
   host.innerHTML = html;
@@ -290,7 +321,7 @@ function renderAccountPage() {
   const on = (id, fn) => { const el = $('#' + id); if (el) el.onclick = fn; };
   on('acctp-signin-btn', () => showSignin());
   on('acp-bookings', () => show('mybookings'));
-  on('acp-track', () => { show('mybookings'); const t = $('#track-ref'); if (t) setTimeout(() => t.focus(), 350); });
+  on('acp-track', () => { show('track'); const t = $('#bk-ref'); if (t) setTimeout(() => t.focus(), 350); });
   on('acp-chat', () => { if (window.openChat) window.openChat(); });
   on('acp-privacy', () => window.open('privacy.html', '_blank', 'noopener'));
   on('acp-about', () => { const a = $('#acctp-about'); if (a) a.classList.toggle('hidden'); });
@@ -344,7 +375,7 @@ function renderClinics() {
   const host = $('#clinic-list');
   if (!list.length) {
     host.innerHTML = `<div class="empty-state">
-      <div class="empty-ico">🔍</div>
+      <div class="empty-ico-disc">${uiIcon('search')}</div>
       <div class="empty-title">No clinics match that search</div>
       <div class="empty-sub">Try a different specialty, doctor name, or area - or clear the search to see everything.</div>
       <button type="button" class="btn btn-outline btn-small" id="clinic-clear">Clear search</button>
@@ -382,7 +413,7 @@ function renderDoctorsBrowse() {
   }
   if (!docs.length) {
     host.innerHTML = `<div class="empty-state">
-      <div class="empty-ico">🩺</div>
+      <div class="empty-ico-disc">${uiIcon('pulse')}</div>
       <div class="empty-title">No doctors match that search</div>
       <div class="empty-sub">Try a different name, specialty, or clinic - or clear the search to see every doctor.</div>
       <button type="button" class="btn btn-outline btn-small" id="doc-clear">Clear search</button>
@@ -403,8 +434,8 @@ function renderDoctorsBrowse() {
         </div>
       </div>
       <div class="spec-chips" style="margin-top:10px"><span class="spec-chip">${esc(d.specialty)}</span></div>
-      <div class="doc-browse-clinic">🏥 ${esc(d.clinic_name)} · 📍 ${esc(d.clinic_area)}</div>
-      <div class="doc-meta">🗓 ${esc(d.days_label)} · ₹${d.fee}</div>
+      <div class="doc-browse-clinic"><svg class="pin-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M12 9v6M9 12h6"/></svg> ${esc(d.clinic_name)} · ${PIN_SVG} ${esc(d.clinic_area)}</div>
+      <div class="doc-meta">${uiIcon('cal')} ${esc(d.days_label)} · ₹${d.fee}</div>
       ${fmtNext(d.next_available) ? `<div class="next-slot">Next slot: <b>${fmtNext(d.next_available)}</b></div>` : ''}
     </div>`;
   }).join('');
@@ -461,11 +492,11 @@ function updateMapMarkers(list) {
     if (!co) continue;
     pts.push(co);
     const m = L.marker(co, {
-      icon: L.divIcon({ className: 'dh-pin', html: '<span>' + c.emoji + '</span>', iconSize: [34, 34], iconAnchor: [17, 17], popupAnchor: [0, -16] })
+      icon: L.divIcon({ className: 'dh-pin', html: '<span class="dh-pin-mark">' + esc(((c.name || 'C').trim()[0] || 'C').toUpperCase()) + '</span>', iconSize: [34, 34], iconAnchor: [17, 17], popupAnchor: [0, -16] })
     }).addTo(map);
     m.bindPopup(`<div class="map-card">
-      <div class="mc-name">${c.emoji} ${esc(c.name)}</div>
-      <div class="mc-area">📍 ${esc(c.area)}</div>
+      <div class="mc-name">${esc(c.name)}</div>
+      <div class="mc-area">${PIN_SVG} ${esc(c.area)}</div>
       <div class="mc-meta">from ₹${c.min_fee}${fmtNext(c.next_available) ? ' · Next: ' + esc(fmtNext(c.next_available)) : ''}</div>
       <button type="button" class="mc-open" data-id="${esc(c.id)}">View clinic</button>
     </div>`);
@@ -478,10 +509,10 @@ function clinicCardHTML(c, i) {
   return `
     <div class="clinic-card reveal" style="--i:${Math.min(i, 9)}" data-id="${esc(c.id)}" role="button" tabindex="0" aria-label="View ${esc(c.name)}">
       <div class="clinic-head">
-        <div class="clinic-emoji">${c.emoji}</div>
+        ${clinicMark(c)}
         <div>
           <div class="clinic-name">${esc(c.name)}</div>
-          <div class="clinic-area">📍 ${esc(c.area)}</div>
+          <div class="clinic-area">${PIN_SVG} ${esc(c.area)}</div>
         </div>
       </div>
       <div class="clinic-tagline">${esc(c.tagline || '')}</div>
@@ -511,7 +542,7 @@ function renderHomeHighlights() {
 
 
 /* ---------- hero video slot ----------
-   Stays on the static hero unless /brand/hero-loop.mp4 actually exists.
+   Stays on the static hero unless /brand/hero-loop-v2.mp4 actually exists.
    Lazy: HEAD-checks on idle, streams same-origin only after canplay.
    Reduced-motion users keep the static hero (it acts as the poster). */
 (function heroVideo() {
@@ -520,9 +551,9 @@ function renderHomeHighlights() {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const arm = () => {
     const isVideo = r => r && r.ok && (r.headers.get('content-type') || '').startsWith('video/');
-    fetch('brand/hero-loop.mp4', { method: 'HEAD' }).then(r => {
+    fetch('brand/hero-loop-v2.mp4', { method: 'HEAD' }).then(r => {
       if (!isVideo(r)) return;
-      const src = 'brand/hero-loop.mp4';
+      const src = 'brand/hero-loop-v2.mp4';
       v.addEventListener('canplay', () => {
         v.classList.add('ready');
         const scene = v.closest('.hero-scene');
@@ -599,26 +630,26 @@ function renderClinicDetail() {
   $('#clinic-detail').innerHTML = `
     <div class="detail-hero reveal">
       <div class="detail-hero-top">
-        <div class="detail-emoji">${c.emoji}</div>
+        ${clinicMark(c, 'lg')}
         <div class="detail-hero-info">
           <h1 class="detail-name">${esc(c.name)}</h1>
-          <div class="detail-area">📍 ${esc(c.area)} · <span class="sample-badge">Sample clinic</span></div>
+          <div class="detail-area">${PIN_SVG} ${esc(c.area)} · <span class="sample-badge">Sample clinic</span></div>
         </div>
       </div>
       <div class="detail-tagline">${esc(c.tagline || '')}</div>
       <div class="detail-actions">
-        <a class="btn btn-small" href="tel:${tel}">📞 Call clinic</a>
+        <a class="btn btn-small" href="tel:${tel}">${uiIcon('phone')} Call clinic</a>
         ${co ? `<a class="btn btn-small btn-ghost" href="https://www.google.com/maps/search/?api=1&query=${co[0]}%2C${co[1]}" target="_blank" rel="noopener">Directions →</a>` : ''}
       </div>
     </div>
     <div class="info-card reveal">
-      <div class="info-row"><span class="info-ico">📍</span><span><b>Address</b><br>${esc(c.address)}</span></div>
-      <div class="info-row"><span class="info-ico">🕐</span><span><b>Timings</b><br>${esc(c.timings)}</span></div>
-      <div class="info-row"><span class="info-ico">📞</span><span><b>Phone</b><br><a href="tel:${tel}">${esc(c.phone)}</a></span></div>
+      <div class="info-row"><span class="info-ico">${PIN_SVG}</span><span><b>Address</b><br>${esc(c.address)}</span></div>
+      <div class="info-row"><span class="info-ico">${uiIcon('clock')}</span><span><b>Timings</b><br>${esc(c.timings)}</span></div>
+      <div class="info-row"><span class="info-ico">${uiIcon('phone')}</span><span><b>Phone</b><br><a href="tel:${tel}">${esc(c.phone)}</a></span></div>
       <div class="spec-chips" style="margin-top:6px">${c.specialties.map(s => `<span class="spec-chip">${esc(s)}</span>`).join('')}</div>
     </div>
     ${co ? `<div class="detail-map-card reveal"><div id="detail-map"></div>
-      <div class="map-foot"><b>📍 ${esc(c.area)}</b><span>
+      <div class="map-foot"><b>${PIN_SVG} ${esc(c.area)}</b><span>
         <a href="https://www.google.com/maps/search/?api=1&query=${co[0]}%2C${co[1]}" target="_blank" rel="noopener">Directions →</a>
         &nbsp;·&nbsp; <a href="tel:${tel}">Call clinic</a>
       </span></div>
@@ -632,7 +663,7 @@ function renderClinicDetail() {
         <div class="doc-name">${esc(d.name)}</div>
         <div class="doc-spec">${esc(d.specialty)}</div>
         <div class="doc-meta">${esc(d.qualification)} · ${d.experience_years} yrs experience</div>
-        <div class="doc-meta">🗓 ${esc(d.days_label)}${d.next_available ? ` · <span class="doc-next">Next: ${fmtNext(d.next_available)}</span>` : ' · <span style="color:var(--amber)">No slots in 14 days</span>'}</div>
+        <div class="doc-meta">${uiIcon('cal')} ${esc(d.days_label)}${d.next_available ? ` · <span class="doc-next">Next: ${fmtNext(d.next_available)}</span>` : ' · <span style="color:var(--amber)">No slots in 14 days</span>'}</div>
       </div>
       <div class="doc-right">
         <div class="doc-fee">₹${d.fee} <small>consult</small></div>
@@ -659,7 +690,7 @@ function initDetailMap(c) {
   detailMap = L.map('detail-map', { scrollWheelZoom: false, attributionControl: false }).setView(co, 15);
   L.tileLayer('/api/tile?z={z}&x={x}&y={y}', { maxZoom: 18 }).addTo(detailMap);
   L.marker(co, {
-    icon: L.divIcon({ className: 'dh-pin', html: '<span>' + c.emoji + '</span>', iconSize: [34, 34], iconAnchor: [17, 17] })
+    icon: L.divIcon({ className: 'dh-pin', html: '<span class="dh-pin-mark">' + esc(((c.name || 'C').trim()[0] || 'C').toUpperCase()) + '</span>', iconSize: [34, 34], iconAnchor: [17, 17] })
   }).addTo(detailMap);
   setTimeout(() => detailMap && detailMap.invalidateSize(), 80);
 }
@@ -768,9 +799,9 @@ function wizRenderLive() {
   const { doctor, date, slot } = state.booking;
   const chip = (icon, val, set) => `<div class="wiz-chip ${set ? 'set' : ''}">${icon} ${set ? esc(val) : '<span class="wiz-chip-ph">—</span>'}</div>`;
   $('#wiz-live').innerHTML =
-    chip('📅', date ? fmtDateShort(date) : '', !!date) +
-    chip('🕐', slot ? fmtTime(slot) : '', !!slot) +
-    chip('💳', '₹' + doctor.fee + ' at clinic', true);
+    chip(uiIcon('cal'), date ? fmtDateShort(date) : '', !!date) +
+    chip(uiIcon('clock'), slot ? fmtTime(slot) : '', !!slot) +
+    chip(uiIcon('card'), '₹' + doctor.fee + ' at clinic', true);
 }
 
 function renderWizard(dir) {
@@ -1054,7 +1085,7 @@ function renderConfirmation(b) {
   setTimeout(confettiBurst, 250);
   $('#confirm-sub').textContent = `${b.clinic_name} will confirm your slot shortly. Save your booking reference.`;
   $('#wa-bubble').innerHTML = `
-    <div class="wa-head">✅ Drayvenn Health · Appointment booked</div>
+    <div class="wa-head">Drayvenn Health · Appointment booked</div>
     <div class="wa-row"><span class="k">Patient</span><span class="v">${esc(b.patient_name)}${b.age ? ' · ' + esc(b.age) + ' yrs' : ''}</span></div>
     <div class="wa-row"><span class="k">Doctor</span><span class="v">${esc(b.doctor_name)}</span></div>
     <div class="wa-row"><span class="k">Clinic</span><span class="v">${esc(b.clinic_name)}</span></div>
@@ -1164,7 +1195,7 @@ $('#home-search').addEventListener('keydown', e => {
 });
 $('#view-all-clinics').onclick = e => { e.preventDefault(); show('clinics'); };
 { const sb = $('#svc-book'); if (sb) sb.onclick = () => show('clinics'); }
-$('#svc-track').onclick = () => show('mybookings');
+$('#svc-track').onclick = () => show('track');
 $('#svc-chat').onclick = () => { if (window.openChat) window.openChat(); };
 $('#home-area').onchange = e => {
   state.filter.area = e.target.value;
@@ -1197,8 +1228,9 @@ $('#back-home').onclick = () => show('home');
 $('#confirm-home').onclick = () => show('home');
 $('#back-home-3').onclick = () => show('home');
 $('#back-home-4').onclick = () => show('home');
+$('#back-home-5').onclick = () => show('home');
 $('#foot-clinics').onclick = e => { e.preventDefault(); show('clinics'); };
-$('#foot-track').onclick = e => { e.preventDefault(); show('mybookings'); };
+$('#foot-track').onclick = e => { e.preventDefault(); show('track'); };
 $('#foot-signin').onclick = e => { e.preventDefault(); showSignin(); };
 $('#bk-btn').onclick = lookupBooking;
 $('#bk-phone').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10); });
@@ -1219,7 +1251,7 @@ $('#confirm-share').onclick = async () => {
 };
 $('#confirm-manage').onclick = () => {
   const b = state.lastBooking;
-  show('mybookings');
+  show('track');
   if (b) {
     $('#bk-ref').value = b.ref;
     $('#bk-phone').value = b.phone;
@@ -1291,7 +1323,7 @@ function renderAcctMenu() {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4.5" width="18" height="17" rx="3"/><path d="M8 2.5v4M16 2.5v4M3 10h18"/></svg>
         Track a booking</button>`;
     $('#am-login').onclick = () => { closeAcctMenu(); showSignin(); };
-    $('#am-track').onclick = () => { closeAcctMenu(); show('mybookings'); };
+    $('#am-track').onclick = () => { closeAcctMenu(); show('track'); };
   }
 }
 function closeAcctMenu() {
@@ -1321,6 +1353,8 @@ async function loadPatient() {
   catch { state.patient = null; }
 }
 
+const CAL_ICON = `<div class="empty-ico-disc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="17" rx="3"/><path d="M8 2.5v4M16 2.5v4M3 10h18"/><path d="M9 15.5l2 2 4-4"/></svg></div>`;
+
 function maskPhone(p) { return p ? '+91 ' + p.slice(0, 5) + ' ' + p.slice(5) : ''; }
 
 function showSignin() {
@@ -1334,7 +1368,7 @@ function renderAccount() {
   if (!state.patient) {
     host.innerHTML = `
       <div class="empty-state" style="margin-top:0">
-        <img class="empty-ico-img" src="brand/icons/calendar.webp" alt="" width="52" height="52" loading="lazy" decoding="async">
+        ${CAL_ICON}
         <div class="empty-title">Your bookings live here</div>
         <div class="empty-sub">Sign in with your mobile number to see every booking in one place, with cancel and reschedule.</div>
         <button class="btn btn-block" id="acct-goto-signin">Sign in</button>
@@ -1343,39 +1377,23 @@ function renderAccount() {
     return;
   }
   const p = state.patient;
-  const initial = esc(((p.name || 'A').trim()[0] || 'A').toUpperCase());
   host.innerHTML = `
-    <div class="acct-head">
-      <div class="acct-avatar">${initial}</div>
-      <div class="acct-head-info">
-        <div class="acct-hi">Hi${p.name ? ', ' + esc(p.name.split(' ')[0]) : ''}</div>
-        <div class="acct-sub">${p.phone ? 'Signed in with ' + esc(maskPhone(p.phone)) : (p.email ? 'Signed in with ' + esc(p.email) : 'Signed in with Google')}${p.has_google ? ' &middot; Google linked' : ''}</div>
-      </div>
-    </div>
-    ${!p.has_google ? '<a class="btn btn-block btn-glass google-start" href="/api/auth/google/start" style="display:block;text-align:center;margin-bottom:14px">Link Google account</a>' : ''}
-    <details class="acct-details">
-      <summary>Your details<span class="acct-details-hint">name and age prefill your bookings</span></summary>
-      <div class="form-grid" style="margin-top:12px">
-        <div class="form-row"><label for="acct-name">Your name</label><input id="acct-name" maxlength="60" autocomplete="name" value="${esc(p.name || '')}" placeholder="Used to prefill bookings"></div>
-        <div class="form-row"><label for="acct-age">Age</label><input id="acct-age" inputmode="numeric" maxlength="3" value="${p.age != null ? p.age : ''}" placeholder="Optional"></div>
-        <div class="form-error" id="acct-error"></div>
-        <button class="btn btn-block btn-small" id="acct-save">Save details</button>
-      </div>
-    </details>
-    <div class="acct-sec-title">My bookings</div>
-    <div id="my-bookings"><div class="loading">Loading&hellip;</div></div>
-    <button class="signout-link" id="acct-logout">Sign out</button>`;
-  bindGoogleStart(host);
-  $('#acct-save').onclick = saveProfile;
-  $('#acct-logout').onclick = logout;
+    <h2 style="font-size:20px;font-weight:700">My bookings</h2>
+    <p style="color:var(--muted);font-size:13.5px;margin:6px 0 16px">Booked as ${p.phone ? esc(maskPhone(p.phone)) : esc(p.email || 'you')} - every booking in one place.</p>
+    <div id="my-bookings"><div class="loading">Loading&hellip;</div></div>`;
   loadMyBookings();
 }
 
 function renderLogin(host) {
+
   host.innerHTML = `
-    <div class="signin-video">
-      <video id="signin-video" muted loop playsinline preload="none"></video>
-      <div class="signin-video-cap">Neighbourhood care, one tap away</div>
+    <div class="signin-brand">
+      <img src="brand/icon.png" alt="Drayvenn Lab" class="signin-brand-ico">
+      <div class="signin-brand-name">Drayvenn <b>Lab</b></div>
+      <svg class="signin-ecg" viewBox="0 0 560 64" fill="none" aria-hidden="true">
+        <path class="ecg-base" d="M0 32 H180 L196 32 204 12 216 52 226 22 232 32 H330 L344 32 352 10 364 54 374 20 380 32 H560" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path class="ecg-pulse" d="M0 32 H180 L196 32 204 12 216 52 226 22 232 32 H330 L344 32 352 10 364 54 374 20 380 32 H560" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
     </div>
     <div class="signin-head">
       <h2 class="signin-title">Sign in or create account</h2>
@@ -1411,23 +1429,6 @@ function renderLogin(host) {
        Honest message, no dead endpoint. */
     toast('Apple sign-in is being set up - use Google or your mobile number for now', 'info');
   };
-  armSigninVideo();
-}
-
-/* Sign-in page video: reuses the hero loop, lazy-armed, pauses off-screen.
-   Reduced-motion users keep the static teal panel (it acts as the poster). */
-function armSigninVideo() {
-  const v = $('#signin-video');
-  if (!v) return;
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  v.addEventListener('canplay', () => { v.classList.add('ready'); v.play().catch(() => {}); }, { once: true });
-  v.addEventListener('error', () => v.remove(), { once: true });
-  v.src = 'brand/hero-loop.mp4';
-  if ('IntersectionObserver' in window) {
-    new IntersectionObserver(es => es.forEach(e => {
-      if (v.src) { if (e.isIntersecting) v.play().catch(() => {}); else v.pause(); }
-    }), { threshold: 0.05 }).observe(v);
-  }
 }
 
 /* Follows /api/auth/google/start in JS so the clean "switching on" message
@@ -1495,18 +1496,6 @@ async function verifyOtp() {
   btn.disabled = false; btn.textContent = 'Verify & sign in';
 }
 
-async function saveProfile() {
-  const err = $('#acct-error');
-  err.style.display = 'none';
-  const name = $('#acct-name').value.trim();
-  const age = $('#acct-age').value.trim();
-  try {
-    const { patient } = await api('/api/auth/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, age: age === '' ? null : age }) });
-    state.patient.name = patient.name; state.patient.age = patient.age;
-    toast('Details saved', 'info');
-  } catch (e) { err.textContent = e.message; err.style.display = 'block'; }
-}
-
 async function logout() {
   try { await api('/api/auth/logout', { method: 'POST' }); } catch {}
   state.patient = null;
@@ -1521,7 +1510,7 @@ async function loadMyBookings() {
   try {
     const { bookings } = await api('/api/my/bookings');
     if (!bookings.length) { host.innerHTML = `<div class="empty-state">
-      <img class="empty-ico-img" src="brand/icons/calendar.webp" alt="" width="52" height="52" loading="lazy" decoding="async">
+      ${CAL_ICON}
       <div class="empty-title">No bookings yet</div>
       <div class="empty-sub">Book from the home page and your appointments show up here.</div>
       <button type="button" class="btn btn-outline btn-small" id="mb-browse">Browse clinics</button>
