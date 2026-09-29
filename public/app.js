@@ -91,6 +91,7 @@ async function loadClinics() {
     renderSpecChips();
     renderAreaFilter();
     renderHomeExtras();
+    renderRecentClinics();
     renderClinics();
   } catch (e) {
     $('#clinic-list').innerHTML = '<div class="loading">Could not load clinics. <a href="/">Retry</a></div>';
@@ -107,6 +108,27 @@ function renderAreaFilter() {
   sel.value = areas.includes(cur) ? cur : 'All';
   state.filter.area = sel.value;
   sel.onchange = () => { state.filter.area = sel.value; renderClinics(); };
+}
+
+/* ---------- recently viewed clinics (local only, never leaves the device) ---------- */
+function recordRecentClinic(c) {
+  try {
+    const list = JSON.parse(localStorage.getItem('dh-recent') || '[]').filter(x => x.id !== c.id);
+    list.unshift({ id: c.id, name: c.name, area: c.area, emoji: c.emoji });
+    localStorage.setItem('dh-recent', JSON.stringify(list.slice(0, 4)));
+  } catch {}
+  renderRecentClinics();
+}
+function renderRecentClinics() {
+  const wrap = $('#recent-wrap'), host = $('#recent-chips');
+  if (!wrap || !host) return;
+  let list = [];
+  try { list = JSON.parse(localStorage.getItem('dh-recent') || '[]'); } catch {}
+  const valid = list.filter(x => state.clinics.some(c => c.id === x.id));
+  if (!valid.length) { wrap.classList.add('hidden'); return; }
+  wrap.classList.remove('hidden');
+  host.innerHTML = valid.map(x => `<button class="chip" data-id="${esc(x.id)}">${esc(x.emoji)} ${esc(x.name)}</button>`).join('');
+  host.querySelectorAll('.chip').forEach(b => b.onclick = () => openClinic(b.dataset.id));
 }
 
 function renderHomeExtras() {
@@ -197,6 +219,7 @@ async function openClinic(id) {
   try {
     const { clinic } = await api('/api/clinics/' + encodeURIComponent(id));
     state.clinic = clinic;
+    recordRecentClinic(clinic);
     renderClinicDetail();
   } catch (e) {
     $('#clinic-detail').innerHTML = '<div class="loading">Clinic not found.</div>';
@@ -767,6 +790,19 @@ $('#bk-btn').onclick = lookupBooking;
 $('#bk-phone').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10); });
 $('#bk-phone').addEventListener('keydown', e => { if (e.key === 'Enter') lookupBooking(); });
 $('#bk-ref').addEventListener('keydown', e => { if (e.key === 'Enter') lookupBooking(); });
+$('#confirm-copy').onclick = async () => {
+  const b = state.lastBooking;
+  if (!b) return;
+  try { await navigator.clipboard.writeText(b.ref); toast('Reference copied', 'info'); }
+  catch { toast('Reference: ' + b.ref, 'info'); }
+};
+$('#confirm-share').onclick = async () => {
+  const b = state.lastBooking;
+  if (!b) return;
+  const text = `Drayvenn Health appointment\n${b.doctor_name} - ${b.clinic_name}\n${fmtDate(b.date)}, ${fmtTime(b.slot)}\nBooking ref: ${b.ref}`;
+  if (navigator.share) { try { await navigator.share({ title: 'Drayvenn Health appointment', text }); } catch {} }
+  else { try { await navigator.clipboard.writeText(text); toast('Details copied - paste anywhere to share', 'info'); } catch {} }
+};
 $('#confirm-manage').onclick = () => {
   const b = state.lastBooking;
   show('mybookings');

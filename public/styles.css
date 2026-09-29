@@ -67,6 +67,8 @@ img { max-width: 100%; }
 .why-strip { margin-top: 26px; background: var(--primary-soft); border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
 .why-item { font-size: 13px; font-weight: 600; color: var(--ink); }
 
+.recent-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 18px 0 8px; }
+
 /* ---------- footer ---------- */
 .footer { border-top: 1px solid var(--line); background: var(--surface); margin-top: 40px; }
 .footer-cols { max-width: 1080px; margin: 0 auto; padding: 26px 18px 8px; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 20px; }
