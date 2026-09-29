@@ -17,8 +17,27 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 <link rel="icon" type="image/png" href="/favicon-64.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#00a898">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Drayvenn">
+<link rel="apple-touch-icon" href="/brand/app-icon-192.png">
 </head>
 <body>
+  <!-- App-open splash: ~1.4s, tap-through (pointer-events none), CSS self-dismisses
+       even if JS dies, removed from DOM by JS. Hidden for reduced-motion. -->
+  <div class="splash" id="splash" aria-hidden="true">
+    <div class="splash-inner">
+      <img class="splash-logo" src="brand/icon.png" alt="">
+      <div class="splash-word">Drayvenn <b>Health</b></div>
+      <svg class="splash-ecg" viewBox="0 0 200 40" fill="none" aria-hidden="true">
+        <path d="M0 20 H58 L70 6 L82 34 L94 12 L102 20 H200"/>
+      </svg>
+    </div>
+  </div>
+
 <header class="topbar">
   <div class="topbar-inner">
     <div class="logo" id="logo-home" style="cursor:pointer">
@@ -65,7 +84,7 @@
       <div class="hero-badges">
         <div class="hero-badge">✓ Free to use</div>
         <div class="hero-badge">✓ Clinic confirms shortly</div>
-        <div class="hero-badge">✓ No sign-up needed</div>
+        <div class="hero-badge">✓ Pay at the clinic</div>
       </div>
       <div class="searchbar">
         <input type="text" id="home-search" placeholder="Search clinics, doctors, specialties... e.g. dentist">
@@ -106,9 +125,9 @@
     <div class="chips" id="home-areas"></div>
 
     <div class="why-strip reveal">
-      <div class="why-item">✓ Free for patients</div>
+      <div class="why-item">✓ Instant confirmation</div>
       <div class="why-item">✓ Clinic confirms your slot</div>
-      <div class="why-item">✓ No sign-up needed to book</div>
+      <div class="why-item">✓ All bookings in one account</div>
       <div class="why-item">✓ Track with ref + mobile</div>
     </div>
   </section>

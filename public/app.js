@@ -1,3 +1,12 @@
+/* Splash: CSS animation self-dismisses; JS just removes the node. */
+setTimeout(() => { const sp = document.getElementById('splash'); if (sp) sp.remove(); }, 2000);
+
+/* PWA: register the service worker after load; failures are silent (plain
+   website keeps working identically without it). */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
+}
+
 const state = {
   clinics: [],
   filter: { q: '', spec: 'All', area: 'All' },
@@ -213,7 +222,7 @@ function renderAccountPage() {
     <div class="acctp-about hidden" id="acctp-about">
       Drayvenn Health is a clinic-booking product by Drayvenn Lab, built for neighbourhood clinics in Bengaluru.
       Patients book real slots in under a minute and pay at the clinic. The clinics shown in this demo are
-      marked SAMPLE - no real clinic data is used yet. Free for patients; no sign-up needed to book.
+      marked SAMPLE - no real clinic data is used yet. One account keeps every booking in one place.
     </div>`;
   let html = '<h2 class="section-title" style="margin-top:18px">Account</h2>';
   if (p) {
@@ -1357,34 +1366,62 @@ function renderAccount() {
 
 function renderLogin(host) {
   host.innerHTML = `
+    <div class="signin-video">
+      <video id="signin-video" muted loop playsinline preload="none"></video>
+      <div class="signin-video-cap">Neighbourhood care, one tap away</div>
+    </div>
     <div class="signin-head">
-      <div class="signin-mark">✚</div>
-      <h2 class="signin-title">Sign in to Drayvenn Health</h2>
-      <p style="color:var(--muted);font-size:13.5px;margin:4px 0 16px">Faster booking with saved details, plus your full history with cancel and reschedule.</p>
+      <h2 class="signin-title">Sign in or create account</h2>
+      <p style="color:var(--muted);font-size:13.5px;margin:4px 0 16px">One code on your mobile - no passwords. New number? Your account is created automatically.</p>
     </div>
     <div class="form-grid" id="login-phone-step">
-      <div class="form-row"><label for="login-phone">Email address</label>
-        <input id="login-phone" type="email" placeholder="you@example.com" autocomplete="email" style="width:100%">
+      <div class="form-row"><label for="login-phone">Mobile number</label>
+        <div class="phone-wrap"><span class="phone-prefix">+91</span><input id="login-phone" type="tel" placeholder="98765 43210" inputmode="numeric" maxlength="10" autocomplete="tel-national"></div>
       </div>
       <div class="form-error" id="login-error"></div>
-      <button class="btn btn-block" id="login-send">Email me a login code</button>
+      <button class="btn btn-block" id="login-send">Get OTP</button>
     </div>
     <div class="form-grid hidden signin-otp" id="login-otp-step">
-      <div class="form-row"><label for="login-otp">6-digit code</label><input id="login-otp" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;" inputmode="numeric" maxlength="6" autocomplete="one-time-code" style="letter-spacing:6px;text-align:center;font-size:18px"></div>
+      <div class="form-row"><label for="login-otp">Code sent to <b id="login-sent-to"></b></label><input id="login-otp" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;" inputmode="numeric" maxlength="6" autocomplete="one-time-code" style="letter-spacing:6px;text-align:center;font-size:18px"></div>
+      <div class="dev-code hidden" id="login-devcode"></div>
       <div class="form-error" id="otp-error"></div>
       <button class="btn btn-block" id="login-verify">Verify &amp; sign in</button>
-      <button class="btn btn-block btn-ghost" id="login-back">Use a different email</button>
+      <button class="btn btn-block btn-ghost" id="login-back">Change number</button>
     </div>
     <div style="display:flex;align-items:center;gap:10px;margin:14px 0;color:var(--muted);font-size:12px"><span style="flex:1;height:1px;background:var(--line,rgba(190,220,215,.4))"></span>or<span style="flex:1;height:1px;background:var(--line,rgba(190,220,215,.4))"></span></div>
     <a class="btn btn-block btn-glass google-start" href="/api/auth/google/start" style="display:block;text-align:center">Continue with Google</a>
-    <div class="privacy-line" style="margin-top:14px">Sign-in doubles as registration. Codes expire in 10 minutes.</div>`;
+    <button type="button" class="btn btn-block btn-apple" id="login-apple" style="margin-top:10px">Continue with Apple</button>
+    <div class="privacy-line" style="margin-top:14px">Codes expire in 10 minutes. Signing in creates your account on first use.</div>`;
+  $('#login-phone').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10); });
   $('#login-otp').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6); });
   $('#login-send').onclick = requestOtp;
   $('#login-verify').onclick = verifyOtp;
   $('#login-back').onclick = () => { $('#login-otp-step').classList.add('hidden'); $('#login-phone-step').classList.remove('hidden'); };
   bindGoogleStart(host);
+  $('#login-apple').onclick = () => {
+    /* Apple sign-in is staged, not faked: it needs a paid Apple Developer
+       account (Services ID + key), which is not in the zero-budget plan yet.
+       Honest message, no dead endpoint. */
+    toast('Apple sign-in is being set up - use Google or your mobile number for now', 'info');
+  };
+  armSigninVideo();
 }
 
+/* Sign-in page video: reuses the hero loop, lazy-armed, pauses off-screen.
+   Reduced-motion users keep the static teal panel (it acts as the poster). */
+function armSigninVideo() {
+  const v = $('#signin-video');
+  if (!v) return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  v.addEventListener('canplay', () => { v.classList.add('ready'); v.play().catch(() => {}); }, { once: true });
+  v.addEventListener('error', () => v.remove(), { once: true });
+  v.src = 'brand/hero-loop.mp4';
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(es => es.forEach(e => {
+      if (v.src) { if (e.isIntersecting) v.play().catch(() => {}); else v.pause(); }
+    }), { threshold: 0.05 }).observe(v);
+  }
+}
 
 /* Follows /api/auth/google/start in JS so the clean "switching on" message
    shows as a toast instead of a raw JSON page when Google is not configured. */
@@ -1405,31 +1442,41 @@ function bindGoogleStart(root) {
 async function requestOtp() {
   const err = $('#login-error');
   err.style.display = 'none';
-  const email = $('#login-phone').value.trim();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { err.textContent = 'Enter a valid email address.'; err.style.display = 'block'; return; }
+  const phone = $('#login-phone').value.trim();
+  if (!/^[6-9]\d{9}$/.test(phone)) { err.textContent = 'Enter a valid 10-digit mobile number.'; err.style.display = 'block'; return; }
   const btn = $('#login-send');
   btn.disabled = true; btn.textContent = 'Sending...';
   try {
-    await api('/api/auth/otp/request', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+    const data = await api('/api/auth/otp/request', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone }) });
+    $('#login-sent-to').textContent = '+91 ' + phone.slice(0, 5) + ' ' + phone.slice(5);
+    const dev = $('#login-devcode');
+    if (data && data.dev && data.devCode) {
+      dev.innerHTML = '<b>Preview demo</b> - real SMS starts when MSG91 is connected. Demo code: <b>' + esc(data.devCode) + '</b>';
+      dev.classList.remove('hidden');
+      $('#login-otp').value = data.devCode;
+    } else {
+      dev.classList.add('hidden');
+      $('#login-otp').value = '';
+    }
     $('#login-phone-step').classList.add('hidden');
     $('#login-otp-step').classList.remove('hidden');
     $('#login-otp').focus();
   } catch (e) {
     err.textContent = e.message; err.style.display = 'block';
   }
-  btn.disabled = false; btn.textContent = 'Email me a login code';
+  btn.disabled = false; btn.textContent = 'Get OTP';
 }
 
 async function verifyOtp() {
   const err = $('#otp-error');
   err.style.display = 'none';
-  const email = $('#login-phone').value.trim();
+  const phone = $('#login-phone').value.trim();
   const code = $('#login-otp').value.trim();
   if (!/^\d{6}$/.test(code)) { err.textContent = 'Enter the 6-digit code.'; err.style.display = 'block'; return; }
   const btn = $('#login-verify');
   btn.disabled = true; btn.textContent = 'Verifying...';
   try {
-    const { patient } = await api('/api/auth/otp/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, code }) });
+    const { patient } = await api('/api/auth/otp/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone, code }) });
     state.patient = patient;
     renderAcctMenu();
     toast('Signed in', 'info');

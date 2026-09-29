@@ -49,6 +49,14 @@ export async function onRequestPost(context) {
     : await sendOtpSms(context.env, display, code);
 
   if (!sent.ok) {
+    /* Preview demo path (redesign branch ONLY, never production): MSG91 is not
+       live yet, so the preview hands the code back to the UI as a clearly-marked
+       demo. The code row stays live and verify runs the real hash check - no
+       bypass. On main, not_configured still answers 503. */
+    if (sent.reason === 'not_configured' && channel === 'phone' && context.env.CF_PAGES_BRANCH === 'redesign') {
+      return json({ ok: true, dev: true, devCode: code,
+        message: 'Preview demo mode: SMS goes live with MSG91. Use the demo code shown on screen.' });
+    }
     await DB.prepare('UPDATE otp_codes SET consumed = 1 WHERE identifier = ?').bind(identifier).run();
     if (sent.reason === 'not_configured') {
       return json({ ok: false, error: channel + '_provider_not_configured',

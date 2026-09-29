@@ -611,6 +611,27 @@ body:has(#wizard-overlay) { overflow: hidden; }
 
 
 /* ---------- sign-in ---------- */
+.splash { position: fixed; inset: 0; z-index: 999; display: grid; place-items: center; pointer-events: none; background: linear-gradient(160deg, #f6fcfb, #e8f8f4 55%, #dcf3ee); animation: splashHide .45s ease 1.3s forwards; }
+.splash-inner { display: grid; justify-items: center; gap: 6px; animation: splashIn .5s cubic-bezier(.2,.9,.3,1.15) both; }
+.splash-logo { width: 84px; height: 84px; border-radius: 22px; box-shadow: 0 14px 34px rgba(0,168,152,.28); }
+.splash-word { font-family: 'Manrope'; font-size: 22px; font-weight: 700; color: var(--ink); letter-spacing: .2px; }
+.splash-word b { color: var(--teal, #00a898); }
+.splash-ecg { width: 168px; height: 34px; }
+.splash-ecg path { fill: none; stroke: #00a898; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 280; stroke-dashoffset: 280; animation: ecgDraw .85s ease .35s forwards; filter: drop-shadow(0 0 5px rgba(94,234,212,.7)); }
+@keyframes ecgDraw { to { stroke-dashoffset: 0; } }
+@keyframes splashIn { from { opacity: 0; transform: scale(.9) translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes splashHide { to { opacity: 0; visibility: hidden; } }
+@media (prefers-reduced-motion: reduce) { .splash { display: none !important; } }
+.signin-video { position: relative; height: 148px; border-radius: 18px; overflow: hidden; margin-bottom: 16px; background: linear-gradient(135deg, #0e3f3a, #00a898); }
+.signin-video video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 35%; opacity: 0; transition: opacity .6s ease; }
+.signin-video video.ready { opacity: 1; }
+.signin-video-cap { position: absolute; left: 14px; bottom: 10px; z-index: 1; color: #fff; font-size: 12.5px; font-weight: 700; text-shadow: 0 1px 8px rgba(0,40,36,.55); letter-spacing: .2px; }
+.phone-wrap { display: flex; align-items: center; background: rgba(255,255,255,.55); border: 1.5px solid rgba(190,220,215,.6); border-radius: 14px; overflow: hidden; }
+.phone-prefix { padding: 0 8px 0 14px; font-weight: 800; color: var(--ink); font-size: 15px; }
+.phone-wrap input { flex: 1; border: 0 !important; background: transparent !important; box-shadow: none !important; padding-left: 2px; }
+.btn-apple { background: rgba(20,24,28,.88) !important; color: #fff !important; border: 1px solid rgba(255,255,255,.18) !important; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.btn-apple::before { content: ""; display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px; background: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath d='M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z'/%3E%3C/svg%3E") center/contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath d='M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z'/%3E%3C/svg%3E") center/contain no-repeat; }
+.dev-code { background: rgba(255,193,7,.18); border: 1px dashed rgba(180,130,0,.45); color: #6b5300; font-size: 12.5px; border-radius: 12px; padding: 9px 12px; margin-bottom: 10px; line-height: 1.45; }
 .signin-head { text-align: center; margin-bottom: 4px; }
 .signin-mark { width: 52px; height: 52px; margin: 2px auto 12px; border-radius: 16px; background: var(--grad); color: #fff; font-size: 26px; font-weight: 800; display: grid; place-items: center; box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 8px 20px rgba(0,168,152,.35); animation: checkPop .5s cubic-bezier(.34,1.56,.64,1) both; }
 .signin-title { font-family: 'Manrope'; font-size: 20px; font-weight: 800; color: var(--ink); }
