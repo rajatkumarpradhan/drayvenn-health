@@ -96,6 +96,11 @@ function fmtNext(n) {
 }
 
 async function api(path, opts) {
+  opts = opts || {};
+  if (opts.body && typeof opts.body === 'object') {
+    opts.body = JSON.stringify(opts.body);
+    opts.headers = Object.assign({ 'Content-Type': 'application/json' }, opts.headers);
+  }
   const res = await fetch(path, opts);
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.message || data.error || 'Something went wrong');
@@ -805,7 +810,7 @@ function renderClinicDetail() {
         <div class="detail-addr">${PIN_SVG} ${esc(c.address)} <span class="sample-badge">Sample clinic</span></div>
         <div class="detail-badges"><span class="verified-badge">${uiIcon('shield')} Verified clinic</span></div>
       </div>
-      <div class="detail-head-cta"><button type="button" class="btn" id="dt-book-top">Book Appointment</button></div>
+      <div class="detail-head-cta"><button type="button" class="btn" id="dt-book-top">Book Appointment</button><button type="button" class="btn btn-outline btn-save" id="dt-save">&#9825; Save</button></div>
     </div>
     <div class="quick-strip reveal">
       <div class="qs-item"><span class="qs-label">Open today</span><b>${esc(c.timings)}</b></div>
@@ -869,6 +874,8 @@ function renderClinicDetail() {
   });
   const bookTop = () => bookClinicQuick(c.id);
   $('#dt-book-top').onclick = bookTop;
+  const dtSave = $('#dt-save');
+  if (dtSave) { dtSave.onclick = () => { toggleSaveClinic(state.clinic); updateSaveBtn(); }; updateSaveBtn(); }
   $('#sb-book').onclick = bookTop;
   watchReveals($('#clinic-detail'));
   watchReveals($('#dt-doctors'));
@@ -999,6 +1006,11 @@ function openBooking(doctorId, pre) {
     if (state.patient.name) state.booking.pname = state.patient.name;
     if (state.patient.phone) state.booking.pphone = state.patient.phone;
     if (state.patient.age != null) state.booking.page = state.patient.age;
+  }
+  if (state.bookingFor) {
+    state.booking.pname = state.bookingFor.name;
+    if (state.bookingFor.age != null) state.booking.page = state.bookingFor.age;
+    if (state.bookingFor.gender) state.booking.pgender = state.bookingFor.gender;
   }
   closeWizard();
   const ov = document.createElement('div');
@@ -1182,11 +1194,12 @@ async function loadWizSlots() {
 /* --- step: details --- */
 function wizDetailsHTML() {
   const b = state.booking;
-  const v = id => (b[id] || '').replace(/"/g, '&quot;');
+  const v = id => String(b[id] == null ? '' : b[id]).replace(/"/g, '&quot;');
   return `<div>
     <div class="wiz-step-title">Your details</div>
     <div class="wiz-step-sub">For ${esc(b.doctor.name)} · ${esc(fmtDateShort(b.date))} · ${fmtTime(b.slot)}</div>
     <div class="form-grid">
+      ${state.bookingFor ? `<div class="for-member">Booking for <b>${esc(state.bookingFor.name)}</b>${state.bookingFor.relation ? ' (' + esc(state.bookingFor.relation) + ')' : ''} · from your account. <button type="button" class="linklike" id="wz-for-clear">Book for myself instead</button></div>` : ''}
       <div class="form-row"><label for="wz-name">Full Name</label><input id="wz-name" placeholder="Full name" maxlength="60" autocomplete="name" value="${v('pname')}"></div>
       <div class="form-row"><label for="wz-phone">Mobile Number</label>
         <div class="phone-wrap"><span class="phone-prefix">+91</span><input id="wz-phone" placeholder="98765 43210" inputmode="numeric" maxlength="10" autocomplete="tel-national" value="${v('pphone')}"></div>
@@ -1207,6 +1220,15 @@ function wizDetailsHTML() {
     </div></div>`;
 }
 function wireWizDetails() {
+  const fc = $('#wz-for-clear');
+  if (fc) fc.onclick = () => {
+    state.bookingFor = null;
+    const p = state.patient || {};
+    $('#wz-name').value = p.name || '';
+    $('#wz-age').value = p.age != null ? p.age : '';
+    $('#wz-gender').value = '';
+    fc.closest('.for-member').remove();
+  };
   $('#wz-phone').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10); });
   $('#wz-age').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 3); });
   $('#wiz-next').disabled = false;
@@ -1276,6 +1298,7 @@ async function submitBooking() {
       })
     });
     state.lastBooking = booking;
+    state.bookingFor = null;
     closeWizard();
     renderConfirmation(booking);
     show('confirm');
@@ -1298,7 +1321,7 @@ function gcalLink(b) {
     action: 'TEMPLATE',
     text: `Appointment: ${b.doctor_name} - ${b.clinic_name}`,
     dates: dt + '/' + end,
-    details: `Booking ref ${b.ref} · Patient ${b.patient_name} · Fee ₹${b.fee} (pay at clinic) · Booked via Drayvenn Health`,
+    details: `Booking ref ${b.ref} · Patient ${b.patient_name}${b.fee ? ' · Fee ₹' + b.fee : ''} (pay at clinic) · Booked via Drayvenn Health`,
     location: b.clinic_address
   });
   return 'https://calendar.google.com/calendar/render?' + params.toString();
@@ -1648,11 +1671,206 @@ function renderAccount() {
     return;
   }
   const p = state.patient;
+  const initial = esc(((p.name || p.email || 'A').trim()[0] || 'A').toUpperCase());
   host.innerHTML = `
-    <h2 style="font-size:20px;font-weight:700">My bookings</h2>
-    <p style="color:var(--muted);font-size:13.5px;margin:6px 0 16px">Booked as ${p.phone ? esc(maskPhone(p.phone)) : esc(p.email || 'you')} - every booking in one place.</p>
-    <div id="my-bookings"><div class="loading">Loading&hellip;</div></div>`;
+  <div class="dash">
+    <aside class="dash-side">
+      <div class="dash-user">
+        <div class="acctp-avatar">${initial}</div>
+        <div class="dash-user-info">
+          <div class="dash-name">${esc(p.name || 'Set your name')}</div>
+          <div class="dash-contact">${esc(p.phone ? maskPhone(p.phone) : (p.email || ''))}</div>
+        </div>
+      </div>
+      <nav class="dash-nav" id="dash-nav">
+        <button type="button" class="dash-nav-btn active" data-tab="bookings">My Bookings</button>
+        <button type="button" class="dash-nav-btn" data-tab="saved">Saved Clinics</button>
+        <button type="button" class="dash-nav-btn" data-tab="family">Family Members</button>
+        <button type="button" class="dash-nav-btn" data-tab="profile">Profile Settings</button>
+        <button type="button" class="dash-nav-btn dash-logout" id="dash-logout">Logout</button>
+      </nav>
+    </aside>
+    <div class="dash-body">
+      <div class="dash-panel" id="dash-panel-bookings">
+        <div class="mb-tabs" id="mb-tabs">
+          <button type="button" class="mb-tab active" data-mbtab="upcoming">Upcoming</button>
+          <button type="button" class="mb-tab" data-mbtab="past">Past</button>
+          <button type="button" class="mb-tab" data-mbtab="cancelled">Cancelled</button>
+        </div>
+        <div id="my-bookings"><div class="loading">Loading&hellip;</div></div>
+      </div>
+      <div class="dash-panel hidden" id="dash-panel-saved">
+        <h3 class="dash-h">Saved Clinics</h3>
+        <p class="dash-sub">Clinics you save show up here for quick booking.</p>
+        <div id="saved-list"></div>
+      </div>
+      <div class="dash-panel hidden" id="dash-panel-family">
+        <h3 class="dash-h">Family Members</h3>
+        <p class="dash-sub">Add your family once - book appointments for them from your account.</p>
+        <div id="family-list"><div class="loading">Loading&hellip;</div></div>
+        <form class="fam-form" id="family-form">
+          <input id="fam-name" placeholder="Full name" maxlength="60" autocomplete="off">
+          <input id="fam-age" placeholder="Age" inputmode="numeric" maxlength="3">
+          <select id="fam-gender"><option value="">Gender</option><option>Female</option><option>Male</option><option>Other</option></select>
+          <select id="fam-relation"><option value="">Relation</option><option>Spouse</option><option>Child</option><option>Parent</option><option>Sibling</option><option>Other</option></select>
+          <button class="btn btn-small" type="submit">Add member</button>
+        </form>
+        <div class="form-error" id="fam-error"></div>
+      </div>
+      <div class="dash-panel hidden" id="dash-panel-profile">
+        <h3 class="dash-h">Profile Settings</h3>
+        <p class="dash-sub">Your name and age prefill new bookings.</p>
+        <div class="prof-grid">
+          <div class="form-row"><label for="prof-name">Full Name</label><input id="prof-name" maxlength="60" value="${(p.name || '').replace(/"/g, '&quot;')}"></div>
+          <div class="form-row"><label for="prof-age">Age</label><input id="prof-age" inputmode="numeric" maxlength="3" value="${p.age != null ? p.age : ''}"></div>
+          <div class="form-row"><label>Mobile Number</label><input value="${esc(p.phone ? maskPhone(p.phone) : '-')}" disabled></div>
+          <div class="form-row"><label>Email</label><input value="${esc(p.email || '-')}" disabled></div>
+        </div>
+        <p class="dash-note">Mobile and email are your sign-in - they can't be changed here.</p>
+        <button type="button" class="btn btn-small" id="prof-save">Save changes</button>
+        <div class="form-error" id="prof-error"></div>
+      </div>
+    </div>
+  </div>`;
+  $('#dash-nav').querySelectorAll('.dash-nav-btn[data-tab]').forEach(btn => btn.onclick = () => showDash(btn.dataset.tab));
+  $('#dash-logout').onclick = async () => { await logout(); };
+  $('#mb-tabs').querySelectorAll('.mb-tab').forEach(btn => btn.onclick = () => {
+    state.mbTab = btn.dataset.mbtab;
+    $('#mb-tabs').querySelectorAll('.mb-tab').forEach(t => t.classList.toggle('active', t === btn));
+    renderMbList();
+  });
+  wireFamilyForm();
+  $('#prof-save').onclick = saveProfile;
   loadMyBookings();
+}
+
+function showDash(tab) {
+  state.dashTab = tab;
+  document.querySelectorAll('#dash-nav .dash-nav-btn[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.dash-panel').forEach(pn => pn.classList.add('hidden'));
+  const panel = $('#dash-panel-' + tab);
+  if (panel) panel.classList.remove('hidden');
+  if (tab === 'bookings') renderMbList();
+  if (tab === 'saved') renderSaved();
+  if (tab === 'family') loadFamily();
+}
+
+/* Saved clinics (localStorage). */
+function getSavedClinics() { try { return JSON.parse(localStorage.getItem('dh_saved_clinics') || '[]'); } catch { return []; } }
+function isClinicSaved(id) { return getSavedClinics().some(c => c.id === id); }
+function toggleSaveClinic(c) {
+  const list = getSavedClinics();
+  const i = list.findIndex(x => x.id === c.id);
+  if (i >= 0) { list.splice(i, 1); toast('Removed from saved clinics', 'info'); }
+  else { list.push({ id: c.id, name: c.name, area: c.area, min_fee: c.min_fee }); toast('Saved - find it under My Account', 'info'); }
+  localStorage.setItem('dh_saved_clinics', JSON.stringify(list));
+}
+function updateSaveBtn() {
+  const btn = $('#dt-save');
+  if (!btn || !state.clinic) return;
+  const saved = isClinicSaved(state.clinic.id);
+  btn.innerHTML = saved ? '&#9829; Saved' : '&#9825; Save';
+  btn.classList.toggle('btn-save-on', saved);
+}
+function renderSaved() {
+  const host = $('#saved-list'); if (!host) return;
+  const list = getSavedClinics();
+  if (!list.length) {
+    host.innerHTML = `<div class="empty-state">
+      ${CAL_ICON}
+      <div class="empty-title">No saved clinics yet</div>
+      <div class="empty-sub">Tap Save on any clinic page and it shows up here.</div>
+      <button type="button" class="btn btn-outline btn-small" id="sv-browse">Browse clinics</button>
+    </div>`;
+    const bb = $('#sv-browse'); if (bb) bb.onclick = () => show('home');
+    return;
+  }
+  host.innerHTML = list.map(c => `
+    <div class="saved-row">
+      <div>
+        <div class="bk-clinic">${esc(c.name)}</div>
+        <div class="bk-doc">${[c.area, c.min_fee ? 'from \u20B9' + c.min_fee : ''].filter(Boolean).map(x => esc(String(x))).join(' · ')}</div>
+      </div>
+      <div class="bk-actions">
+        <button type="button" class="btn btn-small" data-open="${esc(String(c.id))}">View &amp; Book</button>
+        <button type="button" class="btn btn-small btn-ghost" data-unsave="${esc(String(c.id))}">Remove</button>
+      </div>
+    </div>`).join('');
+  host.querySelectorAll('[data-open]').forEach(btn => btn.onclick = () => openClinic(btn.dataset.open));
+  host.querySelectorAll('[data-unsave]').forEach(btn => btn.onclick = () => {
+    toggleSaveClinic({ id: btn.dataset.unsave });
+    renderSaved();
+  });
+}
+
+/* Family members. */
+async function loadFamily() {
+  const host = $('#family-list'); if (!host) return;
+  if (!state.patient) { host.innerHTML = ''; return; }
+  try {
+    const { members } = await api('/api/my/family');
+    state.familyMembers = members;
+    renderFamilyList(members);
+  } catch (e) { host.innerHTML = '<div class="loading">Could not load family members.</div>'; }
+}
+function renderFamilyList(members) {
+  const host = $('#family-list'); if (!host) return;
+  if (!members.length) { host.innerHTML = '<p class="dash-note">No family members added yet.</p>'; return; }
+  host.innerHTML = members.map(m => `
+    <div class="fam-row">
+      <div>
+        <div class="bk-clinic">${esc(m.name)}</div>
+        <div class="bk-doc">${[m.relation, m.age != null ? m.age + ' yrs' : '', m.gender].filter(Boolean).map(x => esc(String(x))).join(' · ')}</div>
+      </div>
+      <div class="bk-actions">
+        <button type="button" class="btn btn-small btn-outline" data-bookfor="${m.id}">Book appointment</button>
+        <button type="button" class="btn btn-small btn-ghost" data-famdel="${m.id}">Remove</button>
+      </div>
+    </div>`).join('');
+  host.querySelectorAll('[data-bookfor]').forEach(btn => btn.onclick = () => {
+    const m = (state.familyMembers || []).find(x => String(x.id) === btn.dataset.bookfor);
+    if (!m) return;
+    state.bookingFor = { name: m.name, age: m.age, gender: m.gender, relation: m.relation };
+    show('home');
+    toast('Booking for ' + m.name + ' - pick a clinic', 'info');
+  });
+  host.querySelectorAll('[data-famdel]').forEach(btn => btn.onclick = async () => {
+    if (!confirm('Remove this family member?')) return;
+    try {
+      await api('/api/my/family', { method: 'POST', body: { action: 'remove', id: btn.dataset.famdel } });
+      toast('Removed', 'info');
+      loadFamily();
+    } catch (e) { toast(e.message, 'error'); }
+  });
+}
+function wireFamilyForm() {
+  const form = $('#family-form'); if (!form) return;
+  $('#fam-age').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 3); });
+  form.onsubmit = async ev => {
+    ev.preventDefault();
+    const err = $('#fam-error'); err.style.display = 'none';
+    const name = $('#fam-name').value.trim();
+    if (name.length < 2) { err.textContent = 'Enter the family member name.'; err.style.display = 'block'; return; }
+    try {
+      await api('/api/my/family', { method: 'POST', body: { action: 'add', name, age: $('#fam-age').value, gender: $('#fam-gender').value, relation: $('#fam-relation').value } });
+      form.reset();
+      toast(name + ' added', 'info');
+      loadFamily();
+    } catch (e) { err.textContent = e.message; err.style.display = 'block'; }
+  };
+}
+
+/* Profile settings. */
+async function saveProfile() {
+  const err = $('#prof-error'); err.style.display = 'none';
+  try {
+    await api('/api/auth/profile', { method: 'POST', body: { name: $('#prof-name').value.trim(), age: $('#prof-age').value.trim() } });
+    const { patient } = await api('/api/auth/me');
+    state.patient = patient;
+    toast('Details saved', 'info');
+    renderAccount();
+    renderAcctMenu();
+  } catch (e) { err.textContent = e.message; err.style.display = 'block'; }
 }
 
 function renderLogin(host) {
@@ -1762,56 +1980,136 @@ async function verifyOtp() {
 async function logout() {
   try { await api('/api/auth/logout', { method: 'POST' }); } catch {}
   state.patient = null;
+  state.myBookings = [];
+  state.familyMembers = [];
+  state.bookingFor = null;
   toast('Signed out', 'info');
   renderAccount();
   renderAcctMenu();
 }
+
+const MB_STATUS = { pending: 'Pending confirmation', confirmed: 'Confirmed', cancelled: 'Cancelled', completed: 'Completed' };
 
 async function loadMyBookings() {
   const host = $('#my-bookings');
   if (!host) return;
   try {
     const { bookings } = await api('/api/my/bookings');
-    if (!bookings.length) { host.innerHTML = `<div class="empty-state">
-      ${CAL_ICON}
-      <div class="empty-title">No bookings yet</div>
-      <div class="empty-sub">Book from the home page and your appointments show up here.</div>
-      <button type="button" class="btn btn-outline btn-small" id="mb-browse">Browse clinics</button>
-    </div>`;
-    const bb = $('#mb-browse'); if (bb) bb.onclick = () => show('home');
-    return; }
-    const today = new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10);
-    host.innerHTML = bookings.map(b => `
-      <div class="booking-row" data-ref="${esc(b.ref)}">
-        <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
-          <div>
-            <div style="font-weight:700">${esc(b.doctor_name)} <span style="color:var(--muted);font-weight:500">&middot; ${esc(b.specialty || '')}</span></div>
-            <div style="font-size:13px;color:var(--muted)">${esc(b.clinic_name)}</div>
-            <div style="font-size:13px;margin-top:2px">${fmtDate(b.date)} &middot; ${fmtTime(b.slot)} &middot; <span class="status-${esc(b.status)}">${esc(b.status)}</span></div>
-            <div style="font-size:12px;color:var(--muted);margin-top:2px">${esc(b.ref)}</div>
-          </div>
-          ${b.status !== 'cancelled' && b.date >= today ? `<span class="menu-host"><button class="menu-dot" data-ref="${esc(b.ref)}" aria-label="Manage">&#8942;</button>
-          <span class="menu-pop menu-pop-right hidden">
-            <button class="menu-item" data-act="reschedule" data-ref="${esc(b.ref)}" data-doctor="${esc(b.doctor_id)}">Reschedule</button>
-            <button class="menu-item menu-danger" data-act="cancel" data-ref="${esc(b.ref)}">Cancel booking</button>
-          </span></span>` : ''}
-        </div>
-        <div class="rs-panel hidden"></div>
-      </div>`).join('');
-    host.querySelectorAll('.menu-dot').forEach(btn => btn.onclick = () => {
-      const menu = btn.parentElement.querySelector('.menu-pop');
-      menu.classList.toggle('hidden');
-    });
-    host.querySelectorAll('.menu-item').forEach(btn => btn.onclick = () => {
-      const row = btn.closest('.booking-row');
-      btn.closest('.menu-pop').classList.add('hidden');
-      if (btn.dataset.act === 'cancel') myCancel(row, btn.dataset.ref);
-      else myReschedulePanel(row, btn.dataset.ref, btn.dataset.doctor);
-    });
+    state.myBookings = bookings;
+    renderMbList();
   } catch (e) {
     host.innerHTML = '<div class="loading">Could not load bookings. <a href="#" id="my-retry">Retry</a></div>';
     const r = $('#my-retry'); if (r) r.onclick = ev => { ev.preventDefault(); loadMyBookings(); };
   }
+}
+
+function renderMbList() {
+  const host = $('#my-bookings'); if (!host) return;
+  const all = state.myBookings || [];
+  const today = new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10);
+  const tab = state.mbTab || 'upcoming';
+  let rows = all.filter(b => {
+    if (tab === 'cancelled') return b.status === 'cancelled';
+    if (tab === 'past') return b.status !== 'cancelled' && b.date < today;
+    return b.status !== 'cancelled' && b.date >= today;
+  });
+  rows = rows.slice().sort((a, c) => tab === 'upcoming'
+    ? (a.date + a.slot).localeCompare(c.date + c.slot)
+    : (c.date + c.slot).localeCompare(a.date + a.slot));
+  if (!rows.length) {
+    const msg = tab === 'upcoming' ? ['No upcoming appointments', 'Book a visit and it shows up here.']
+      : tab === 'past' ? ['No past appointments', 'Your completed and older visits will show here.']
+      : ['No cancelled bookings', 'Bookings you cancel will show here.'];
+    host.innerHTML = `<div class="empty-state">
+      ${CAL_ICON}
+      <div class="empty-title">${msg[0]}</div>
+      <div class="empty-sub">${msg[1]}</div>
+      ${tab === 'upcoming' ? '<button type="button" class="btn btn-outline btn-small" id="mb-browse">Browse clinics</button>' : ''}
+    </div>`;
+    const bb = $('#mb-browse'); if (bb) bb.onclick = () => show('home');
+    return;
+  }
+  host.innerHTML = rows.map(b => {
+    const upcoming = b.status !== 'cancelled' && b.date >= today;
+    return `
+    <div class="bk-card" data-ref="${esc(b.ref)}">
+      <div class="bk-top">
+        <span class="bk-ref">${esc(b.ref)}</span>
+        <span class="bk-badge bdg-${esc(b.status)}">${esc(MB_STATUS[b.status] || b.status)}</span>
+      </div>
+      <div class="bk-clinic">${esc(b.clinic_name)}</div>
+      <div class="bk-doc">${esc(b.doctor_name)}${b.specialty ? ' · ' + esc(b.specialty) : ''}</div>
+      <div class="bk-meta">${fmtDate(b.date)} · ${fmtTime(b.slot)}${b.fee ? ' · \u20B9' + b.fee : ''}</div>
+      ${b.clinic_address ? `<div class="bk-addr">${esc(b.clinic_address)}</div>` : ''}
+      <div class="bk-actions">
+        <button type="button" class="btn btn-small btn-outline" data-act="details">View Details</button>
+        ${upcoming
+          ? `<button type="button" class="btn btn-small btn-outline" data-act="reschedule" data-doctor="${esc(b.doctor_id)}">Reschedule</button>
+             <button type="button" class="btn btn-small btn-ghost bk-danger" data-act="cancel">Cancel</button>`
+          : `<button type="button" class="btn btn-small btn-outline" data-act="again">Book Again</button>`}
+      </div>
+      <div class="rs-panel hidden"></div>
+    </div>`;
+  }).join('');
+  host.querySelectorAll('.bk-card [data-act]').forEach(btn => btn.onclick = () => {
+    const card = btn.closest('.bk-card');
+    const b = (state.myBookings || []).find(x => x.ref === card.dataset.ref);
+    if (!b) return;
+    if (btn.dataset.act === 'details') openBookingModal(b);
+    else if (btn.dataset.act === 'cancel') myCancel(card, b.ref);
+    else if (btn.dataset.act === 'reschedule') myReschedulePanel(card, b.ref, btn.dataset.doctor);
+    else if (btn.dataset.act === 'again') openClinic(b.clinic_id);
+  });
+}
+
+function closeBModal() { const m = $('#bmodal-overlay'); if (m) m.remove(); }
+function openBookingModal(b) {
+  closeBModal();
+  const co = CLINIC_COORDS[b.clinic_id];
+  const dirUrl = co
+    ? `https://www.google.com/maps/dir/?api=1&destination=${co[0]},${co[1]}`
+    : 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent((b.clinic_name || '') + ' ' + (b.clinic_address || ''));
+  const today = new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10);
+  const upcoming = b.status !== 'cancelled' && b.date >= today;
+  const ov = document.createElement('div');
+  ov.id = 'bmodal-overlay';
+  ov.className = 'bmodal-overlay';
+  ov.innerHTML = `
+    <div class="bmodal" role="dialog" aria-modal="true" aria-label="Booking details">
+      <div class="bmodal-head">
+        <div>
+          <span class="bk-badge bdg-${esc(b.status)}">${esc(MB_STATUS[b.status] || b.status)}</span>
+          <h3 class="bmodal-title">${esc(b.clinic_name)}</h3>
+        </div>
+        <button type="button" class="bmodal-x" id="bmodal-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="bmodal-body">
+        <div class="brow"><span>Booking ID</span><b>${esc(b.ref)}</b></div>
+        <div class="brow"><span>Doctor</span><b>${esc(b.doctor_name)}${b.specialty ? ' · ' + esc(b.specialty) : ''}</b></div>
+        <div class="brow"><span>Patient</span><b>${esc(b.patient_name)}${b.age != null && b.age !== '' ? ', ' + esc(String(b.age)) : ''}${b.gender ? ' · ' + esc(b.gender) : ''}</b></div>
+        <div class="brow"><span>Date &amp; time</span><b>${fmtDate(b.date)} · ${fmtTime(b.slot)}</b></div>
+        ${b.concern ? `<div class="brow"><span>Symptoms</span><b>${esc(b.concern)}</b></div>` : ''}
+        ${b.clinic_address ? `<div class="brow"><span>Address</span><b>${esc(b.clinic_address)}</b></div>` : ''}
+        ${b.clinic_phone ? `<div class="brow"><span>Clinic phone</span><b><a href="tel:${esc(b.clinic_phone)}">${esc(b.clinic_phone)}</a></b></div>` : ''}
+        <div class="brow"><span>Fee</span><b>${b.fee ? '\u20B9' + b.fee + ' · pay at clinic' : 'Pay at clinic'}</b></div>
+      </div>
+      <div class="bmodal-actions">
+        <a class="btn btn-small btn-outline" target="_blank" rel="noopener" href="${gcalLink({ doctor_name: b.doctor_name, clinic_name: b.clinic_name, ref: b.ref, patient_name: b.patient_name, fee: b.fee, date: b.date, slot: b.slot, clinic_address: b.clinic_address })}">Add to Calendar</a>
+        <button type="button" class="btn btn-small btn-whatsapp" id="bm-share">Share on WhatsApp</button>
+        <a class="btn btn-small btn-outline" target="_blank" rel="noopener" href="${dirUrl}">Get Directions</a>
+        ${upcoming ? `<button type="button" class="btn btn-small btn-outline" id="bm-resched">Reschedule</button>
+        <button type="button" class="btn btn-small btn-ghost bk-danger" id="bm-cancel">Cancel booking</button>` : ''}
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  $('#bmodal-close').onclick = closeBModal;
+  ov.addEventListener('click', e => { if (e.target === ov) closeBModal(); });
+  $('#bm-share').onclick = () => {
+    const text = `Drayvenn Health appointment\n${b.doctor_name} - ${b.clinic_name}\n${fmtDate(b.date)}, ${fmtTime(b.slot)}\nBooking ref: ${b.ref}`;
+    window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
+  };
+  const rc = $('#bm-resched'); if (rc) rc.onclick = () => { closeBModal(); const card = document.querySelector(`.bk-card[data-ref="${CSS.escape(b.ref)}"]`); if (card) myReschedulePanel(card, b.ref, b.doctor_id); };
+  const cc = $('#bm-cancel'); if (cc) cc.onclick = () => { closeBModal(); const card = document.querySelector(`.bk-card[data-ref="${CSS.escape(b.ref)}"]`); if (card) myCancel(card, b.ref); };
 }
 
 async function myCancel(row, ref) {
