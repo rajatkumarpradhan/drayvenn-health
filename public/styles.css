@@ -1204,7 +1204,20 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
 
 /* ---- Animated illustrations (Lottie assets, recolored to brand) ---- */
 .anim-recolor{filter:hue-rotate(66deg) saturate(1.15) brightness(.92)}
-.anim-load{width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:14px 0;color:var(--muted);font-size:13px;font-weight:600;text-align:center}
+.anim-load{width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:26px 16px;color:var(--muted);font-size:13px;font-weight:600;text-align:center;min-height:220px}
+.anim-load img{width:118px;height:118px}
+.skel{width:100%;animation:skelPulse 1.25s ease-in-out infinite}
+.skel i{display:block;background:rgba(15,23,42,.07);border-radius:12px}
+.skel-slots{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px;max-width:420px}
+.skel-slots i{height:44px;border-radius:999px}
+.skel-cards{display:flex;flex-direction:column;gap:12px;margin-top:16px}
+.skel-cards i{height:118px;border-radius:20px}
+.skel-rows{display:flex;flex-direction:column;gap:10px;margin-top:16px;max-width:420px}
+.skel-rows i{height:16px}
+.skel-rows i:nth-child(2){width:72%}
+.skel-rows i:nth-child(3){width:48%}
+@keyframes skelPulse{0%,100%{opacity:.4}50%{opacity:1}}
+@media (prefers-reduced-motion: reduce){.skel{animation:none;opacity:.6}}
 #slot-grid .anim-load, #my-bookings .anim-load, #family-list .anim-load, #clinic-detail .anim-load{grid-column:1/-1;min-height:120px}
 .anim-load img{width:84px;height:84px;object-fit:contain;display:block}
 .anim-empty{display:block;width:104px;height:104px;object-fit:contain;margin:0 auto 2px}

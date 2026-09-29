@@ -774,7 +774,7 @@ function watchReveals(root) {
 /* ---------- CLINIC DETAIL ---------- */
 async function openClinic(id) {
   show('clinic');
-  $('#clinic-detail').innerHTML = LOADER('Loading clinic&hellip;');
+  $('#clinic-detail').innerHTML = LOADER('Loading clinic&hellip;', 'cards');
   $('#doctor-list').innerHTML = '';
   $('#book-panel-host').innerHTML = '';
   try {
@@ -905,12 +905,12 @@ async function renderSlotsTab(c) {
       ${c.doctors.map(d => `<option value="${esc(d.id)}">${esc(d.name)} - ${esc(d.specialty)}</option>`).join('')}
     </select></div>
     <div class="slot-dates" id="slot-dates">${days.map((d, i) => `<button type="button" class="date-pill${i === 0 ? ' active' : ''}" data-date="${d}">${fmtDayPill(d)}</button>`).join('')}</div>
-    <div class="slot-grid" id="slot-grid">${LOADER('Finding open slots&hellip;')}</div>`;
+    <div class="slot-grid" id="slot-grid">${LOADER('Finding open slots&hellip;', 'slots')}</div>`;
   const st = { date: days[0], docId: 'all' };
   const load = async () => {
     const grid = $('#slot-grid');
     const oldBar = $('#slot-book-bar'); if (oldBar) oldBar.remove();
-    grid.innerHTML = LOADER('Finding open slots&hellip;');
+    grid.innerHTML = LOADER('Finding open slots&hellip;', 'slots');
     const docs = st.docId === 'all' ? c.doctors : c.doctors.filter(d => d.id === st.docId);
     const results = await Promise.all(docs.map(d =>
       api('/api/slots?doctor_id=' + encodeURIComponent(d.id) + '&date=' + st.date)
@@ -1662,7 +1662,12 @@ async function loadPatient() {
 
 const CAL_ICON = `<picture><source media="(prefers-reduced-motion: reduce)" srcset="/brand/anim/cal.png"><img src="/brand/anim/cal.webp" alt="" class="anim-recolor anim-empty"></picture>`;
 const ECG_ANIM = `<picture><source media="(prefers-reduced-motion: reduce)" srcset="/brand/anim/ecg.png"><img src="/brand/anim/ecg.webp" alt="" class="anim-recolor"></picture>`;
-const LOADER = (label) => `<div class="anim-load">${ECG_ANIM}<div>${label}</div></div>`;
+const SKEL = {
+  slots: `<div class="skel skel-slots">${'<i></i>'.repeat(9)}</div>`,
+  cards: `<div class="skel skel-cards">${'<i></i>'.repeat(2)}</div>`,
+  rows: `<div class="skel skel-rows">${'<i></i>'.repeat(3)}</div>`,
+};
+const LOADER = (label, kind) => `<div class="anim-load">${ECG_ANIM}<div class="anim-load-label">${label}</div>${SKEL[kind] || ''}</div>`;
 
 function maskPhone(p) { return p ? '+91 ' + p.slice(0, 5) + ' ' + p.slice(5) : ''; }
 
@@ -1712,7 +1717,7 @@ function renderAccount() {
           <button type="button" class="mb-tab" data-mbtab="past">Past</button>
           <button type="button" class="mb-tab" data-mbtab="cancelled">Cancelled</button>
         </div>
-        <div id="my-bookings">${LOADER('Loading your bookings&hellip;')}</div>
+        <div id="my-bookings">${LOADER('Loading your bookings&hellip;', 'cards')}</div>
       </div>
       <div class="dash-panel hidden" id="dash-panel-saved">
         <h3 class="dash-h">Saved Clinics</h3>
@@ -1722,7 +1727,7 @@ function renderAccount() {
       <div class="dash-panel hidden" id="dash-panel-family">
         <h3 class="dash-h">Family Members</h3>
         <p class="dash-sub">Add your family once - book appointments for them from your account.</p>
-        <div id="family-list">${LOADER('Loading&hellip;')}</div>
+        <div id="family-list">${LOADER('Loading&hellip;', 'rows')}</div>
         <form class="fam-form" id="family-form">
           <input id="fam-name" placeholder="Full name" maxlength="60" autocomplete="off">
           <input id="fam-age" placeholder="Age" inputmode="numeric" maxlength="3">
