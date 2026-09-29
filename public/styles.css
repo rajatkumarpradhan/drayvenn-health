@@ -358,23 +358,49 @@ img { max-width: 100%; }
 .empty-note { color: var(--muted); font-size: 14px; padding: 14px 0; }
 
 /* ---------- clinic detail ---------- */
-.detail-head { display: flex; gap: 14px; align-items: center; margin-bottom: 14px; }
-.detail-head .clinic-emoji { width: 58px; height: 58px; font-size: 28px; border-radius: 16px; }
-.info-card {
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
-  padding: 16px 18px; box-shadow: var(--shadow-sm); display: grid; gap: 7px; font-size: 14.5px;
+.detail-hero {
+  border-radius: 22px; padding: 20px 18px; margin-bottom: 14px;
+  background: linear-gradient(150deg, rgba(224,247,243,.65), rgba(255,255,255,.62) 55%);
+  border: 1px solid var(--glass-brd); box-shadow: var(--spec), var(--shadow-sm);
+  backdrop-filter: blur(14px) saturate(150%); -webkit-backdrop-filter: blur(14px) saturate(150%);
 }
-.map-card { margin-top: 14px; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow-sm); background: var(--surface); }
-.map-card iframe { display: block; width: 100%; height: 240px; border: 0; }
+.detail-hero-top { display: flex; gap: 14px; align-items: center; }
+.detail-emoji {
+  width: 64px; height: 64px; flex: none; border-radius: 18px; display: grid; place-items: center;
+  font-size: 30px; background: rgba(255,255,255,.85); border: 1px solid var(--glass-brd);
+  box-shadow: var(--spec), 0 6px 16px rgba(0,133,122,.14);
+}
+.detail-name { font-family: 'Manrope'; font-size: 24px; font-weight: 800; letter-spacing: -.028em; line-height: 1.15; }
+.detail-area { color: var(--muted); font-size: 13.5px; margin-top: 4px; }
+.detail-tagline { margin-top: 12px; font-size: 14px; color: var(--body); }
+.detail-actions { display: flex; gap: 10px; margin-top: 14px; }
+.detail-actions .btn { text-decoration: none; }
+.info-card {
+  background: var(--glass-bg); border: 1px solid var(--glass-brd); border-radius: var(--radius);
+  padding: 16px 18px; box-shadow: var(--spec), var(--shadow-sm); display: grid; gap: 12px; font-size: 14.5px;
+  backdrop-filter: blur(14px) saturate(150%); -webkit-backdrop-filter: blur(14px) saturate(150%);
+}
+.info-row { display: flex; gap: 12px; align-items: flex-start; line-height: 1.45; }
+.info-row b { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.info-ico { font-size: 16px; margin-top: 1px; }
+.detail-map-card {
+  margin-top: 14px; border-radius: var(--radius); overflow: hidden;
+  border: 1px solid var(--glass-brd); box-shadow: var(--spec), var(--shadow-sm);
+  background: var(--glass-bg);
+  backdrop-filter: blur(14px) saturate(150%); -webkit-backdrop-filter: blur(14px) saturate(150%);
+}
+#detail-map { height: 210px; z-index: 0; }
 .map-foot { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; font-size: 13.5px; }
 .map-foot b { color: var(--ink); }
 
 /* ---------- doctor cards ---------- */
 .doctor-card {
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
-  padding: 16px; display: flex; gap: 14px; align-items: center; box-shadow: var(--shadow-sm);
-  animation: fadeUp .35s ease both;
+  background: var(--glass-bg); border: 1px solid var(--glass-brd); border-radius: var(--radius);
+  padding: 16px; display: flex; gap: 14px; align-items: center; box-shadow: var(--spec), var(--shadow-sm);
+  backdrop-filter: blur(14px) saturate(150%); -webkit-backdrop-filter: blur(14px) saturate(150%);
+  transition: transform .18s ease, box-shadow .18s ease;
 }
+.doctor-card:hover { transform: translateY(-3px); box-shadow: var(--spec), var(--shadow); }
 .doc-avatar {
   width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0;
   background: var(--grad); color: #fff; display: grid; place-items: center;

@@ -531,35 +531,39 @@ const CLINIC_COORDS = {
 
 function renderClinicDetail() {
   const c = state.clinic;
+  const tel = esc(c.phone.replace(/[^0-9+]/g, ''));
+  const co = CLINIC_COORDS[c.id];
   $('#clinic-detail').innerHTML = `
-    <div class="detail-head">
-      <div class="clinic-emoji">${c.emoji}</div>
-      <div>
-        <h1 style="font-size:24px;font-weight:800;letter-spacing:-.02em">${esc(c.name)}</h1>
-        <div style="color:var(--muted);font-size:14px;margin-top:2px">📍 ${esc(c.area)} · <span class="sample-badge">Sample clinic</span></div>
+    <div class="detail-hero reveal">
+      <div class="detail-hero-top">
+        <div class="detail-emoji">${c.emoji}</div>
+        <div class="detail-hero-info">
+          <h1 class="detail-name">${esc(c.name)}</h1>
+          <div class="detail-area">📍 ${esc(c.area)} · <span class="sample-badge">Sample clinic</span></div>
+        </div>
+      </div>
+      <div class="detail-tagline">${esc(c.tagline || '')}</div>
+      <div class="detail-actions">
+        <a class="btn btn-small" href="tel:${tel}">📞 Call clinic</a>
+        ${co ? `<a class="btn btn-small btn-ghost" href="https://www.google.com/maps/search/?api=1&query=${co[0]}%2C${co[1]}" target="_blank" rel="noopener">Directions →</a>` : ''}
       </div>
     </div>
-    <div class="info-card">
-      <div><b>Address:</b> ${esc(c.address)}</div>
-      <div><b>Timings:</b> ${esc(c.timings)}</div>
-      <div><b>Phone:</b> ${esc(c.phone)}</div>
-      <div class="spec-chips" style="margin-top:4px">${c.specialties.map(s => `<span class="spec-chip">${esc(s)}</span>`).join('')}</div>
+    <div class="info-card reveal">
+      <div class="info-row"><span class="info-ico">📍</span><span><b>Address</b><br>${esc(c.address)}</span></div>
+      <div class="info-row"><span class="info-ico">🕐</span><span><b>Timings</b><br>${esc(c.timings)}</span></div>
+      <div class="info-row"><span class="info-ico">📞</span><span><b>Phone</b><br><a href="tel:${tel}">${esc(c.phone)}</a></span></div>
+      <div class="spec-chips" style="margin-top:6px">${c.specialties.map(s => `<span class="spec-chip">${esc(s)}</span>`).join('')}</div>
     </div>
-    ${(() => {
-      const co = CLINIC_COORDS[c.id];
-      if (!co) return '';
-      const [lat, lon] = co, d = 0.008;
-      const bbox = [lon - d, lat - d * 0.8, lon + d, lat + d * 0.8].join('%2C');
-      return `<div class="map-card">
-        <iframe title="Map to ${esc(c.name)}" loading="lazy" src="https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat}%2C${lon}"></iframe>
-        <div class="map-foot"><b>📍 ${esc(c.area)}</b><span>
-          <a href="https://www.google.com/maps/search/?api=1&query=${lat}%2C${lon}" target="_blank" rel="noopener">Directions →</a>
-          &nbsp;·&nbsp; <a href="tel:${esc(c.phone.replace(/[^0-9+]/g, ''))}">Call clinic</a>
-        </span></div>
-      </div>`;
-    })()}`;
-  $('#doctor-list').innerHTML = '<h2 class="section-title" style="margin-top:24px">Doctors</h2>' + c.doctors.map(d => `
-    <div class="doctor-card">
+    ${co ? `<div class="detail-map-card reveal"><div id="detail-map"></div>
+      <div class="map-foot"><b>📍 ${esc(c.area)}</b><span>
+        <a href="https://www.google.com/maps/search/?api=1&query=${co[0]}%2C${co[1]}" target="_blank" rel="noopener">Directions →</a>
+        &nbsp;·&nbsp; <a href="tel:${tel}">Call clinic</a>
+      </span></div>
+    </div>` : ''}`;
+  initDetailMap(c);
+  watchReveals($('#clinic-detail'));
+  $('#doctor-list').innerHTML = '<h2 class="section-title reveal" style="margin-top:24px">Doctors</h2>' + c.doctors.map(d => `
+    <div class="doctor-card reveal">
       <div class="doc-avatar">${esc(d.name.replace('Dr. ', '').charAt(0))}</div>
       <div class="doc-info">
         <div class="doc-name">${esc(d.name)}</div>
@@ -579,6 +583,22 @@ function renderClinicDetail() {
   $('#doctor-list').querySelectorAll('button[data-docinfo]').forEach(b => {
     b.onclick = () => openDoctorModal(b.dataset.docinfo);
   });
+  watchReveals($('#doctor-list'));
+}
+
+/* ---------- clinic detail mini map (same-origin tiles) ---------- */
+let detailMap = null;
+function initDetailMap(c) {
+  const el = document.getElementById('detail-map');
+  const co = CLINIC_COORDS[c.id];
+  if (!el || !co || typeof L === 'undefined') return;
+  if (detailMap) { detailMap.remove(); detailMap = null; }
+  detailMap = L.map('detail-map', { scrollWheelZoom: false, attributionControl: false }).setView(co, 15);
+  L.tileLayer('/api/tile?z={z}&x={x}&y={y}', { maxZoom: 18 }).addTo(detailMap);
+  L.marker(co, {
+    icon: L.divIcon({ className: 'dh-pin', html: '<span>' + c.emoji + '</span>', iconSize: [34, 34], iconAnchor: [17, 17] })
+  }).addTo(detailMap);
+  setTimeout(() => detailMap && detailMap.invalidateSize(), 80);
 }
 
 /* ---------- doctor profile modal ---------- */
