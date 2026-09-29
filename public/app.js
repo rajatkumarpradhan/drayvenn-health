@@ -272,7 +272,7 @@ function initMap() {
     return;
   }
   map = L.map('clinic-map', { scrollWheelZoom: false }).setView([12.9716, 77.5946], 11);
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  L.tileLayer('/api/tile?z={z}&x={x}&y={y}', {
     maxZoom: 18,
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
   }).addTo(map);
