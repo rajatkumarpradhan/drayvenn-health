@@ -937,8 +937,12 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
 
   /* two-column hero via display:contents grid: task left, scene right */
   #view-home { display: grid; grid-template-columns: 1.06fr .94fr; column-gap: 36px; }
-  .hero { display: contents; }
-  .hero-main { display: contents; }
+  /* v77: hero is a real contained box again - the v71 video bg era left .hero/.hero-main
+     dissolved (display:contents), so .hero-scene + the mint wash resolved against the
+     initial containing block and covered the first ~900px of the DOCUMENT, clipping
+     whatever section followed the hero (the new feature band's top). */
+  .hero { display: block; grid-column: 1 / -1; margin: 0; border-radius: 28px; }
+  .hero-main { display: block; position: relative; }
   .hero::after { display: none; }
   .hero .loc-row { grid-column: 1; grid-row: 1; }
   .hero h1 { grid-column: 1; grid-row: 2; font-size: clamp(40px, 4.2vw, 58px); line-height: 1.08; margin-top: 22px; }
