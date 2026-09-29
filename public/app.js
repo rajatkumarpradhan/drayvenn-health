@@ -146,7 +146,7 @@ function renderHomeExtras() {
   const host = $('#browse-specs');
   if (host) {
     host.innerHTML = [...specs.entries()].slice(0, 8).map(([s, n]) =>
-      `<button class="spec-circle-btn" data-spec="${esc(s)}" aria-label="Book a clinic for ${esc(s)}"><span class="spec-circ">${SPEC_EMOJI[s] || '🏥'}</span><span class="spec-circ-name">${esc(s)}</span></button>`).join('');
+      `<button class="spec-circle-btn reveal" data-spec="${esc(s)}" aria-label="Book a clinic for ${esc(s)}"><span class="spec-circ">${SPEC_EMOJI[s] || '🏥'}</span><span class="spec-circ-name">${esc(s)}</span></button>`).join('');
     host.querySelectorAll('.spec-circle-btn').forEach(b => b.onclick = () => {
       state.filter.spec = b.dataset.spec;
       renderSpecChips(); renderBrowse();
@@ -174,6 +174,7 @@ function renderHomeExtras() {
     });
   }
   renderSoonRow();
+  watchReveals(host);
 }
 
 function renderSoonRow() {
@@ -183,7 +184,7 @@ function renderSoonRow() {
   const soon = state.clinics.filter(c => c.next_available)
     .sort((a, b) => rank(a.next_available).localeCompare(rank(b.next_available)));
   host.innerHTML = soon.map(c => `
-    <div class="soon-card" data-id="${esc(c.id)}" role="button" tabindex="0" aria-label="View ${esc(c.name)}, next slot ${esc(fmtNext(c.next_available))}">
+    <div class="soon-card reveal" data-id="${esc(c.id)}" role="button" tabindex="0" aria-label="View ${esc(c.name)}, next slot ${esc(fmtNext(c.next_available))}">
       <div class="soon-emoji">${c.emoji}</div>
       <div class="soon-name">${esc(c.name)}</div>
       <div class="soon-slot">${esc(fmtNext(c.next_available))}</div>
@@ -192,6 +193,7 @@ function renderSoonRow() {
     el.onclick = () => openClinic(el.dataset.id);
     el.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openClinic(el.dataset.id); } };
   });
+  watchReveals(host);
 }
 
 /* ---------- ACCOUNT PAGE ---------- */
@@ -334,6 +336,7 @@ function renderClinics() {
   } else {
     host.innerHTML = list.map((c, i) => clinicCardHTML(c, i)).join('');
     bindClinicCards(host);
+    watchReveals(host);
   }
   updateMapMarkers(list);
 }
@@ -366,7 +369,7 @@ function renderDoctorsBrowse() {
   host.innerHTML = docs.map((d, i) => {
     const initials = d.name.replace(/^Dr\.?\s+/i, '').split(' ').map(w => w[0] || '').slice(0, 2).join('').toUpperCase();
     return `
-    <div class="clinic-card doc-browse-card" data-clinic="${esc(d.clinic_id)}" role="button" tabindex="0" style="animation-delay:${i * 40}ms" aria-label="View ${esc(d.name)} at ${esc(d.clinic_name)}">
+    <div class="clinic-card doc-browse-card reveal" data-clinic="${esc(d.clinic_id)}" role="button" tabindex="0" aria-label="View ${esc(d.name)} at ${esc(d.clinic_name)}">
       <div class="doc-browse-top">
         <div class="doc-avatar">${esc(initials)}</div>
         <div>
@@ -385,6 +388,7 @@ function renderDoctorsBrowse() {
     el.onclick = open;
     el.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
   });
+  watchReveals(host);
 }
 
 /* ---------- MAP (OpenStreetMap + Leaflet) ---------- */
@@ -447,7 +451,7 @@ function updateMapMarkers(list) {
 
 function clinicCardHTML(c, i) {
   return `
-    <div class="clinic-card" data-id="${esc(c.id)}" role="button" tabindex="0" style="animation-delay:${i * 40}ms" aria-label="View ${esc(c.name)}">
+    <div class="clinic-card reveal" data-id="${esc(c.id)}" role="button" tabindex="0" aria-label="View ${esc(c.name)}">
       <div class="clinic-head">
         <div class="clinic-emoji">${c.emoji}</div>
         <div>
@@ -477,6 +481,27 @@ function renderHomeHighlights() {
   if (!host || !state.clinics.length) return;
   host.innerHTML = state.clinics.slice(0, 3).map((c, i) => clinicCardHTML(c, i)).join('');
   bindClinicCards(host);
+  watchReveals(host);
+}
+
+/* ---------- scroll reveal (one-shot, transform/opacity only) ---------- */
+const revealIO = ('IntersectionObserver' in window) ? new IntersectionObserver(entries => {
+  for (const e of entries) {
+    if (e.isIntersecting) { e.target.classList.add('revealed'); revealIO.unobserve(e.target); }
+  }
+}, { threshold: .1, rootMargin: '0px 0px -6% 0px' }) : null;
+
+function watchReveals(root) {
+  if (!revealIO || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    (root || document).querySelectorAll('.reveal').forEach(el => el.classList.add('revealed'));
+    return;
+  }
+  (root || document).querySelectorAll('.reveal:not(.revealed):not([data-rv])').forEach(el => {
+    el.dataset.rv = '1';
+    const sibs = [...el.parentElement.children].filter(x => x.classList && x.classList.contains('reveal'));
+    el.style.transitionDelay = Math.min(sibs.indexOf(el) * 45, 270) + 'ms';
+    revealIO.observe(el);
+  });
 }
 
 /* ---------- CLINIC DETAIL ---------- */
@@ -1047,6 +1072,7 @@ async function cancelBooking(ref, btn) {
 
 /* ---------- WIRE UP ---------- */
 $('#search-input').addEventListener('input', e => { state.filter.q = e.target.value; renderBrowse(); });
+watchReveals(document);
 $('#home-search').addEventListener('keydown', e => {
   if (e.key !== 'Enter') return;
   e.preventDefault();
