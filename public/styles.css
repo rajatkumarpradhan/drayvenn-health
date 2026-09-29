@@ -44,12 +44,12 @@ img { max-width: 100%; }
   border-bottom: 1px solid var(--line);
 }
 .topbar-inner { max-width: 1080px; margin: 0 auto; padding: 10px 18px; display: flex; align-items: center; justify-content: space-between; }
-.logo { display: flex; align-items: center; gap: 10px; }
+.logo { display: flex; align-items: center; gap: 10px; flex-shrink: 0; min-width: 0; }
 .logo-mark-img { width: 34px; height: 34px; border-radius: 10px; }
-.logo-name { font-family: 'Manrope'; font-weight: 800; font-size: 16.5px; color: var(--ink); letter-spacing: -.01em; }
+.logo-name { font-family: 'Manrope'; font-weight: 800; font-size: 16.5px; color: var(--ink); letter-spacing: -.01em; white-space: nowrap; }
 .logo-sub { font-size: 11px; color: var(--muted); margin-top: -2px; }
-.topbar-links { display: flex; gap: 18px; align-items: center; }
-.topbar-links a { font-weight: 600; font-size: 14px; color: var(--body); padding: 6px 2px; border-bottom: 2px solid transparent; }
+.topbar-links { display: flex; gap: 18px; align-items: center; flex-shrink: 0; }
+.topbar-links a { font-weight: 600; font-size: 14px; color: var(--body); padding: 6px 2px; border-bottom: 2px solid transparent; white-space: nowrap; }
 .topbar-links a:hover { color: var(--primary); }
 .nav-short { display: none; }
 
@@ -59,13 +59,13 @@ img { max-width: 100%; }
   position: relative; height: 200px; border-radius: 24px; margin-bottom: 26px;
   background: linear-gradient(120deg, #e7f0fd 0%, #f3f9ff 55%, #e6f6f4 100%);
   border: 1px solid var(--line);
-  display: grid; place-items: center; overflow: visible;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; overflow: visible;
 }
 .hero-halo { display: none; }
-.hero-lockup { width: 84px; height: 84px; border-radius: 22px; box-shadow: var(--shadow); }
-.hero-wordmark { position: absolute; font-family: 'Manrope'; font-weight: 700; color: #9db4cf; font-size: 13px; letter-spacing: .22em; text-transform: uppercase; bottom: 18px; }
+.hero-lockup { width: 84px; height: 84px; border-radius: 22px; box-shadow: var(--shadow); background: #fff; position: relative; z-index: 1; }
+.hero-wordmark { font-family: 'Manrope'; font-weight: 700; color: #9db4cf; font-size: 13px; letter-spacing: .22em; text-transform: uppercase; }
 .hero-wordmark b { color: var(--primary); font-weight: 800; }
-.hero-ecg { position: absolute; left: 50%; transform: translateX(-50%); bottom: 44px; width: 280px; height: 32px; overflow: visible; }
+.hero-ecg { position: absolute; left: 50%; top: 42px; transform: translateX(-50%); width: 280px; height: 32px; overflow: visible; }
 .ecg-base { stroke: rgba(22,104,232,.16); }
 .ecg-pulse { stroke: var(--primary); stroke-dasharray: 90 620; animation: ecgRun 3.4s linear infinite; }
 .ecg-dot { fill: var(--primary); animation: ecgDot 3.4s linear infinite; }
@@ -433,7 +433,16 @@ body:has(#wizard-overlay) { overflow: hidden; }
   #chat-fab { bottom: 84px; }
   .nav-full { display: none; }
   .nav-short { display: inline; }
-  .hero-scene { height: 168px; }
+  .hero-scene { height: 176px; }
+  .hero-lockup { width: 64px; height: 64px; border-radius: 18px; }
+  .hero-wordmark { font-size: 11px; }
+  .topbar-inner { padding: 8px 14px; gap: 8px; }
+  .logo { gap: 8px; }
+  .logo-mark-img { width: 30px; height: 30px; }
+  .logo-name { font-size: 15px; }
+  .logo-sub { font-size: 10px; }
+  .topbar-links { gap: 12px; }
+  .topbar-links a { font-size: 13px; }
   .clinic-grid { grid-template-columns: 1fr; }
   .doctor-card { flex-wrap: wrap; }
   .doctor-card .doc-avatar { width: 46px; height: 46px; font-size: 18px; }
