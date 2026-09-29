@@ -83,14 +83,6 @@ async function loadClinics() {
   try {
     const { clinics } = await api('/api/clinics');
     state.clinics = clinics;
-    // hero "next slot" chip shows the real earliest slot, not a static mock time
-    const chip = document.getElementById('fc-next');
-    if (chip) {
-      const rank = n => n.today ? '0' : n.tomorrow ? '1' : '2' + n.date;
-      const next = clinics.map(c => c.next_available).filter(Boolean).sort((x, y) => (rank(x) + x.time).localeCompare(rank(y) + y.time))[0];
-      if (next) chip.innerHTML = '🕕 ' + esc(fmtNext(next)) + ' <span class="fc-sub">next slot</span>';
-      else chip.style.display = 'none';
-    }
     renderSpecChips();
     renderAreaFilter();
     renderHomeExtras();

@@ -624,6 +624,7 @@ body:has(#wizard-overlay) { overflow: hidden; }
 .hero-video.ready { opacity: 1; }
 .hero-scene > *:not(.hero-video) { position: relative; z-index: 1; }
 .hero-scene.video-on .hero-halo, .hero-scene.video-on .hero-ecg, .hero-scene.video-on .hero-lockup, .hero-scene.video-on .hero-wordmark { opacity: 0; transition: opacity .5s ease; }
+.hero-scene.video-on::before { opacity: 0; animation: none; transition: opacity .5s ease; }
 /* ---------- magic-ui inspired touches (vanilla, transform/opacity budget) ---------- */
 /* animated dot-grid backdrop inside the hero scene */
 .hero-scene::before {
