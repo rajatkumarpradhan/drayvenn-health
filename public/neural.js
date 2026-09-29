@@ -100,10 +100,13 @@
     if (!reduced) raf = requestAnimationFrame(frame);
   }
 
+  // Mobile: one static constellation, zero per-frame cost. The full-screen RAF
+  // canvas was the scroll jank / hang on budget phones (reported 29 Sep).
+  const mobile = matchMedia('(max-width: 760px)').matches;
   resize();
-  draw(); // reduced-motion: draws exactly one static frame
+  draw(); // reduced-motion and mobile: draws exactly one static frame
   new ResizeObserver(() => { resize(); draw(); }).observe(cv);
-  if (!reduced) {
+  if (!reduced && !mobile) {
     raf = requestAnimationFrame(frame);
     window.addEventListener('pointermove', onMove, { passive: true });
     window.addEventListener('pointerout', onOut);

@@ -1493,4 +1493,10 @@ body::before, body::after { filter: none; will-change: transform; }
 @media (max-width: 760px) {
   .topbar { backdrop-filter: none; background: rgba(11,16,37,.92); }
   .tabbar { backdrop-filter: none; background: rgba(11,16,37,.94); }
+  /* no infinite layer animations on mobile - they fight scroll on budget GPUs */
+  body::before, body::after { animation: none; will-change: auto; }
+  .float-chip { animation: none; }
 }
+
+/* scroll lock follows the wizard element itself, not a class that can get stuck */
+body:has(#wizard-overlay) { overflow: hidden; }
