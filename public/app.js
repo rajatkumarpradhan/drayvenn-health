@@ -344,7 +344,7 @@ function renderAccountPage() {
   const on = (id, fn) => { const el = $('#' + id); if (el) el.onclick = fn; };
   on('acctp-signin-btn', () => showSignin());
   on('acp-bookings', () => show('mybookings'));
-  on('acp-track', () => { show('track'); const t = $('#bk-ref'); if (t) setTimeout(() => t.focus(), 350); });
+  on('acp-track', () => { show('track'); const t = $('#bk-ref'); if (t) setTimeout(() => t.focus({ preventScroll: true }), 350); });
   on('acp-chat', () => { if (window.openChat) window.openChat(); });
   on('acp-privacy', () => window.open('privacy.html', '_blank', 'noopener'));
   on('acp-about', () => { const a = $('#acctp-about'); if (a) a.classList.toggle('hidden'); });
@@ -1955,7 +1955,7 @@ async function requestOtp() {
     }
     $('#login-phone-step').classList.add('hidden');
     $('#login-otp-step').classList.remove('hidden');
-    $('#login-otp').focus();
+    $('#login-otp').focus({ preventScroll: true });
   } catch (e) {
     err.textContent = e.message; err.style.display = 'block';
   }

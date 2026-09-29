@@ -57,7 +57,8 @@
 
 /* ---------- base ---------- */
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+html { -webkit-text-size-adjust: none; text-size-adjust: none; scroll-behavior: smooth; }
+body { -webkit-text-size-adjust: none; text-size-adjust: none; }
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   background: var(--bg);
@@ -896,6 +897,11 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
   .doc-more { margin-left: 12px; }
   .footer-cols { grid-template-columns: 1fr 1fr; gap: 18px; }
   .footer-brand { grid-column: 1 / -1; }
+  /* real-device fixes: footer clears the floating tabbar; inputs >=16px stop focus zoom/jump */
+  .footer { padding-bottom: calc(118px + env(safe-area-inset-bottom, 0px)); }
+  input:not([type=checkbox]):not([type=radio]), select, textarea { font-size: 16px; }
+  /* mobile hero: hide the floating holo art (DNA/scan-ring/glass cards) - it overlapped the copy on real phones */
+  .hero-scene .holo { display: none; }
   .section-title { font-size: 18px; }
   .wiz-doc { font-size: 15px; }
   .confirm-hero { margin: 18px auto 0; padding: 28px 18px; }

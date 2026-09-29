@@ -22,7 +22,7 @@
   --spec: inset 0 1px 0 rgba(255,255,255,.75);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: none; text-size-adjust: none; }
 body {
   font-family: 'DM Sans', system-ui, sans-serif;
   background: var(--bg);
