@@ -145,9 +145,9 @@ img { max-width: 100%; }
 .acctp-name { font-family: 'Manrope'; font-weight: 800; font-size: 17.5px; color: var(--ink); }
 .acctp-sub { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
 .acctp-edit { border: 0; background: none; color: var(--primary); font: inherit; font-weight: 800; font-size: 13px; letter-spacing: .02em; padding: 6px 2px; }
-.acctp-editbox { margin-top: 10px; padding: 14px 16px; border-radius: 16px; background: rgba(255,255,255,.65); border: 1px solid var(--glass-brd); }
+.acctp-editbox { margin-top: 10px; padding: 14px 16px; border-radius: 16px; background: rgba(255,255,255,.65); border: 1px solid var(--glass-brd); box-shadow: var(--spec); backdrop-filter: blur(12px) saturate(150%); -webkit-backdrop-filter: blur(12px) saturate(150%); animation: panelIn .3s ease both; }
 .acctp-group { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 20px 4px 8px; }
-.acctp-list { border-radius: 16px; overflow: hidden; background: rgba(255,255,255,.6); border: 1px solid var(--glass-brd); box-shadow: var(--spec); }
+.acctp-list { border-radius: 16px; overflow: hidden; background: rgba(255,255,255,.6); border: 1px solid var(--glass-brd); box-shadow: var(--spec), var(--shadow-sm); backdrop-filter: blur(12px) saturate(150%); -webkit-backdrop-filter: blur(12px) saturate(150%); animation: fadeUp .35s ease both; }
 .acctp-row { display: flex; align-items: center; gap: 13px; width: 100%; padding: 14px 16px; font: inherit; text-align: left; color: var(--ink); border-bottom: 1px solid rgba(223,238,234,.8); }
 .acctp-row:last-child { border-bottom: 0; }
 .acctp-row:active { background: rgba(224,247,243,.5); }
@@ -155,7 +155,7 @@ img { max-width: 100%; }
 .acctp-label { flex: 1; font-size: 14.5px; font-weight: 600; }
 .acctp-chev { color: var(--muted); font-size: 17px; }
 .acctp-row.danger .acctp-label { color: var(--danger); }
-.acctp-about { margin-top: 12px; font-size: 13px; color: var(--muted); line-height: 1.6; padding: 14px 16px; border-radius: 14px; background: rgba(255,255,255,.55); border: 1px solid var(--glass-brd); }
+.acctp-about { margin-top: 12px; font-size: 13px; color: var(--muted); line-height: 1.6; padding: 14px 16px; border-radius: 14px; background: rgba(255,255,255,.55); border: 1px solid var(--glass-brd); box-shadow: var(--spec); backdrop-filter: blur(12px) saturate(150%); -webkit-backdrop-filter: blur(12px) saturate(150%); animation: fadeUp .4s .1s ease both; }
 
 .title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 26px 0 0; }
 .title-row .section-title { margin: 0; }
