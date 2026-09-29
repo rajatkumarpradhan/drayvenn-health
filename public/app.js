@@ -174,6 +174,13 @@ function renderHomeExtras() {
     'Sports Injury': '🏃', 'Dermatology': '🧴', 'Hair Care': '💇', 'Allergy': '🤧',
     'Dental': '🦷', 'Orthodontics': '😁', 'Root Canal': '🪥'
   };
+  // live activity pill (aggregate count, /api/stats)
+  fetch('api/stats').then(r => r.ok ? r.json() : null).then(d => {
+    if (d && d.bookings > 0) {
+      const lp = $('#live-pill'), lt = $('#live-text');
+      if (lp && lt) { lt.textContent = d.bookings + ' appointments booked through Drayvenn so far'; lp.classList.remove('hidden'); }
+    }
+  }).catch(() => {});
   const host = $('#browse-specs');
   if (host) {
     host.innerHTML = [...specs.entries()].slice(0, 8).map(([s, n], i) =>
