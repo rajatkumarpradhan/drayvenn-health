@@ -953,6 +953,7 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
   #featured-grid, #view-home .how-strip, #view-home .why-strip,
   #view-home .feature-band, #view-home .why-panel { grid-column: 1 / -1; }
   #view-home .section-tag { grid-column: 1 / -1; justify-self: start; }
+  #view-home .live-pill { grid-column: 1; justify-self: start; }
   .how-strip { grid-template-columns: repeat(3, 1fr); gap: 14px; }
   .featured-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; }
   .searchbar input { padding: 16px 22px; font-size: 16px; }
