@@ -239,6 +239,14 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) both; }
   background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--r-pill); box-shadow: var(--shadow-xs); outline: none; cursor: pointer;
 }
 
+/* ---------- home how-it-works + cta ---------- */
+.how-strip { display: grid; gap: 10px; margin-top: 12px; }
+.how-item { display: flex; gap: 13px; align-items: flex-start; background: var(--card); border: 1px solid var(--line); border-radius: var(--r-card); padding: 15px 16px; box-shadow: var(--shadow-sm); }
+.how-n { flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; background: var(--grad); color: #fff; font-family: 'Manrope'; font-weight: 800; font-size: 14px; display: grid; place-items: center; box-shadow: var(--shadow-teal); }
+.how-item b { font-family: 'Manrope'; font-size: 14.5px; font-weight: 800; color: var(--ink); letter-spacing: -.01em; }
+.how-item p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.home-cta { margin-top: 16px; }
+
 /* ---------- hero ---------- */
 .hero { padding: 10px 0 6px; }
 .hero-scene {
@@ -271,7 +279,7 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) both; }
 .hero-scene > *:not(.hero-video):not(.hero-halo) { position: relative; z-index: 1; }
 .hero-scene.video-on .hero-halo, .hero-scene.video-on .hero-ecg, .hero-scene.video-on .hero-lockup, .hero-scene.video-on .hero-wordmark { opacity: 0; transition: opacity .5s ease; }
 .hero-scene.video-on::before { opacity: 0; animation: none; transition: opacity .5s ease; }
-.hero h1 { font-size: 30px; font-weight: 800; letter-spacing: -.025em; line-height: 1.16; margin-top: 22px; }
+.hero h1 { font-size: 33px; font-weight: 800; letter-spacing: -.025em; line-height: 1.16; margin-top: 22px; }
 .hero h1 span {
   background: linear-gradient(90deg, #0b7c72, #00a898, #14d4bd, #0b7c72);
   background-size: 220% 100%;
@@ -322,13 +330,13 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) both; }
 .spec-circles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px 8px; }
 .spec-circ { display: grid; justify-items: center; gap: 7px; }
 .spec-circle-btn {
-  width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center;
+  width: 62px; height: 62px; border-radius: 50%; display: grid; place-items: center;
   background: var(--surface); border: 1px solid var(--line-strong); box-shadow: var(--shadow-xs); color: var(--primary-deep);
   transition: transform var(--t-fast) var(--spring), box-shadow var(--t-fast), border-color var(--t-fast);
 }
 .spec-circle-btn:hover { border-color: var(--primary); box-shadow: var(--shadow-teal); }
 .spec-circle-btn:active { transform: scale(.92); }
-.spec-circle-btn img, .spec-circle-btn svg { width: 26px; height: 26px; object-fit: contain; }
+.spec-circle-btn img, .spec-circle-btn svg { width: 28px; height: 28px; object-fit: contain; }
 .spec-ic { font-size: 22px; }
 .spec-circ-name { font-size: 11px; font-weight: 700; color: var(--body); text-align: center; line-height: 1.25; }
 
@@ -756,7 +764,7 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) both; }
 
 /* ---------- mobile fit (≤760px) ---------- */
 @media (max-width: 760px) {
-  .hero-scene { height: 178px; }
+  .hero-scene { height: 196px; }
   .hero { padding: 4px 0 4px; }
   .hero h1 { font-size: 26px; line-height: 1.2; letter-spacing: -.02em; }
   .hero p { font-size: 14px; margin-top: 8px; }

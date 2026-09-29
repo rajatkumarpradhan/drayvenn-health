@@ -109,7 +109,6 @@ async function loadClinics() {
     renderAreaFilter();
     renderHomeExtras();
     renderRecentClinics();
-    renderHomeHighlights();
     renderBrowse();
   } catch (e) {
     $('#clinic-list').innerHTML = '<div class="loading">Could not load clinics. <a href="/">Retry</a></div>';
@@ -550,14 +549,6 @@ function bindClinicCards(host) {
     el.onclick = () => openClinic(el.dataset.id);
     el.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openClinic(el.dataset.id); } };
   });
-}
-
-function renderHomeHighlights() {
-  const host = $('#home-highlights');
-  if (!host || !state.clinics.length) return;
-  host.innerHTML = state.clinics.slice(0, 3).map((c, i) => clinicCardHTML(c, i)).join('');
-  bindClinicCards(host);
-  watchReveals(host);
 }
 
 
@@ -1257,7 +1248,7 @@ $('#home-search').addEventListener('keydown', e => {
   renderBrowse();
   show('clinics');
 });
-$('#view-all-clinics').onclick = e => { e.preventDefault(); show('clinics'); };
+$('#home-browse-cta').onclick = e => { e.preventDefault(); show('clinics'); };
 { const sb = $('#svc-book'); if (sb) sb.onclick = () => show('clinics'); }
 $('#svc-track').onclick = () => show('track');
 $('#svc-chat').onclick = () => { if (window.openChat) window.openChat(); };
