@@ -332,7 +332,14 @@ function renderClinics() {
   const list = filteredClinics();
   const host = $('#clinic-list');
   if (!list.length) {
-    host.innerHTML = '<div class="loading">No clinics match that search.</div>';
+    host.innerHTML = `<div class="empty-state">
+      <div class="empty-ico">🔍</div>
+      <div class="empty-title">No clinics match that search</div>
+      <div class="empty-sub">Try a different specialty, doctor name, or area - or clear the search to see everything.</div>
+      <button type="button" class="btn btn-outline btn-small" id="clinic-clear">Clear search</button>
+    </div>`;
+    const clr = $('#clinic-clear');
+    if (clr) clr.onclick = () => { state.filter.q = ''; state.filter.spec = ''; const si = $('#search-input'); if (si) si.value = ''; renderClinics(); };
   } else {
     host.innerHTML = list.map((c, i) => clinicCardHTML(c, i)).join('');
     bindClinicCards(host);
@@ -1398,7 +1405,14 @@ async function loadMyBookings() {
   if (!host) return;
   try {
     const { bookings } = await api('/api/my/bookings');
-    if (!bookings.length) { host.innerHTML = '<div class="loading">No bookings yet - book from the home page and they show up here.</div>'; return; }
+    if (!bookings.length) { host.innerHTML = `<div class="empty-state">
+      <div class="empty-ico">🗓️</div>
+      <div class="empty-title">No bookings yet</div>
+      <div class="empty-sub">Book from the home page and your appointments show up here.</div>
+      <button type="button" class="btn btn-outline btn-small" id="mb-browse">Browse clinics</button>
+    </div>`;
+    const bb = $('#mb-browse'); if (bb) bb.onclick = () => show('home');
+    return; }
     const today = new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10);
     host.innerHTML = bookings.map(b => `
       <div class="booking-row" data-ref="${esc(b.ref)}">
