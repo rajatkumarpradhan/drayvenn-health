@@ -32,7 +32,7 @@
 
   /* radius scale (Zocdoc-ish) */
   --r-field: 14px;
-  --r-card: 18px;
+  --r-card: 22px;
   --r-panel: 24px;
   --r-pill: 999px;
 
@@ -424,6 +424,18 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
 .spec-circle-btn img, .spec-circle-btn svg { width: 28px; height: 28px; object-fit: contain; }
 .spec-ic { font-size: 22px; }
 .spec-circ-name { font-size: 11px; font-weight: 700; color: var(--body); text-align: center; line-height: 1.25; }
+
+
+/* v72 - WeCare adopts: section pill tags, teal feature band, why panel */
+.section-tag { display:inline-block; font-size:10.5px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--primary-deep); border:1px solid rgba(15,118,110,.4); border-radius:999px; padding:4px 12px; margin:26px 0 0; background:rgba(204,251,241,.35); }
+.feature-band { background:linear-gradient(135deg,#0F766E 0%,#0D9488 62%,#14B8A6 100%); border-radius:28px; padding:24px 18px 26px; margin:26px 0 6px; box-shadow:0 14px 34px rgba(13,148,134,.28); }
+.feature-band .section-tag { color:#CCFBF1; border-color:rgba(255,255,255,.5); background:rgba(255,255,255,.12); margin-top:0; }
+.feature-band .section-title { color:#fff; margin:8px 0 16px; }
+.feature-band .spec-circle-btn { border-color:transparent; box-shadow:0 4px 14px rgba(4,47,44,.18); }
+.feature-band .spec-circle-btn:hover { box-shadow:0 8px 22px rgba(4,47,44,.28); }
+.why-panel { background:#F0FDFA; border:1px solid rgba(13,148,134,.14); border-radius:28px; padding:22px 18px 26px; margin:26px 0 6px; }
+.why-panel .section-tag { margin-top:0; }
+.why-panel .why-strip { margin:14px 0 0; }
 
 /* earliest availability scroller */
 .soon-scroll { display: flex; gap: 10px; overflow-x: auto; padding: 2px 2px 8px; scrollbar-width: none; scroll-snap-type: x mandatory; }
@@ -930,7 +942,8 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
   .hero-halo { position: absolute !important; }
   .trust-strip { grid-column: 1 / -1; grid-template-columns: repeat(4, 1fr); margin-top: 26px; }
   #recent-wrap, #view-home .section-title, #view-home .spec-circles, #view-home .title-row,
-  #featured-grid, #view-home .how-strip, #view-home .why-strip { grid-column: 1 / -1; }
+  #featured-grid, #view-home .how-strip, #view-home .why-strip,
+  #view-home .feature-band, #view-home .why-panel, #view-home .section-tag { grid-column: 1 / -1; }
   .how-strip { grid-template-columns: repeat(3, 1fr); gap: 14px; }
   .featured-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; }
   .searchbar input { padding: 16px 22px; font-size: 16px; }

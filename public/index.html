@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=71">
+<link rel="stylesheet" href="styles.css?v=72">
 <link rel="icon" type="image/png" href="/favicon-64.png">
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#0D9488">
@@ -115,28 +115,36 @@
       <div class="recent-label">Recently viewed</div>
       <div class="chips" id="recent-chips"></div>
     </div>
-    <h2 class="section-title reveal">Book a clinic for&hellip;</h2>
-    <div class="spec-circles" id="browse-specs"></div>
+    <div class="feature-band reveal">
+      <span class="section-tag">Specialties</span>
+      <h2 class="section-title">Book a clinic for&hellip;</h2>
+      <div class="spec-circles" id="browse-specs"></div>
+    </div>
 
-    <h2 class="section-title reveal">How booking works</h2>
+    <span class="section-tag reveal">How it works</span>
+    <h2 class="section-title reveal" style="margin-top:6px">How booking works</h2>
     <div class="how-strip reveal">
       <div class="how-item"><span class="how-n">1</span><div><b>Pick a clinic or doctor</b><p>Browse by specialty, area or name.</p></div></div>
       <div class="how-item"><span class="how-n">2</span><div><b>Choose a time</b><p>Real slots, earliest first.</p></div></div>
       <div class="how-item"><span class="how-n">3</span><div><b>Show your booking ref</b><p>The clinic confirms your slot. Pay at the clinic.</p></div></div>
     </div>
+    <span class="section-tag reveal">Top picks</span>
     <div class="title-row">
-      <h2 class="section-title reveal" style="margin-bottom:0">Featured clinics</h2>
+      <h2 class="section-title reveal" style="margin-bottom:0;margin-top:6px">Featured clinics</h2>
       <a href="#" id="view-all-clinics" class="title-link">View all clinics →</a>
     </div>
     <div id="featured-grid" class="featured-grid">
       <div class="clinic-card skel-card"></div><div class="clinic-card skel-card"></div><div class="clinic-card skel-card"></div>
     </div>
-    <h2 class="section-title reveal">Why Drayvenn</h2>
-    <div class="why-strip reveal">
+    <div class="why-panel reveal">
+      <span class="section-tag">Why us</span>
+      <h2 class="section-title" style="margin-top:6px">Why Drayvenn</h2>
+    <div class="why-strip">
       <div class="why-item">✓ Verified clinics</div>
       <div class="why-item">✓ Real-time slots</div>
       <div class="why-item">✓ No phone calls needed</div>
       <div class="why-item">✓ Instant confirmation</div>
+    </div>
     </div>
   </section>
   <!-- CLINICS (full browser) -->
@@ -341,7 +349,7 @@
 <link rel="stylesheet" href="vendor/leaflet.css">
 <script src="vendor/leaflet.js" defer></script>
 <script>window.__bootErrs=[];addEventListener("error",function(e){__bootErrs.push((e.message||"")+" @ "+(e.filename||"").split("/").pop()+":"+e.lineno)});</script>
-  <script src="app.js?v=71"></script>
-<script src="chat.js?v=71"></script>
+  <script src="app.js?v=72"></script>
+<script src="chat.js?v=72"></script>
 </body>
 </html>
