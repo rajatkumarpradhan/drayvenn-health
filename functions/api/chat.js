@@ -19,7 +19,7 @@ async function clinicContext(DB) {
     const docs = (byClinic[c.id] || []).map(d =>
       `${d.name} (${d.specialty}, ${d.qualification}, ${d.experience_years} yrs, fee Rs${d.fee}, works ${daysLabel(d.days)})`
     ).join('; ');
-    return `Clinic "${c.name}" [id ${c.id}] in ${c.area}. Address: ${c.address}. Timings: ${c.timings}. Phone: ${c.phone}. Specialties: ${c.specialties}. Rating ${c.rating} (${c.reviews_count} reviews). Doctors: ${docs}`;
+    return `Clinic "${c.name}" [id ${c.id}] in ${c.area}. Address: ${c.address}. Timings: ${c.timings}. Phone: ${c.phone}. Specialties: ${c.specialties}. Doctors: ${docs}`;
   }).join('\n');
 }
 
@@ -130,7 +130,7 @@ export async function onRequestPost(context) {
   ).bind(ip, day).run();
 
   // live clinic data for both the LLM prompt and the fallback
-  const clinics = await DB.prepare('SELECT * FROM clinics ORDER BY rating DESC').all();
+  const clinics = await DB.prepare('SELECT * FROM clinics ORDER BY name').all();
   const doctors = await DB.prepare('SELECT * FROM doctors').all();
   const doctorsByClinic = {};
   for (const d of doctors.results) (doctorsByClinic[d.clinic_id] = doctorsByClinic[d.clinic_id] || []).push(d);

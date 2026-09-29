@@ -3,7 +3,7 @@ import { json, generateSlots, nowIST, istToday, addDays, daysLabel, computeNextA
 export async function onRequestGet(context) {
   const { DB } = context.env;
   const clinics = await DB.prepare(
-    'SELECT id, name, area, address, phone, tagline, specialties, rating, reviews_count, timings, emoji FROM clinics ORDER BY rating DESC'
+    'SELECT id, name, area, address, phone, tagline, specialties, timings, emoji FROM clinics ORDER BY name'
   ).all();
   const doctors = await DB.prepare(
     'SELECT id, clinic_id, name, specialty, qualification, experience_years, fee, days, sessions FROM doctors ORDER BY fee'
