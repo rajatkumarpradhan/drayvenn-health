@@ -391,28 +391,28 @@ function wizDetailsHTML() {
     <div class="wiz-step-sub">For ${esc(b.doctor.name)} · ${esc(fmtDateShort(b.date))} · ${fmtTime(b.slot)}</div>
     <div class="form-grid">
       <div class="form-2col">
-        <div class="form-row"><label for="bk-name">Patient name</label><input id="bk-name" placeholder="Full name" maxlength="60" autocomplete="name" value="${v('pname')}"></div>
-        <div class="form-row"><label for="bk-age">Age</label><input id="bk-age" placeholder="Age" inputmode="numeric" maxlength="3" value="${v('page')}"></div>
+        <div class="form-row"><label for="wz-name">Patient name</label><input id="wz-name" placeholder="Full name" maxlength="60" autocomplete="name" value="${v('pname')}"></div>
+        <div class="form-row"><label for="wz-age">Age</label><input id="wz-age" placeholder="Age" inputmode="numeric" maxlength="3" value="${v('page')}"></div>
       </div>
-      <div class="form-row"><label for="bk-phone">Mobile number</label>
-        <div class="phone-wrap"><span class="phone-prefix">+91</span><input id="bk-phone" placeholder="98765 43210" inputmode="numeric" maxlength="10" autocomplete="tel-national" value="${v('pphone')}"></div>
+      <div class="form-row"><label for="wz-phone">Mobile number</label>
+        <div class="phone-wrap"><span class="phone-prefix">+91</span><input id="wz-phone" placeholder="98765 43210" inputmode="numeric" maxlength="10" autocomplete="tel-national" value="${v('pphone')}"></div>
       </div>
-      <div class="form-row"><label for="bk-concern">Concern <span style="color:var(--muted);font-weight:400">(optional)</span></label><textarea id="bk-concern" rows="2" placeholder="e.g. fever since 2 days" maxlength="300">${esc(b.pconcern || '')}</textarea></div>
-      <div class="form-error" id="bk-error"></div>
+      <div class="form-row"><label for="wz-concern">Concern <span style="color:var(--muted);font-weight:400">(optional)</span></label><textarea id="wz-concern" rows="2" placeholder="e.g. fever since 2 days" maxlength="300">${esc(b.pconcern || '')}</textarea></div>
+      <div class="form-error" id="wz-error"></div>
     </div></div>`;
 }
 function wireWizDetails() {
-  $('#bk-phone').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10); });
-  $('#bk-age').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 3); });
+  $('#wz-phone').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10); });
+  $('#wz-age').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 3); });
   $('#wiz-next').disabled = false;
 }
 function wizValidate(showErr) {
-  const name = $('#bk-name').value.trim();
-  const phone = $('#bk-phone').value.trim();
-  const age = $('#bk-age').value.trim();
-  const concern = $('#bk-concern').value.trim();
+  const name = $('#wz-name').value.trim();
+  const phone = $('#wz-phone').value.trim();
+  const age = $('#wz-age').value.trim();
+  const concern = $('#wz-concern').value.trim();
   Object.assign(state.booking, { pname: name, pphone: phone, page: age, pconcern: concern });
-  const err = $('#bk-error');
+  const err = $('#wz-error');
   let msg = '';
   if (name.length < 2) msg = 'Please enter the patient name.';
   else if (!/^[6-9]\d{9}$/.test(phone)) msg = 'Please enter a valid 10-digit mobile number.';
