@@ -161,13 +161,13 @@ async function openClinic(id) {
   }
 }
 
-/* Demo clinic locations (Marathahalli, Bengaluru) for the map view. */
+/* Demo clinic locations (Bengaluru) for the map view. */
 const CLINIC_COORDS = {
   'marathahalli-multispeciality': [12.9591, 77.6974],
-  'motherhood-child-family': [12.9565, 77.7010],
-  'orthoplus-bone-joint': [12.9610, 77.7025],
-  'skinfirst-derma': [12.9580, 77.7080],
-  'smilecare-dental': [12.9545, 77.6990]
+  'motherhood-child-family': [12.9352, 77.6245],
+  'orthoplus-bone-joint': [12.9116, 77.6474],
+  'skinfirst-derma': [12.9719, 77.6412],
+  'smilecare-dental': [12.9698, 77.7500]
 };
 
 function renderClinicDetail() {
@@ -760,6 +760,73 @@ document.querySelectorAll('.tabbar .tab').forEach(tab => {
 });
 
 
+/* ---------- header account menu ---------- */
+function renderAcctMenu() {
+  const menu = $('#acct-menu'), btn = $('#acct-menu-btn');
+  if (!menu || !btn) return;
+  const p = state.patient;
+  if (p) {
+    const initial = esc(((p.name || p.email || 'A').trim()[0] || 'A').toUpperCase());
+    btn.innerHTML = initial;
+    btn.classList.add('signed-in');
+    menu.innerHTML = `
+      <div class="acct-head">
+        <div class="acct-name">${esc(p.name || 'My account')}</div>
+        <div class="acct-sub">${esc(p.email || (p.phone ? maskPhone(p.phone) : 'Signed in'))}</div>
+      </div>
+      <button class="acct-item" id="am-bookings" role="menuitem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4.5" width="18" height="17" rx="3"/><path d="M8 2.5v4M16 2.5v4M3 10h18"/></svg>
+        My bookings</button>
+      <button class="acct-item" id="am-account" role="menuitem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+        Account</button>
+      <button class="acct-item acct-danger" id="am-logout" role="menuitem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
+        Sign out</button>`;
+    $('#am-bookings').onclick = () => { closeAcctMenu(); show('mybookings'); };
+    $('#am-account').onclick = () => { closeAcctMenu(); show('mybookings'); };
+    $('#am-logout').onclick = async () => { closeAcctMenu(); await logout(); };
+  } else {
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>';
+    btn.classList.remove('signed-in');
+    menu.innerHTML = `
+      <div class="acct-head">
+        <div class="acct-name">Not signed in</div>
+        <div class="acct-sub">Sign in for saved details &amp; booking history</div>
+      </div>
+      <button class="acct-item" id="am-login" role="menuitem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5M15 12H3"/></svg>
+        Sign in</button>
+      <button class="acct-item" id="am-track" role="menuitem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4.5" width="18" height="17" rx="3"/><path d="M8 2.5v4M16 2.5v4M3 10h18"/></svg>
+        Track a booking</button>`;
+    $('#am-login').onclick = () => { closeAcctMenu(); show('mybookings'); };
+    $('#am-track').onclick = () => { closeAcctMenu(); show('mybookings'); };
+  }
+}
+function closeAcctMenu() {
+  const menu = $('#acct-menu'), btn = $('#acct-menu-btn');
+  if (!menu) return;
+  menu.classList.add('hidden');
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+}
+function initAcctMenu() {
+  const btn = $('#acct-menu-btn');
+  if (!btn) return;
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const menu = $('#acct-menu');
+    const opening = menu.classList.contains('hidden');
+    if (opening) { renderAcctMenu(); menu.classList.remove('hidden'); btn.setAttribute('aria-expanded', 'true'); }
+    else closeAcctMenu();
+  });
+  document.addEventListener('click', e => {
+    const menu = $('#acct-menu');
+    if (menu && !menu.classList.contains('hidden') && !menu.contains(e.target)) closeAcctMenu();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAcctMenu(); });
+}
+
 /* ---------- PATIENT ACCOUNT (Step 3) ---------- */
 async function loadPatient() {
   try { const { patient } = await api('/api/auth/me'); state.patient = patient; }
@@ -868,6 +935,7 @@ async function verifyOtp() {
   try {
     const { patient } = await api('/api/auth/otp/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, code }) });
     state.patient = patient;
+    renderAcctMenu();
     toast('Signed in', 'info');
     renderAccount();
   } catch (e) {
@@ -893,6 +961,7 @@ async function logout() {
   state.patient = null;
   toast('Signed out', 'info');
   renderAccount();
+  renderAcctMenu();
 }
 
 async function loadMyBookings() {
@@ -989,4 +1058,5 @@ function myReschedulePanel(row, ref, doctorId) {
 window.openClinicFromChat = openClinic;
 window.showFromChat = show;
 loadClinics();
-loadPatient().then(() => { if (!$('#view-mybookings').classList.contains('hidden')) renderAccount(); });
+initAcctMenu();
+loadPatient().then(() => { renderAcctMenu(); if (!$('#view-mybookings').classList.contains('hidden')) renderAccount(); });
