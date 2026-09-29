@@ -1,6 +1,6 @@
 const state = {
   clinics: [],
-  filter: { q: '', spec: 'All' },
+  filter: { q: '', spec: 'All', area: 'All' },
   clinic: null,
   booking: { doctor: null, date: null, slot: null },
   lastBooking: null,
@@ -89,10 +89,23 @@ async function loadClinics() {
       else chip.style.display = 'none';
     }
     renderSpecChips();
+    renderAreaFilter();
     renderClinics();
   } catch (e) {
     $('#clinic-list').innerHTML = '<div class="loading">Could not load clinics. <a href="/">Retry</a></div>';
   }
+}
+
+function renderAreaFilter() {
+  const sel = $('#area-filter');
+  if (!sel) return;
+  const areas = [...new Set(state.clinics.map(c => c.area))].sort();
+  const cur = state.filter.area;
+  sel.innerHTML = '<option value="All">All areas</option>' +
+    areas.map(a => `<option value="${esc(a)}">${esc(a)}</option>`).join('');
+  sel.value = areas.includes(cur) ? cur : 'All';
+  state.filter.area = sel.value;
+  sel.onchange = () => { state.filter.area = sel.value; renderClinics(); };
 }
 
 function renderSpecChips() {
@@ -114,6 +127,7 @@ function renderClinics() {
   const list = state.clinics.filter(c => {
     const inSpec = state.filter.spec === 'All' || c.specialties.includes(state.filter.spec);
     if (!inSpec) return false;
+    if (state.filter.area !== 'All' && c.area !== state.filter.area) return false;
     if (!q) return true;
     const hay = [c.name, c.area, c.tagline, c.specialties.join(' '), c.doctors.map(d => d.name + ' ' + d.specialty).join(' ')].join(' ').toLowerCase();
     return hay.includes(q);
