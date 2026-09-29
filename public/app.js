@@ -35,7 +35,7 @@ function show(view) {
       requestAnimationFrame(segSlideAll);
     }
   }
-  const tabFor = { home: 'home', clinics: 'clinics', clinic: 'clinics', confirm: 'home', mybookings: 'mybookings', track: 'mybookings', account: 'none' };
+  const tabFor = { home: 'home', clinics: 'search', clinic: 'search', confirm: 'home', mybookings: 'mybookings', track: 'mybookings', account: 'profile' };
   document.querySelectorAll('.tabbar .tab').forEach(t =>
     t.classList.toggle('active', t.dataset.tab === tabFor[view]));
   window.scrollTo({ top: 0 });
@@ -109,6 +109,7 @@ async function loadClinics() {
     renderAreaFilter();
     renderHomeExtras();
     renderRecentClinics();
+    renderFeatured();
     renderBrowse();
   } catch (e) {
     $('#clinic-list').innerHTML = '<div class="loading">Could not load clinics. <a href="/">Retry</a></div>';
@@ -1332,7 +1333,14 @@ document.querySelectorAll('.tabbar .tab').forEach(tab => {
   tab.addEventListener('click', () => {
     const t = tab.dataset.tab;
     if (window.closeChat) window.closeChat();
-    show(t);
+    if (t === 'search') {
+      show('clinics');
+      setTimeout(() => { const si = $('#search-input'); if (si) si.focus({ preventScroll: true }); }, 120);
+    } else if (t === 'profile') {
+      show('account');
+    } else {
+      show(t);
+    }
   });
 });
 
