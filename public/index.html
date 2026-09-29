@@ -69,6 +69,26 @@
     <div id="clinic-list" class="clinic-grid">
       <div class="clinic-card skel-card"></div><div class="clinic-card skel-card"></div><div class="clinic-card skel-card"></div>
     </div>
+
+    <h2 class="section-title">How it works</h2>
+    <div class="how-grid">
+      <div class="how-card"><div class="how-num">1</div><div class="how-title">Pick a clinic &amp; doctor</div><div class="how-text">Browse clinics across Bengaluru and choose the doctor that fits your need.</div></div>
+      <div class="how-card"><div class="how-num">2</div><div class="how-title">Choose date &amp; time</div><div class="how-text">See real open slots for the next two weeks and pick what suits you.</div></div>
+      <div class="how-card"><div class="how-num">3</div><div class="how-title">Show your reference</div><div class="how-text">Get a booking reference instantly - show it at the clinic front desk. Pay at the clinic.</div></div>
+    </div>
+
+    <h2 class="section-title">Browse by specialty</h2>
+    <div class="browse-grid" id="browse-specs"></div>
+
+    <h2 class="section-title">Areas we cover</h2>
+    <div class="chips" id="home-areas"></div>
+
+    <div class="why-strip">
+      <div class="why-item">✓ Free for patients</div>
+      <div class="why-item">✓ Clinic confirms your slot</div>
+      <div class="why-item">✓ No sign-up needed to book</div>
+      <div class="why-item">✓ Track with ref + mobile</div>
+    </div>
   </section>
 
   <!-- CLINIC DETAIL -->
@@ -132,10 +152,29 @@
 </main>
 
 <footer class="footer">
-  <div class="footer-inner">
-    <span><b style="color:var(--ink)">Drayvenn Health</b> · a Drayvenn Lab product</span>
-    <span class="right"><a href="privacy.html" style="font-weight:600">Privacy</a> · <a href="terms.html" style="font-weight:600">Terms</a> · <a href="about.html" style="font-weight:600">About</a> · <a href="admin.html" style="font-weight:600">For clinics →</a> · Demo build</span>
+  <div class="footer-cols">
+    <div class="footer-brand">
+      <div class="footer-logo"><img src="brand/icon.png" alt="Drayvenn Lab logo"><b>Drayvenn Health</b></div>
+      <p>Book neighbourhood clinic appointments across Bengaluru - pick a doctor, choose a time, done in under a minute.</p>
+    </div>
+    <div class="footer-col">
+      <div class="footer-head">Patients</div>
+      <a href="#" id="foot-clinics">Browse clinics</a>
+      <a href="#" id="foot-track">Track a booking</a>
+      <a href="#" id="foot-signin">Sign in</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-head">Clinics</div>
+      <a href="admin.html">Clinic sign-in</a>
+      <a href="about.html">About us</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-head">Legal</div>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+    </div>
   </div>
+  <div class="footer-base">Drayvenn Health · a Drayvenn Lab product · Demo build</div>
 </footer>
 
 <nav class="tabbar" aria-label="Main navigation">

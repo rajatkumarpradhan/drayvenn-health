@@ -90,6 +90,7 @@ async function loadClinics() {
     }
     renderSpecChips();
     renderAreaFilter();
+    renderHomeExtras();
     renderClinics();
   } catch (e) {
     $('#clinic-list').innerHTML = '<div class="loading">Could not load clinics. <a href="/">Retry</a></div>';
@@ -106,6 +107,33 @@ function renderAreaFilter() {
   sel.value = areas.includes(cur) ? cur : 'All';
   state.filter.area = sel.value;
   sel.onchange = () => { state.filter.area = sel.value; renderClinics(); };
+}
+
+function renderHomeExtras() {
+  const specs = new Map();
+  state.clinics.forEach(c => c.specialties.forEach(s => specs.set(s, (specs.get(s) || 0) + 1)));
+  const host = $('#browse-specs');
+  if (host) {
+    host.innerHTML = [...specs.entries()].slice(0, 8).map(([s, n]) =>
+      `<button class="browse-card" data-spec="${esc(s)}"><div class="browse-name">${esc(s)}</div><div class="browse-sub">${n} clinic${n > 1 ? 's' : ''}</div></button>`).join('');
+    host.querySelectorAll('.browse-card').forEach(b => b.onclick = () => {
+      state.filter.spec = b.dataset.spec;
+      renderSpecChips(); renderClinics();
+      $('#clinic-list').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+  const ah = $('#home-areas');
+  if (ah) {
+    const areas = [...new Set(state.clinics.map(c => c.area))].sort();
+    ah.innerHTML = areas.map(a => `<button class="chip" data-area="${esc(a)}">📍 ${esc(a)}</button>`).join('');
+    ah.querySelectorAll('.chip').forEach(b => b.onclick = () => {
+      state.filter.area = b.dataset.area;
+      const sel = $('#area-filter');
+      if (sel) sel.value = b.dataset.area;
+      renderClinics();
+      $('#clinic-list').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
 }
 
 function renderSpecChips() {
@@ -732,6 +760,9 @@ $('#back-home').onclick = () => show('home');
 $('#confirm-home').onclick = () => show('home');
 $('#back-home-3').onclick = () => show('home');
 $('#back-home-4').onclick = () => show('home');
+$('#foot-clinics').onclick = e => { e.preventDefault(); show('home'); setTimeout(() => $('#clinic-list') && $('#clinic-list').scrollIntoView({ behavior: 'smooth', block: 'start' }), 60); };
+$('#foot-track').onclick = e => { e.preventDefault(); show('mybookings'); };
+$('#foot-signin').onclick = e => { e.preventDefault(); showSignin(); };
 $('#bk-btn').onclick = lookupBooking;
 $('#bk-phone').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10); });
 $('#bk-phone').addEventListener('keydown', e => { if (e.key === 'Enter') lookupBooking(); });
