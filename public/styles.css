@@ -433,6 +433,7 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
 .feature-band .section-title { color:#fff; margin:8px 0 16px; }
 .feature-band .spec-circle-btn { border-color:transparent; box-shadow:0 4px 14px rgba(4,47,44,.18); }
 .feature-band .spec-circle-btn:hover { box-shadow:0 8px 22px rgba(4,47,44,.28); }
+.feature-band .spec-circ-name { color:#E6FFFA; text-shadow:0 1px 3px rgba(4,47,44,.35); }
 .why-panel { background:#F0FDFA; border:1px solid rgba(13,148,134,.14); border-radius:28px; padding:22px 18px 26px; margin:26px 0 6px; }
 .why-panel .section-tag { margin-top:0; }
 .why-panel .why-strip { margin:14px 0 0; }
@@ -943,7 +944,8 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
   .trust-strip { grid-column: 1 / -1; grid-template-columns: repeat(4, 1fr); margin-top: 26px; }
   #recent-wrap, #view-home .section-title, #view-home .spec-circles, #view-home .title-row,
   #featured-grid, #view-home .how-strip, #view-home .why-strip,
-  #view-home .feature-band, #view-home .why-panel, #view-home .section-tag { grid-column: 1 / -1; }
+  #view-home .feature-band, #view-home .why-panel { grid-column: 1 / -1; }
+  #view-home .section-tag { grid-column: 1 / -1; justify-self: start; }
   .how-strip { grid-template-columns: repeat(3, 1fr); gap: 14px; }
   .featured-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; }
   .searchbar input { padding: 16px 22px; font-size: 16px; }
