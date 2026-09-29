@@ -6,6 +6,8 @@ set -e
 cd "$(dirname "$0")/.."
 bash scripts/refresh-cf-auth.sh >/dev/null 2>&1 || true
 STAMP=$(date +%Y%m%d-%H%M)
+# Retention purge (folded into the weekly run, mirrors functions/api/_lib.js purgeOldBookings):
+npx wrangler d1 execute drayvenn-health-db --remote --command "DELETE FROM bookings WHERE date < date('now', '-1 year')" >/dev/null 2>&1 || echo "purge skipped (non-fatal)"
 RAW=/tmp/drayvenn-health-db-$STAMP.sql
 OUT=/tmp/drayvenn-health-db-$STAMP.sql.gpg
 npx wrangler d1 export drayvenn-health-db --remote --output "$RAW" --no-schema false >/dev/null 2>&1 || \
