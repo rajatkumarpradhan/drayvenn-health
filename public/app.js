@@ -3,13 +3,15 @@ const state = {
   filter: { q: '', spec: 'All' },
   clinic: null,
   booking: { doctor: null, date: null, slot: null },
-  lastBooking: null
+  lastBooking: null,
+  patient: null
 };
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 function show(view) {
+  if (view === 'mybookings') renderAccount();
   for (const v of ['home', 'clinic', 'confirm', 'mybookings']) {
     const el = document.getElementById('view-' + v);
     el.classList.toggle('hidden', v !== view);
@@ -79,7 +81,7 @@ async function loadClinics() {
     renderSpecChips();
     renderClinics();
   } catch (e) {
-    $('#clinic-list').innerHTML = '<div class="loading">Could not load clinics. <a href="#" onclick="location.reload();return false">Retry</a></div>';
+    $('#clinic-list').innerHTML = '<div class="loading">Could not load clinics. <a href="/">Retry</a></div>';
   }
 }
 
@@ -191,6 +193,11 @@ const WIZ_LABELS = { date: 'Date', time: 'Time', details: 'Details', review: 'Co
 function openBooking(doctorId) {
   const doctor = state.clinic.doctors.find(d => d.id === doctorId);
   state.booking = { doctor, date: null, slot: null, step: 'date' };
+  if (state.patient) {
+    if (state.patient.name) state.booking.pname = state.patient.name;
+    if (state.patient.phone) state.booking.pphone = state.patient.phone;
+    if (state.patient.age != null) state.booking.page = state.patient.age;
+  }
   closeWizard();
   const ov = document.createElement('div');
   ov.id = 'wizard-overlay';
@@ -670,6 +677,216 @@ document.querySelectorAll('.tabbar .tab').forEach(tab => {
   });
 });
 
+
+/* ---------- PATIENT ACCOUNT (Step 3) ---------- */
+async function loadPatient() {
+  try { const { patient } = await api('/api/auth/me'); state.patient = patient; }
+  catch { state.patient = null; }
+}
+
+function maskPhone(p) { return p ? '+91 ' + p.slice(0, 5) + ' ' + p.slice(5) : ''; }
+
+function renderAccount() {
+  const host = $('#account-panel');
+  if (!host) return;
+  if (!state.patient) { renderLogin(host); return; }
+  const p = state.patient;
+  host.innerHTML = `
+    <h2 style="font-size:20px;font-weight:700">Hi${p.name ? ', ' + esc(p.name.split(' ')[0]) : ''}</h2>
+    <p style="color:var(--muted);font-size:13.5px;margin:4px 0 14px">
+      ${p.phone ? 'Signed in with ' + esc(maskPhone(p.phone)) : 'Signed in with Google'}
+      ${p.has_google ? ' &middot; Google linked' + (p.google_email ? ' (' + esc(p.google_email) + ')' : '') : ''}
+    </p>
+    ${!p.has_google ? '<a class="btn btn-block" href="/api/auth/google/start" style="margin-bottom:14px;display:block;text-align:center">Link Google account</a>' : ''}
+    <div class="form-grid" style="margin-bottom:14px">
+      <div class="form-row"><label for="acct-name">Your name</label><input id="acct-name" maxlength="60" autocomplete="name" value="${esc(p.name || '')}" placeholder="Used to prefill bookings"></div>
+      <div class="form-row"><label for="acct-age">Age</label><input id="acct-age" inputmode="numeric" maxlength="3" value="${p.age != null ? p.age : ''}" placeholder="Optional"></div>
+      <div class="form-error" id="acct-error"></div>
+      <button class="btn btn-block" id="acct-save">Save details</button>
+    </div>
+    <h3 style="font-size:16px;font-weight:700;margin:6px 0 10px">My bookings</h3>
+    <div id="my-bookings"><div class="loading">Loading&hellip;</div></div>
+    <button class="btn btn-block btn-ghost" id="acct-logout" style="margin-top:16px">Sign out</button>`;
+  $('#acct-save').onclick = saveProfile;
+  $('#acct-logout').onclick = logout;
+  loadMyBookings();
+}
+
+function renderLogin(host) {
+  host.innerHTML = `
+    <h2 style="font-size:20px;font-weight:700">Sign in to Drayvenn Health</h2>
+    <p style="color:var(--muted);font-size:13.5px;margin:4px 0 16px">Faster booking with saved details, plus your full history with cancel and reschedule.</p>
+    <div class="form-grid" id="login-phone-step">
+      <div class="form-row"><label for="login-phone">Mobile number</label>
+        <div class="phone-wrap"><span class="phone-prefix">+91</span><input id="login-phone" placeholder="98765 43210" inputmode="numeric" maxlength="10" autocomplete="tel-national"></div>
+      </div>
+      <div class="form-error" id="login-error"></div>
+      <button class="btn btn-block" id="login-send">Send login code</button>
+    </div>
+    <div class="form-grid hidden" id="login-otp-step">
+      <div class="form-row"><label for="login-otp">6-digit code</label><input id="login-otp" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;" inputmode="numeric" maxlength="6" autocomplete="one-time-code" style="letter-spacing:6px;text-align:center;font-size:18px"></div>
+      <div class="form-error" id="otp-error"></div>
+      <button class="btn btn-block" id="login-verify">Verify &amp; sign in</button>
+      <button class="btn btn-block btn-ghost" id="login-back">Use a different number</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin:14px 0;color:var(--muted);font-size:12px"><span style="flex:1;height:1px;background:var(--line,rgba(190,220,215,.4))"></span>or<span style="flex:1;height:1px;background:var(--line,rgba(190,220,215,.4))"></span></div>
+    <a class="btn btn-block btn-ghost" href="/api/auth/google/start" style="display:block;text-align:center">Continue with Google</a>
+    <div class="privacy-line" style="margin-top:14px">Sign-in doubles as registration. Codes expire in 10 minutes.</div>`;
+  $('#login-phone').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10); });
+  $('#login-otp').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6); });
+  $('#login-send').onclick = requestOtp;
+  $('#login-verify').onclick = verifyOtp;
+  $('#login-back').onclick = () => { $('#login-otp-step').classList.add('hidden'); $('#login-phone-step').classList.remove('hidden'); };
+}
+
+async function requestOtp() {
+  const err = $('#login-error');
+  err.style.display = 'none';
+  const phone = $('#login-phone').value.trim();
+  if (!/^[6-9]\d{9}$/.test(phone)) { err.textContent = 'Enter a valid 10-digit mobile number.'; err.style.display = 'block'; return; }
+  const btn = $('#login-send');
+  btn.disabled = true; btn.textContent = 'Sending...';
+  try {
+    await api('/api/auth/otp/request', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone }) });
+    $('#login-phone-step').classList.add('hidden');
+    $('#login-otp-step').classList.remove('hidden');
+    $('#login-otp').focus();
+  } catch (e) {
+    err.textContent = e.message; err.style.display = 'block';
+  }
+  btn.disabled = false; btn.textContent = 'Send login code';
+}
+
+async function verifyOtp() {
+  const err = $('#otp-error');
+  err.style.display = 'none';
+  const phone = $('#login-phone').value.trim();
+  const code = $('#login-otp').value.trim();
+  if (!/^\d{6}$/.test(code)) { err.textContent = 'Enter the 6-digit code.'; err.style.display = 'block'; return; }
+  const btn = $('#login-verify');
+  btn.disabled = true; btn.textContent = 'Verifying...';
+  try {
+    const { patient } = await api('/api/auth/otp/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone, code }) });
+    state.patient = patient;
+    toast('Signed in', 'info');
+    renderAccount();
+  } catch (e) {
+    err.textContent = e.message; err.style.display = 'block';
+  }
+  btn.disabled = false; btn.textContent = 'Verify & sign in';
+}
+
+async function saveProfile() {
+  const err = $('#acct-error');
+  err.style.display = 'none';
+  const name = $('#acct-name').value.trim();
+  const age = $('#acct-age').value.trim();
+  try {
+    const { patient } = await api('/api/auth/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, age: age === '' ? null : age }) });
+    state.patient.name = patient.name; state.patient.age = patient.age;
+    toast('Details saved', 'info');
+  } catch (e) { err.textContent = e.message; err.style.display = 'block'; }
+}
+
+async function logout() {
+  try { await api('/api/auth/logout', { method: 'POST' }); } catch {}
+  state.patient = null;
+  toast('Signed out', 'info');
+  renderAccount();
+}
+
+async function loadMyBookings() {
+  const host = $('#my-bookings');
+  if (!host) return;
+  try {
+    const { bookings } = await api('/api/my/bookings');
+    if (!bookings.length) { host.innerHTML = '<div class="loading">No bookings yet - book from the home page and they show up here.</div>'; return; }
+    const today = new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10);
+    host.innerHTML = bookings.map(b => `
+      <div class="booking-row" data-ref="${esc(b.ref)}">
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+          <div>
+            <div style="font-weight:700">${esc(b.doctor_name)} <span style="color:var(--muted);font-weight:500">&middot; ${esc(b.specialty || '')}</span></div>
+            <div style="font-size:13px;color:var(--muted)">${esc(b.clinic_name)}</div>
+            <div style="font-size:13px;margin-top:2px">${fmtDate(b.date)} &middot; ${fmtTime(b.slot)} &middot; <span class="status-${esc(b.status)}">${esc(b.status)}</span></div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">${esc(b.ref)}</div>
+          </div>
+          ${b.status !== 'cancelled' && b.date >= today ? `<span class="menu-host"><button class="menu-dot" data-ref="${esc(b.ref)}" aria-label="Manage">&#8942;</button>
+          <span class="menu-pop menu-pop-right hidden">
+            <button class="menu-item" data-act="reschedule" data-ref="${esc(b.ref)}" data-doctor="${esc(b.doctor_id)}">Reschedule</button>
+            <button class="menu-item menu-danger" data-act="cancel" data-ref="${esc(b.ref)}">Cancel booking</button>
+          </span></span>` : ''}
+        </div>
+        <div class="rs-panel hidden"></div>
+      </div>`).join('');
+    host.querySelectorAll('.menu-dot').forEach(btn => btn.onclick = () => {
+      const menu = btn.parentElement.querySelector('.menu-pop');
+      menu.classList.toggle('hidden');
+    });
+    host.querySelectorAll('.menu-item').forEach(btn => btn.onclick = () => {
+      const row = btn.closest('.booking-row');
+      btn.closest('.menu-pop').classList.add('hidden');
+      if (btn.dataset.act === 'cancel') myCancel(row, btn.dataset.ref);
+      else myReschedulePanel(row, btn.dataset.ref, btn.dataset.doctor);
+    });
+  } catch (e) {
+    host.innerHTML = '<div class="loading">Could not load bookings. <a href="#" id="my-retry">Retry</a></div>';
+    const r = $('#my-retry'); if (r) r.onclick = ev => { ev.preventDefault(); loadMyBookings(); };
+  }
+}
+
+async function myCancel(row, ref) {
+  if (!confirm('Cancel booking ' + ref + '?')) return;
+  try {
+    await api('/api/my/bookings/' + encodeURIComponent(ref), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'cancel' }) });
+    toast('Booking ' + ref + ' cancelled', 'info');
+    loadMyBookings();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+function myReschedulePanel(row, ref, doctorId) {
+  const panel = row.querySelector('.rs-panel');
+  const today = new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10);
+  const max = new Date(Date.now() + 330 * 60000 + 13 * 86400000).toISOString().slice(0, 10);
+  panel.innerHTML = `
+    <div class="rs-title">Reschedule ${esc(ref)}</div>
+    <div class="rs-grid">
+      <input type="date" class="rs-date" min="${today}" max="${max}" value="${today}">
+      <select class="rs-slot"><option value="">Pick date first</option></select>
+      <button class="btn rs-save">Move booking</button>
+    </div>
+    <div class="form-error" style="margin-top:6px"></div>`;
+  panel.classList.remove('hidden');
+  const dateEl = panel.querySelector('.rs-date');
+  const slotEl = panel.querySelector('.rs-slot');
+  const errEl = panel.querySelector('.form-error');
+  dateEl.onchange = async () => {
+    slotEl.innerHTML = '<option value="">Loading...</option>';
+    try {
+      const { slots } = await api('/api/slots?doctor_id=' + encodeURIComponent(doctorId) + '&date=' + dateEl.value);
+      slotEl.innerHTML = slots.map(s => `<option value="${s.time}" ${s.available ? '' : 'disabled'}>${fmtTime(s.time)}${s.available ? '' : ' (taken)'}</option>`).join('');
+    } catch (e) { slotEl.innerHTML = '<option value="">No slots</option>'; errEl.textContent = e.message; errEl.style.display = 'block'; }
+  };
+  panel.querySelector('.rs-save').onclick = async () => {
+    errEl.style.display = 'none';
+    const slot = slotEl.value;
+    if (!dateEl.value || !slot) { errEl.textContent = 'Pick a date and a time.'; errEl.style.display = 'block'; return; }
+    try {
+      await api('/api/my/bookings/' + encodeURIComponent(ref), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'reschedule', date: dateEl.value, slot }) });
+      toast('Moved to ' + fmtDate(dateEl.value) + ' ' + fmtTime(slot), 'info');
+      loadMyBookings();
+    } catch (e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
+  };
+}
+
+/* Handle Google redirect landings. */
+(function () {
+  const q = new URLSearchParams(location.search);
+  if (q.get('login') === 'google') { toast('Signed in with Google', 'info'); history.replaceState(null, '', location.pathname + location.hash); }
+  if (q.get('linked') === 'google') { toast('Google account linked', 'info'); history.replaceState(null, '', location.pathname + location.hash); }
+})();
+
 window.openClinicFromChat = openClinic;
 window.showFromChat = show;
 loadClinics();
+loadPatient().then(() => { if (!$('#view-mybookings').classList.contains('hidden')) renderAccount(); });

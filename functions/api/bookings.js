@@ -1,4 +1,5 @@
 import { json, badRequest, generateSlots, nowIST, istToday, addDays, makeRef, normalizePhone, purgeOldBookings } from './_lib.js';
+import { getPatientSession } from './_auth.js';
 
 export async function onRequestPost(context) {
   const { DB } = context.env;
@@ -8,6 +9,9 @@ export async function onRequestPost(context) {
   catch { return badRequest('Invalid JSON'); }
 
   const { clinic_id, doctor_id, patient_name, phone, date, slot } = body || {};
+  // Optional auth: a signed-in patient's bookings attach to their account.
+  const authState = await getPatientSession(DB, context.request);
+  const patientId = authState ? authState.patient.id : null;
   if (body.consent !== true) return badRequest('Consent to the privacy policy is required to book');
   const age = body.age ? parseInt(body.age, 10) : null;
   const concern = (body.concern || '').toString().slice(0, 300).trim();
@@ -47,9 +51,9 @@ export async function onRequestPost(context) {
   }
 
   await DB.prepare(
-    `INSERT INTO bookings (ref, clinic_id, clinic_name, doctor_id, doctor_name, patient_name, phone, age, concern, date, slot, status, consent_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'))`
-  ).bind(ref, clinic_id, clinic.name, doctor_id, doctor.name, name, ph, age, concern || null, date, slot).run();
+    `INSERT INTO bookings (ref, clinic_id, clinic_name, doctor_id, doctor_name, patient_name, phone, age, concern, date, slot, status, consent_at, patient_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), ?)`
+  ).bind(ref, clinic_id, clinic.name, doctor_id, doctor.name, name, ph, age, concern || null, date, slot, patientId).run();
 
   return json({
     booking: {
