@@ -80,6 +80,8 @@ img { max-width: 100%; }
 
 #clinic-map { height: 420px; margin-top: 14px; border-radius: var(--radius); border: 1px solid var(--line); overflow: hidden; z-index: 0; }
 #clinic-map .leaflet-popup-content { margin: 10px 12px; }
+.dh-pin { background: #fff; border: 2px solid var(--primary); border-radius: 50%; box-shadow: 0 2px 8px rgba(0,133,122,.35); display: flex; align-items: center; justify-content: center; }
+.dh-pin span { font-size: 17px; line-height: 1; }
 .map-card { min-width: 168px; }
 .map-card .mc-name { font-weight: 800; font-size: 14px; color: var(--ink); }
 .map-card .mc-area { font-size: 12px; color: #5b6b68; margin: 2px 0 6px; }

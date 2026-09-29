@@ -291,7 +291,9 @@ function updateMapMarkers(list) {
     const co = CLINIC_COORDS[c.id];
     if (!co) continue;
     pts.push(co);
-    const m = L.marker(co).addTo(map);
+    const m = L.marker(co, {
+      icon: L.divIcon({ className: 'dh-pin', html: '<span>' + c.emoji + '</span>', iconSize: [34, 34], iconAnchor: [17, 17], popupAnchor: [0, -16] })
+    }).addTo(map);
     m.bindPopup(`<div class="map-card">
       <div class="mc-name">${c.emoji} ${esc(c.name)}</div>
       <div class="mc-area">📍 ${esc(c.area)}</div>
