@@ -287,6 +287,9 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
 .hero-main::before { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
   background: linear-gradient(180deg, rgba(240,253,250,.86), rgba(240,253,250,.62) 48%, rgba(240,253,250,.9)); border-radius: inherit; }
 @media (min-width: 900px) { .hero-main::before { display: none; } }
+.hero-vid-card { display: none; }
+.hero-vid-desk { display: none; }
+.hero-scene .holo { display: none; }
 .hero-scene {
   position: absolute; inset: 0; z-index: 0; overflow: hidden;
   background: linear-gradient(155deg, #f3fdfb 0%, #e7faf5 45%, #d9f4ec 100%);
@@ -900,8 +903,9 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
   /* real-device fixes: footer clears the floating tabbar; inputs >=16px stop focus zoom/jump */
   .footer { padding-bottom: calc(118px + env(safe-area-inset-bottom, 0px)); }
   input:not([type=checkbox]):not([type=radio]), select, textarea { font-size: 16px; }
-  /* mobile hero: hide the floating holo art (DNA/scan-ring/glass cards) - it overlapped the copy on real phones */
-  .hero-scene .holo { display: none; }
+  /* mobile hero video card (his reference-clip hologram) below the CTA row */
+  .hero-vid-card { display: block; margin: 14px 0 2px; border-radius: var(--r-panel); overflow: hidden; background: linear-gradient(155deg, #f3fdfb 0%, #e7faf5 45%, #d9f4ec 100%); border: 1px solid var(--line); box-shadow: var(--shadow-sm); }
+  .hero-vid-card .hero-vid { width: 100%; height: auto; aspect-ratio: 480 / 376; object-fit: contain; display: block; }
   .section-title { font-size: 18px; }
   .wiz-doc { font-size: 15px; }
   .confirm-hero { margin: 18px auto 0; padding: 28px 18px; }
@@ -923,6 +927,7 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
   .hero-ctas { grid-column: 1; grid-row: 4; margin-top: 24px; }
   .hero-search { grid-column: 1; grid-row: 5; position: static; margin-top: 16px; max-width: 520px; }
   .hero-scene { grid-column: 2; grid-row: 1 / span 5; position: relative; height: 440px; align-self: center; border-radius: var(--r-panel); background: transparent; }
+  .hero-vid-desk { display: block; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; z-index: 1; }
   .hero-video { filter: none; transform: none; border-radius: inherit; }
   .hero-lockup { display: block; width: 96px; height: 96px; }
   .hero-wordmark, .hero-ecg, .hero-halo { display: block; }
