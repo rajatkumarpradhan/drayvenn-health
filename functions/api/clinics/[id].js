@@ -17,5 +17,7 @@ export async function onRequestGet(context) {
     pub.next_available = nexts[d.id] || null;
     return pub;
   });
-  return json({ clinic: { ...clinic, specialties: JSON.parse(clinic.specialties), doctors: pubs } });
+  const clinicNext = pubs.map(d => d.next_available).filter(Boolean)
+    .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))[0] || null;
+  return json({ clinic: { ...clinic, specialties: JSON.parse(clinic.specialties), doctors: pubs, min_fee: Math.min(...pubs.map(d => d.fee)), next_available: clinicNext } });
 }

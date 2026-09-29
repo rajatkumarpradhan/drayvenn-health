@@ -210,7 +210,9 @@ const UI_ICONS = {
   phone: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>',
   card: '<rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 10h19M6 15h4"/>',
   search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
-  pulse: '<path d="M3 12h4l2-7 4 14 2-7h6"/>'
+  pulse: '<path d="M3 12h4l2-7 4 14 2-7h6"/>',
+  check: '<path d="M4 12.5l5 5L20 6.5"/>',
+  shield: '<path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6z"/><path d="M9 11.5l2.2 2.2L15.5 9.5"/>'
 };
 function uiIcon(name) {
   return `<svg class="pin-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${UI_ICONS[name]}</svg>`;
@@ -775,41 +777,73 @@ const CLINIC_COORDS = {
   'skinfirst-derma': [12.9719, 77.6412],
   'smilecare-dental': [12.9698, 77.7500]
 };
+const CLINIC_FACILITIES = {
+  'marathahalli-multispeciality': ['AC waiting area', 'Pharmacy', 'Diagnostics lab', 'Wheelchair access'],
+  'motherhood-child-family': ['AC waiting area', 'Pharmacy', 'Kids play corner', 'Vaccination room'],
+  'orthoplus-bone-joint': ['AC waiting area', 'Physiotherapy suite', 'X-ray', 'Wheelchair access'],
+  'skinfirst-derma': ['AC waiting area', 'Pharmacy', 'Procedure room'],
+  'smilecare-dental': ['AC waiting area', 'Digital X-ray', 'Sterilization protocol', 'Wheelchair access']
+};
+function fmtDayPill(dateStr) {
+  const ist = new Date(Date.now() + 19800000).toISOString().slice(0, 10);
+  if (dateStr === ist) return 'Today';
+  const d = new Date(dateStr + 'T00:00:00Z');
+  return d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', timeZone: 'UTC' });
+}
 
 function renderClinicDetail() {
   const c = state.clinic;
   const tel = esc(c.phone.replace(/[^0-9+]/g, ''));
   const co = CLINIC_COORDS[c.id];
+  const facilities = CLINIC_FACILITIES[c.id] || ['AC waiting area', 'Pharmacy'];
+  const next = fmtNext(c.next_available);
   $('#clinic-detail').innerHTML = `
-    <div class="detail-hero reveal">
-      <div class="detail-hero-top">
-        ${clinicMark(c, 'lg')}
-        <div class="detail-hero-info">
-          <h1 class="detail-name">${esc(c.name)}</h1>
-          <div class="detail-area">${PIN_SVG} ${esc(c.area)} · <span class="sample-badge">Sample clinic</span></div>
-        </div>
+    <div class="detail-cover reveal"><div class="detail-cover-pattern"></div><div class="detail-cover-mark">${CLINIC_MARK_SVG}</div><div class="detail-cover-emoji">${c.emoji || ''}</div></div>
+    <div class="detail-head reveal">
+      <div class="detail-head-main">
+        <h1 class="detail-name">${esc(c.name)}</h1>
+        <div class="detail-addr">${PIN_SVG} ${esc(c.address)} <span class="sample-badge">Sample clinic</span></div>
+        <div class="detail-badges"><span class="verified-badge">${uiIcon('shield')} Verified clinic</span></div>
       </div>
-      <div class="detail-tagline">${esc(c.tagline || '')}</div>
-      <div class="detail-actions">
-        <a class="btn btn-small" href="tel:${tel}">${uiIcon('phone')} Call clinic</a>
-        ${co ? `<a class="btn btn-small btn-ghost" href="https://www.google.com/maps/search/?api=1&query=${co[0]}%2C${co[1]}" target="_blank" rel="noopener">Directions →</a>` : ''}
+      <div class="detail-head-cta"><button type="button" class="btn" id="dt-book-top">Book Appointment</button></div>
+    </div>
+    <div class="quick-strip reveal">
+      <div class="qs-item"><span class="qs-label">Open today</span><b>${esc(c.timings)}</b></div>
+      <div class="qs-item"><span class="qs-label">Starting from</span><b>\u20B9${c.min_fee}</b></div>
+      <div class="qs-item"><span class="qs-label">Next available</span><b>${next ? esc(next) : 'No slots in 14 days'}</b></div>
+    </div>
+    <div class="detail-tabs reveal" id="detail-tabs">
+      <button type="button" class="dtab active" data-dtab="about">About</button>
+      <button type="button" class="dtab" data-dtab="doctors">Doctors</button>
+      <button type="button" class="dtab" data-dtab="slots">Slots</button>
+      <button type="button" class="dtab" data-dtab="location">Location</button>
+    </div>
+    <div class="dt-panel" id="dt-about">
+      <div class="info-card">
+        <p class="dt-desc">${esc(c.tagline || '')}</p>
+        <h3 class="dt-h">Specialties</h3>
+        <div class="spec-chips">${c.specialties.map(s => `<span class="spec-chip">${esc(s)}</span>`).join('')}</div>
+        <h3 class="dt-h">Facilities</h3>
+        <div class="fac-list">${facilities.map(f => `<span class="fac-item">${uiIcon('check')}${esc(f)}</span>`).join('')}</div>
+        <h3 class="dt-h">Contact</h3>
+        <div class="info-row"><span class="info-ico">${uiIcon('phone')}</span><span><a href="tel:${tel}">${esc(c.phone)}</a></span></div>
       </div>
     </div>
-    <div class="info-card reveal">
-      <div class="info-row"><span class="info-ico">${PIN_SVG}</span><span><b>Address</b><br>${esc(c.address)}</span></div>
-      <div class="info-row"><span class="info-ico">${uiIcon('clock')}</span><span><b>Timings</b><br>${esc(c.timings)}</span></div>
-      <div class="info-row"><span class="info-ico">${uiIcon('phone')}</span><span><b>Phone</b><br><a href="tel:${tel}">${esc(c.phone)}</a></span></div>
-      <div class="spec-chips" style="margin-top:6px">${c.specialties.map(s => `<span class="spec-chip">${esc(s)}</span>`).join('')}</div>
+    <div class="dt-panel hidden" id="dt-doctors"></div>
+    <div class="dt-panel hidden" id="dt-slots"></div>
+    <div class="dt-panel hidden" id="dt-location">
+      ${co ? `<div class="detail-map-card"><div id="detail-map"></div></div>` : ''}
+      <div class="info-card" style="margin-top:12px">
+        <div class="info-row"><span class="info-ico">${PIN_SVG}</span><span><b>Address</b><br>${esc(c.address)}</span></div>
+        ${co ? `<a class="btn btn-outline btn-small" style="margin-top:10px" href="https://www.google.com/maps/search/?api=1&query=${co[0]}%2C${co[1]}" target="_blank" rel="noopener">Get Directions →</a>` : ''}
+      </div>
     </div>
-    ${co ? `<div class="detail-map-card reveal"><div id="detail-map"></div><div class="map-chip">${PIN_SVG} ${esc(c.area)}</div>
-      <div class="map-foot"><b>${PIN_SVG} ${esc(c.area)}</b><span>
-        <a href="https://www.google.com/maps/search/?api=1&query=${co[0]}%2C${co[1]}" target="_blank" rel="noopener">Directions →</a>
-        &nbsp;·&nbsp; <a href="tel:${tel}">Call clinic</a>
-      </span></div>
-    </div>` : ''}`;
-  initDetailMap(c);
-  watchReveals($('#clinic-detail'));
-  $('#doctor-list').innerHTML = '<h2 class="section-title reveal" style="margin-top:24px">Doctors</h2>' + c.doctors.map(d => `
+    <div class="sticky-book" id="sticky-book">
+      <div class="sb-fee">Starting <b>\u20B9${c.min_fee}</b></div>
+      <button type="button" class="btn" id="sb-book">Book Appointment</button>
+    </div>`;
+  $('#doctor-list').innerHTML = '';
+  $('#dt-doctors').innerHTML = c.doctors.map(d => `
     <div class="doctor-card reveal">
       <div class="doc-avatar">${DOC_AVATAR_SVG}</div>
       <div class="doc-info">
@@ -819,18 +853,84 @@ function renderClinicDetail() {
         <div class="doc-meta">${uiIcon('cal')} ${esc(d.days_label)}${d.next_available ? ` · <span class="doc-next">Next: ${fmtNext(d.next_available)}</span>` : ' · <span style="color:var(--amber)">No slots in 14 days</span>'}</div>
       </div>
       <div class="doc-right">
-        <div class="doc-fee">₹${d.fee} <small>consult</small></div>
-        <button class="btn btn-small" data-doc="${esc(d.id)}">Book appointment</button>
+        <div class="doc-fee">\u20B9${d.fee} <small>consult</small></div>
+        <button class="btn btn-small" data-doc="${esc(d.id)}">Book with this doctor</button>
         <button class="doc-more" data-docinfo="${esc(d.id)}">Details</button>
       </div>
     </div>`).join('');
-  $('#doctor-list').querySelectorAll('button[data-doc]').forEach(b => {
-    b.onclick = () => openBooking(b.dataset.doc);
+  $('#dt-doctors').querySelectorAll('button[data-doc]').forEach(b => { b.onclick = () => openBooking(b.dataset.doc); });
+  $('#dt-doctors').querySelectorAll('button[data-docinfo]').forEach(b => { b.onclick = () => openDoctorModal(b.dataset.docinfo); });
+  let mapInit = false, slotsInit = false;
+  $$('#detail-tabs .dtab').forEach(b => b.onclick = () => {
+    $$('#detail-tabs .dtab').forEach(x => x.classList.toggle('active', x === b));
+    ['about', 'doctors', 'slots', 'location'].forEach(k => $('#dt-' + k).classList.toggle('hidden', k !== b.dataset.dtab));
+    if (b.dataset.dtab === 'location' && !mapInit) { mapInit = true; initDetailMap(c); }
+    if (b.dataset.dtab === 'slots' && !slotsInit) { slotsInit = true; renderSlotsTab(c); }
   });
-  $('#doctor-list').querySelectorAll('button[data-docinfo]').forEach(b => {
-    b.onclick = () => openDoctorModal(b.dataset.docinfo);
+  const bookTop = () => bookClinicQuick(c.id);
+  $('#dt-book-top').onclick = bookTop;
+  $('#sb-book').onclick = bookTop;
+  watchReveals($('#clinic-detail'));
+  watchReveals($('#dt-doctors'));
+}
+
+async function renderSlotsTab(c) {
+  const host = $('#dt-slots');
+  const days = [];
+  const now = new Date(Date.now() + 19800000);
+  for (let i = 0; i < 10; i++) days.push(new Date(now.getTime() + i * 86400000).toISOString().slice(0, 10));
+  host.innerHTML = `
+    <div class="slot-doc-filter"><select id="slot-doc" class="fb-select" aria-label="Filter by doctor">
+      <option value="all">All doctors</option>
+      ${c.doctors.map(d => `<option value="${esc(d.id)}">${esc(d.name)} - ${esc(d.specialty)}</option>`).join('')}
+    </select></div>
+    <div class="slot-dates" id="slot-dates">${days.map((d, i) => `<button type="button" class="date-pill${i === 0 ? ' active' : ''}" data-date="${d}">${fmtDayPill(d)}</button>`).join('')}</div>
+    <div class="slot-grid" id="slot-grid"><div class="loading">Loading slots...</div></div>`;
+  const st = { date: days[0], docId: 'all' };
+  const load = async () => {
+    const grid = $('#slot-grid');
+    const oldBar = $('#slot-book-bar'); if (oldBar) oldBar.remove();
+    grid.innerHTML = '<div class="loading">Loading slots...</div>';
+    const docs = st.docId === 'all' ? c.doctors : c.doctors.filter(d => d.id === st.docId);
+    const results = await Promise.all(docs.map(d =>
+      api('/api/slots?doctor_id=' + encodeURIComponent(d.id) + '&date=' + st.date)
+        .then(r => ({ d, slots: r.slots || [] }))
+        .catch(() => ({ d, slots: [] }))
+    ));
+    const byTime = {};
+    for (const { d, slots } of results) for (const s of slots) {
+      if (!byTime[s.time]) byTime[s.time] = { available: false, docId: null };
+      if (s.available) {
+        if (!byTime[s.time].available) byTime[s.time].docId = d.id;
+        byTime[s.time].available = true;
+      }
+    }
+    const times = Object.keys(byTime).sort();
+    if (!times.length) {
+      grid.innerHTML = '<div class="empty-state"><div class="empty-ico-disc">' + uiIcon('cal') + '</div><div class="empty-title">No slots this day</div><div class="empty-sub">Try another date.</div></div>';
+      return;
+    }
+    grid.innerHTML = times.map(t => `<button type="button" class="slot-btn${byTime[t].available ? '' : ' taken'}" data-time="${t}" ${byTime[t].available ? '' : 'disabled'}>${fmtTime(t)}</button>`).join('');
+    grid.querySelectorAll('.slot-btn:not(.taken)').forEach(b => b.onclick = () => {
+      grid.querySelectorAll('.slot-btn').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      const docId = byTime[b.dataset.time].docId;
+      const old = $('#slot-book-bar'); if (old) old.remove();
+      const bar = document.createElement('div');
+      bar.id = 'slot-book-bar';
+      bar.className = 'slot-book-bar';
+      bar.innerHTML = `<span class="sbb-label">${fmtDate(st.date)} · ${fmtTime(b.dataset.time)}</span><button type="button" class="btn btn-small" id="slot-book-go">Book this slot</button>`;
+      grid.after(bar);
+      $('#slot-book-go').onclick = () => openBooking(docId, { date: st.date, slot: b.dataset.time });
+    });
+  };
+  $('#slot-doc').onchange = e => { st.docId = e.target.value; load(); };
+  host.querySelectorAll('.date-pill').forEach(b => b.onclick = () => {
+    host.querySelectorAll('.date-pill').forEach(x => x.classList.toggle('active', x === b));
+    st.date = b.dataset.date;
+    load();
   });
-  watchReveals($('#doctor-list'));
+  load();
 }
 
 /* ---------- clinic detail mini map (same-origin tiles) ---------- */
@@ -892,9 +992,9 @@ function closeDoctorModal() {
 const WIZ_STEPS = ['date', 'time', 'details', 'review'];
 const WIZ_LABELS = { date: 'Date', time: 'Time', details: 'Details', review: 'Confirm' };
 
-function openBooking(doctorId) {
+function openBooking(doctorId, pre) {
   const doctor = state.clinic.doctors.find(d => d.id === doctorId);
-  state.booking = { doctor, date: null, slot: null, step: 'date' };
+  state.booking = { doctor, date: pre && pre.date ? pre.date : null, slot: pre && pre.slot ? pre.slot : null, step: 'date' };
   if (state.patient) {
     if (state.patient.name) state.booking.pname = state.patient.name;
     if (state.patient.phone) state.booking.pphone = state.patient.phone;
