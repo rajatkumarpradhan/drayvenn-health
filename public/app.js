@@ -23,7 +23,7 @@ function show(view) {
       el.classList.add('view-enter');
     }
   }
-  const tabFor = { home: 'home', clinic: 'home', confirm: 'home', mybookings: 'mybookings' };
+  const tabFor = { home: 'home', clinic: 'clinics', confirm: 'home', mybookings: 'mybookings' };
   document.querySelectorAll('.tabbar .tab').forEach(t =>
     t.classList.toggle('active', t.dataset.tab === tabFor[view]));
   window.scrollTo({ top: 0 });
@@ -763,12 +763,12 @@ document.addEventListener('pointerdown', e => {
 document.querySelectorAll('.tabbar .tab').forEach(tab => {
   tab.addEventListener('click', () => {
     const t = tab.dataset.tab;
-    if (t === 'chat') {
-      if (window.chatIsOpen && window.chatIsOpen()) window.closeChat();
-      else window.openChat && window.openChat();
+    if (window.closeChat) window.closeChat();
+    if (t === 'clinics') {
+      show('home');
+      setTimeout(() => $('#clinic-list') && $('#clinic-list').scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
       return;
     }
-    if (window.closeChat) window.closeChat();
     show(t);
   });
 });
