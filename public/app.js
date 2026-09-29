@@ -564,7 +564,7 @@ function renderFeatured() {
       <div class="feat-visual">${clinicMark(c, 'feat-mark')}</div>
       <div class="feat-body">
         <div class="feat-name">${esc(c.name)}</div>
-        <div class="feat-area">${uiIcon('pin')} ${esc(c.area)}${c.sample ? ' <span class="sample-tag">Sample clinic</span>' : ''}</div>
+        <div class="feat-area">${uiIcon('pin')} ${esc(c.area)} <span class="sample-tag">Sample clinic</span></div>
         <div class="feat-specs">${specs}</div>
         <div class="feat-meta"><span class="feat-fee">from ₹${c.min_fee}</span>${next ? `<span class="feat-next">${uiIcon('cal')} Next: ${esc(next)}</span>` : ''}</div>
         <button type="button" class="btn btn-block feat-book" data-book="${c.id}">Book Now</button>
