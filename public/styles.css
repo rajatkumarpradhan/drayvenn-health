@@ -1048,3 +1048,47 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) both; }
   .mb-tabs { width: 100%; }
   .mb-tab { flex: 1; }
 }
+
+/* ---------- v65 PREMIUM POLISH (Magic UI-style, transform/opacity only) ---------- */
+/* Shimmer sweep on primary buttons */
+.btn:not(.btn-outline):not(.btn-ghost), .bk-actions .btn:not(.btn-outline):not(.btn-ghost) { position: relative; overflow: hidden; }
+.btn:not(.btn-outline):not(.btn-ghost)::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg, transparent 32%, rgba(255,255,255,.38) 50%, transparent 68%);
+  transform: translateX(-130%);
+}
+.btn:not(.btn-outline):not(.btn-ghost):hover::after { transform: translateX(130%); transition: transform .65s var(--ease); }
+
+/* Animated border beam on the hero CTA */
+@property --beam { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+.btn-hero:not(.btn-outline) { position: relative; isolation: isolate; }
+.btn-hero:not(.btn-outline)::before {
+  content: ''; position: absolute; inset: -2px; border-radius: calc(var(--r-pill) + 2px); padding: 2px;
+  background: conic-gradient(from var(--beam), transparent 0 62%, rgba(94,234,212,.0) 62%, #5eead4 76%, #ffffff 84%, #5eead4 92%, transparent 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: beamSpin 3.4s linear infinite;
+  z-index: -1; pointer-events: none;
+}
+@keyframes beamSpin { to { --beam: 360deg; } }
+
+/* Dot pattern over the hero (fades out downward) */
+.hero::after {
+  background-image:
+    radial-gradient(rgba(13,148,136,.14) 1.2px, transparent 1.3px),
+    linear-gradient(180deg, rgba(243,248,247,.86), rgba(243,248,247,.74) 55%, rgba(243,248,247,.88));
+  background-size: 22px 22px, auto;
+}
+
+/* Card hover lift + soft teal shadow (preserves .reveal stagger: delay only until revealed) */
+.clinic-card { transition: opacity var(--t-slow) var(--ease), transform var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease); }
+.clinic-card.reveal:not(.revealed) { transition-delay: calc(var(--i, 0) * 50ms); }
+.clinic-card.reveal.revealed { transition-delay: 0ms; }
+.clinic-card:hover { transform: translateY(-4px); box-shadow: 0 14px 34px -12px rgba(13,148,136,.28); }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-hero:not(.btn-outline)::before { animation: none; }
+  .btn:not(.btn-outline):not(.btn-ghost)::after { display: none; }
+  .clinic-card, .clinic-card:hover { transform: none; transition: none; }
+}
