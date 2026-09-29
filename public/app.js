@@ -211,7 +211,7 @@ function renderDoctorsBrowse() {
   for (const c of state.clinics) {
     if (state.filter.area !== 'All' && c.area !== state.filter.area) continue;
     for (const d of (c.doctors || [])) {
-      if (state.filter.spec !== 'All' && d.specialty !== state.filter.spec) continue;
+      if (state.filter.spec !== 'All' && d.specialty !== state.filter.spec && !c.specialties.includes(state.filter.spec)) continue;
       if (q) {
         const hay = [d.name, d.specialty, d.qualification, c.name, c.area].join(' ').toLowerCase();
         if (!hay.includes(q)) continue;
