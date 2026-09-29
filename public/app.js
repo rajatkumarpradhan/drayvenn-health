@@ -510,7 +510,7 @@ function updateMapMarkers(list) {
     if (!co) continue;
     pts.push(co);
     const m = L.marker(co, {
-      icon: L.divIcon({ className: 'dh-pin', html: '<span class="dh-pin-mark">' + CLINIC_MARK_SVG + '</span>', iconSize: [34, 34], iconAnchor: [17, 17], popupAnchor: [0, -16] })
+      icon: L.divIcon({ className: 'dh-pin', html: '<span class="dh-pin-halo"></span><span class="dh-pin-mark">' + CLINIC_MARK_SVG + '</span>', iconSize: [40, 40], iconAnchor: [20, 37], popupAnchor: [0, -34] })
     }).addTo(map);
     m.bindPopup(`<div class="map-card">
       <div class="mc-name">${esc(c.name)}</div>
@@ -579,7 +579,10 @@ function renderHomeHighlights() {
         v.play().catch(() => {});
       }, { once: true });
       v.addEventListener('error', () => v.remove(), { once: true });
+      v.muted = true;
       v.src = src;
+      v.load();
+      v.play().catch(() => {});
       // pause off-screen / hidden tab to stay inside the Nord 2T budget
       if ('IntersectionObserver' in window) {
         new IntersectionObserver(es => es.forEach(e => {
@@ -666,7 +669,7 @@ function renderClinicDetail() {
       <div class="info-row"><span class="info-ico">${uiIcon('phone')}</span><span><b>Phone</b><br><a href="tel:${tel}">${esc(c.phone)}</a></span></div>
       <div class="spec-chips" style="margin-top:6px">${c.specialties.map(s => `<span class="spec-chip">${esc(s)}</span>`).join('')}</div>
     </div>
-    ${co ? `<div class="detail-map-card reveal"><div id="detail-map"></div>
+    ${co ? `<div class="detail-map-card reveal"><div id="detail-map"></div><div class="map-chip">${PIN_SVG} ${esc(c.area)}</div>
       <div class="map-foot"><b>${PIN_SVG} ${esc(c.area)}</b><span>
         <a href="https://www.google.com/maps/search/?api=1&query=${co[0]}%2C${co[1]}" target="_blank" rel="noopener">Directions →</a>
         &nbsp;·&nbsp; <a href="tel:${tel}">Call clinic</a>
@@ -705,10 +708,13 @@ function initDetailMap(c) {
   const co = CLINIC_COORDS[c.id];
   if (!el || !co || typeof L === 'undefined') return;
   if (detailMap) { detailMap.remove(); detailMap = null; }
-  detailMap = L.map('detail-map', { scrollWheelZoom: false, attributionControl: false }).setView(co, 15);
+  detailMap = L.map('detail-map', { scrollWheelZoom: false, attributionControl: false, zoomControl: false }).setView(co, 15);
+  L.control.zoom({ position: 'bottomright' }).addTo(detailMap);
   L.tileLayer('/api/tile?z={z}&x={x}&y={y}', { maxZoom: 18 }).addTo(detailMap);
+  L.circle(co, { radius: 400, color: '#00a898', weight: 1.5, opacity: .5, fillColor: '#00a898', fillOpacity: .07 }).addTo(detailMap);
+  L.circle(co, { radius: 170, color: '#00a898', weight: 1, opacity: .35, fillColor: '#00a898', fillOpacity: .10 }).addTo(detailMap);
   L.marker(co, {
-    icon: L.divIcon({ className: 'dh-pin', html: '<span class="dh-pin-mark">' + CLINIC_MARK_SVG + '</span>', iconSize: [34, 34], iconAnchor: [17, 17] })
+    icon: L.divIcon({ className: 'dh-pin dh-pin-hero', html: '<span class="dh-pin-halo"></span><span class="dh-pin-mark">' + CLINIC_MARK_SVG + '</span>', iconSize: [52, 52], iconAnchor: [26, 49] })
   }).addTo(detailMap);
   setTimeout(() => detailMap && detailMap.invalidateSize(), 80);
 }

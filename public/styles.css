@@ -1161,3 +1161,59 @@ h1, h2, h3, .sec-title { font-family: 'Manrope'; letter-spacing: -.022em; }
   #detail-map { height: 300px; }
   .footer-cols, .footer-base { max-width: 1160px; }
 }
+
+/* v43: premium map chrome + teardrop pins + hero video autoplay */
+/* soft premium tile grade */
+.leaflet-tile-pane { filter: saturate(.62) contrast(1.05) brightness(1.03); }
+
+/* teardrop pins with pulse halo */
+.dh-pin { background: transparent; border: 0; box-shadow: none; }
+.dh-pin .dh-pin-mark { position: absolute; left: 50%; top: 50%; z-index: 1; display: grid; place-items: center; width: 34px; height: 34px;
+  border-radius: 50% 50% 50% 5px; transform: translate(-50%, -58%) rotate(-45deg);
+  background: var(--grad); color: #fff; border: 2.5px solid #fff;
+  box-shadow: 0 8px 18px rgba(0,110,100,.45), inset 0 1.5px 0 rgba(255,255,255,.55), inset 0 -6px 10px rgba(0,80,74,.25); }
+.dh-pin .dh-pin-mark svg { width: 16px; height: 16px; transform: rotate(45deg); }
+.dh-pin .dh-pin-halo { position: absolute; left: 50%; bottom: 1px; width: 22px; height: 22px; margin-left: -11px;
+  border-radius: 50%; background: radial-gradient(circle, rgba(0,168,152,.45) 0%, rgba(0,168,152,0) 68%);
+  animation: pinPulse 2.6s ease-out infinite; }
+.dh-pin-hero .dh-pin-mark { width: 46px; height: 46px; border-width: 3px; }
+.dh-pin-hero .dh-pin-mark svg { width: 22px; height: 22px; }
+.dh-pin-hero .dh-pin-halo { width: 30px; height: 30px; margin-left: -15px; }
+@keyframes pinPulse { 0% { transform: scale(.55); opacity: .9; } 70% { transform: scale(2.4); opacity: 0; } 100% { transform: scale(2.4); opacity: 0; } }
+
+/* glass zoom controls + attribution */
+.leaflet-bar { border: 1px solid rgba(255,255,255,.75) !important; border-radius: 14px !important; overflow: hidden;
+  box-shadow: 0 8px 22px rgba(13,36,64,.18), inset 0 1px 0 rgba(255,255,255,.6) !important; }
+.leaflet-bar a { background: rgba(255,255,255,.88); backdrop-filter: blur(14px) saturate(180%); -webkit-backdrop-filter: blur(14px) saturate(180%);
+  color: var(--ink); border-bottom: 1px solid rgba(13,32,58,.07) !important; width: 34px !important; height: 34px !important; line-height: 34px !important; font-weight: 600; }
+.leaflet-bar a:last-child { border-bottom: 0 !important; }
+.leaflet-control-attribution { background: rgba(255,255,255,.62) !important; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border-radius: 10px 0 0 0; padding: 2px 8px !important; font-size: 10px !important; color: #5b6b68 !important; }
+
+/* glass popup */
+.leaflet-popup-content-wrapper { background: rgba(255,255,255,.86) !important; backdrop-filter: blur(20px) saturate(190%); -webkit-backdrop-filter: blur(20px) saturate(190%);
+  border-radius: 18px !important; border: 1px solid rgba(255,255,255,.8); box-shadow: 0 14px 34px rgba(13,36,64,.22), inset 0 1px 0 rgba(255,255,255,.7) !important; }
+.leaflet-popup-tip { background: rgba(255,255,255,.86) !important; box-shadow: none !important; }
+.leaflet-popup-close-button { color: var(--muted) !important; font-size: 16px !important; padding: 6px 8px 0 0 !important; }
+
+/* map frame vignettes */
+#clinic-map { position: relative; border-radius: 22px; }
+#clinic-map::after, #detail-map::after { content: ""; position: absolute; inset: 0; z-index: 450; pointer-events: none; border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.55), inset 0 -56px 70px -56px rgba(0,110,100,.28), inset 0 24px 40px -30px rgba(13,36,64,.20); }
+.detail-map-card { position: relative; }
+#detail-map { position: relative; }
+
+/* floating glass area chip on detail map */
+.detail-map-card .map-chip { position: absolute; top: 12px; left: 12px; z-index: 800; display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 700; color: var(--ink);
+  background: rgba(255,255,255,.82); border: 1px solid rgba(255,255,255,.85);
+  backdrop-filter: blur(14px) saturate(180%); -webkit-backdrop-filter: blur(14px) saturate(180%);
+  box-shadow: 0 8px 20px rgba(13,36,64,.18), inset 0 1px 0 rgba(255,255,255,.8); }
+.detail-map-card .map-chip svg { width: 13px; height: 13px; color: var(--primary); }
+
+/* glass footer strip on detail map card */
+.map-foot { background: rgba(255,255,255,.55); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-top: 1px solid rgba(255,255,255,.6); }
+
+@media (prefers-reduced-motion: reduce) {
+  .dh-pin .dh-pin-halo { animation: none; opacity: .45; transform: none; }
+}
