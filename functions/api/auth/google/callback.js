@@ -15,6 +15,8 @@ export async function onRequestGet(context) {
   const { DB, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = context.env;
   if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) return htmlError('Google sign-in is not configured yet.');
   const url = new URL(context.request.url);
+  const err = url.searchParams.get('error');
+  if (err) return htmlError('Google could not sign you in (' + err.replace(/[^a-z_]/g, '') + '). This can happen if sign-in was cancelled, or while the app is still in Google review. Please try again or use an email code instead.');
   const code = url.searchParams.get('code');
   const state = url.searchParams.get('state');
   if (!code || !state) return htmlError('Missing sign-in parameters.');
