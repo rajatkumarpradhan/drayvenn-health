@@ -1187,10 +1187,8 @@ function initAcctMenu() {
   if (!btn) return;
   btn.addEventListener('click', e => {
     e.stopPropagation();
-    const menu = $('#acct-menu');
-    const opening = menu.classList.contains('hidden');
-    if (opening) { renderAcctMenu(); menu.classList.remove('hidden'); btn.setAttribute('aria-expanded', 'true'); }
-    else closeAcctMenu();
+    closeAcctMenu();
+    show('account');
   });
   document.addEventListener('click', e => {
     const menu = $('#acct-menu');
