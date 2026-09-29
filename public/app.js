@@ -339,7 +339,7 @@ function renderClinics() {
       <button type="button" class="btn btn-outline btn-small" id="clinic-clear">Clear search</button>
     </div>`;
     const clr = $('#clinic-clear');
-    if (clr) clr.onclick = () => { state.filter.q = ''; state.filter.spec = ''; const si = $('#search-input'); if (si) si.value = ''; renderClinics(); };
+    if (clr) clr.onclick = () => { state.filter.q = ''; state.filter.spec = 'All'; const si = $('#search-input'); if (si) si.value = ''; renderSpecChips(); renderClinics(); };
   } else {
     host.innerHTML = list.map((c, i) => clinicCardHTML(c, i)).join('');
     bindClinicCards(host);
