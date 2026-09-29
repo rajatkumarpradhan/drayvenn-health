@@ -15,7 +15,8 @@ function show(view) {
   // safety: a stuck scroll lock must never survive a view switch
   if (!document.getElementById('wizard-overlay')) document.body.classList.remove('wiz-open');
   if (view === 'mybookings') renderAccount();
-  for (const v of ['home', 'clinics', 'clinic', 'confirm', 'mybookings', 'signin']) {
+  if (view === 'account') renderAccountPage();
+  for (const v of ['home', 'clinics', 'clinic', 'confirm', 'mybookings', 'signin', 'account']) {
     const el = document.getElementById('view-' + v);
     el.classList.toggle('hidden', v !== view);
     if (v === view) {
@@ -24,7 +25,7 @@ function show(view) {
       el.classList.add('view-enter');
     }
   }
-  const tabFor = { home: 'home', clinics: 'clinics', clinic: 'clinics', confirm: 'home', mybookings: 'mybookings' };
+  const tabFor = { home: 'home', clinics: 'clinics', clinic: 'clinics', confirm: 'home', mybookings: 'mybookings', account: 'none' };
   document.querySelectorAll('.tabbar .tab').forEach(t =>
     t.classList.toggle('active', t.dataset.tab === tabFor[view]));
   window.scrollTo({ top: 0 });
@@ -136,11 +137,17 @@ function renderRecentClinics() {
 function renderHomeExtras() {
   const specs = new Map();
   state.clinics.forEach(c => c.specialties.forEach(s => specs.set(s, (specs.get(s) || 0) + 1)));
+  const SPEC_EMOJI = {
+    'General Medicine': '🩺', 'Diabetology': '🩸', 'Fever Care': '🌡️', 'Paediatrics': '🧸',
+    'Vaccination': '💉', 'Family Medicine': '👨‍👩‍👧', 'Orthopaedics': '🦴', 'Physiotherapy': '🤸',
+    'Sports Injury': '🏃', 'Dermatology': '🧴', 'Hair Care': '💇', 'Allergy': '🤧',
+    'Dental': '🦷', 'Orthodontics': '😁', 'Root Canal': '🪥'
+  };
   const host = $('#browse-specs');
   if (host) {
     host.innerHTML = [...specs.entries()].slice(0, 8).map(([s, n]) =>
-      `<button class="browse-card" data-spec="${esc(s)}"><div class="browse-name">${esc(s)}</div><div class="browse-sub">${n} clinic${n > 1 ? 's' : ''}</div></button>`).join('');
-    host.querySelectorAll('.browse-card').forEach(b => b.onclick = () => {
+      `<button class="spec-circle-btn" data-spec="${esc(s)}" aria-label="Book a clinic for ${esc(s)}"><span class="spec-circ">${SPEC_EMOJI[s] || '🏥'}</span><span class="spec-circ-name">${esc(s)}</span></button>`).join('');
+    host.querySelectorAll('.spec-circle-btn').forEach(b => b.onclick = () => {
       state.filter.spec = b.dataset.spec;
       renderSpecChips(); renderBrowse();
       show('clinics');
@@ -158,6 +165,139 @@ function renderHomeExtras() {
       show('clinics');
     });
   }
+  const ha = $('#home-area');
+  if (ha && ha.options.length <= 1) {
+    [...new Set(state.clinics.map(c => c.area))].sort().forEach(a => {
+      const o = document.createElement('option');
+      o.value = a; o.textContent = '📍 ' + a;
+      ha.appendChild(o);
+    });
+  }
+  renderSoonRow();
+}
+
+function renderSoonRow() {
+  const host = $('#soon-row');
+  if (!host || !state.clinics.length) return;
+  const rank = n => (n.today ? '0' : n.tomorrow ? '1' : '2' + n.date) + n.time;
+  const soon = state.clinics.filter(c => c.next_available)
+    .sort((a, b) => rank(a.next_available).localeCompare(rank(b.next_available)));
+  host.innerHTML = soon.map(c => `
+    <div class="soon-card" data-id="${esc(c.id)}" role="button" tabindex="0" aria-label="View ${esc(c.name)}, next slot ${esc(fmtNext(c.next_available))}">
+      <div class="soon-emoji">${c.emoji}</div>
+      <div class="soon-name">${esc(c.name)}</div>
+      <div class="soon-slot">${esc(fmtNext(c.next_available))}</div>
+    </div>`).join('');
+  host.querySelectorAll('.soon-card').forEach(el => {
+    el.onclick = () => openClinic(el.dataset.id);
+    el.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openClinic(el.dataset.id); } };
+  });
+}
+
+/* ---------- ACCOUNT PAGE ---------- */
+function acctRow(id, icon, label, danger) {
+  return `<button type="button" class="acctp-row${danger ? ' danger' : ''}" id="${id}">
+    <span class="acctp-ico">${icon}</span><span class="acctp-label">${label}</span><span class="acctp-chev">›</span>
+  </button>`;
+}
+
+function renderAccountPage() {
+  const host = $('#account-page');
+  if (!host) return;
+  const p = state.patient;
+  const about = `
+    <div class="acctp-about hidden" id="acctp-about">
+      Drayvenn Health is a clinic-booking product by Drayvenn Lab, built for neighbourhood clinics in Bengaluru.
+      Patients book real slots in under a minute and pay at the clinic. The clinics shown in this demo are
+      marked SAMPLE - no real clinic data is used yet. Free for patients; no sign-up needed to book.
+    </div>`;
+  let html = '<h2 class="section-title" style="margin-top:18px">Account</h2>';
+  if (p) {
+    const initial = esc(((p.name || p.email || 'A').trim()[0] || 'A').toUpperCase());
+    html += `
+    <div class="acctp-card">
+      <div class="acctp-avatar">${initial}</div>
+      <div class="acctp-info">
+        <div class="acctp-name" id="acctp-name">${esc(p.name || 'Set your name')}</div>
+        <div class="acctp-sub">${esc(p.email || (p.phone ? maskPhone(p.phone) : 'Signed in'))}${p.has_google ? ' · Google linked' : ''}</div>
+      </div>
+      <button type="button" class="acctp-edit" id="acctp-edit-btn">EDIT</button>
+    </div>
+    <div class="acctp-editbox hidden" id="acctp-editbox">
+      <div class="form-row"><label for="acctp-in-name">Your name</label><input id="acctp-in-name" maxlength="60" autocomplete="name" value="${esc(p.name || '')}" placeholder="Used to prefill bookings"></div>
+      <div class="form-row"><label for="acctp-in-age">Age</label><input id="acctp-in-age" inputmode="numeric" maxlength="3" value="${p.age != null ? p.age : ''}" placeholder="Optional"></div>
+      <div class="form-error" id="acctp-error"></div>
+      <button type="button" class="btn btn-block" id="acctp-save">Save</button>
+    </div>
+    <div class="acctp-group">Bookings</div>
+    <div class="acctp-list">
+      ${acctRow('acp-bookings', '🗓️', 'My bookings')}
+      ${acctRow('acp-track', '🔎', 'Track a booking')}
+    </div>
+    <div class="acctp-group">Support</div>
+    <div class="acctp-list">
+      ${acctRow('acp-chat', '💬', 'Talk to the assistant')}
+      ${acctRow('acp-privacy', '🔒', 'Privacy & data')}
+      ${acctRow('acp-about', 'ℹ️', 'About Drayvenn Health')}
+    </div>
+    ${about}
+    <div class="acctp-group">Account</div>
+    <div class="acctp-list">
+      ${!p.has_google ? acctRow('acp-google', '🔗', 'Link Google account') : ''}
+      ${acctRow('acp-logout', '↩️', 'Sign out', true)}
+    </div>`;
+  } else {
+    html += `
+    <div class="acctp-card">
+      <div class="acctp-avatar guest">👤</div>
+      <div class="acctp-info">
+        <div class="acctp-name">Not signed in</div>
+        <div class="acctp-sub">Sign in for saved details &amp; booking history</div>
+      </div>
+      <button type="button" class="acctp-edit" id="acctp-signin-btn">SIGN IN</button>
+    </div>
+    <div class="acctp-group">Bookings</div>
+    <div class="acctp-list">
+      ${acctRow('acp-track', '🔎', 'Track a booking')}
+    </div>
+    <div class="acctp-group">Support</div>
+    <div class="acctp-list">
+      ${acctRow('acp-chat', '💬', 'Talk to the assistant')}
+      ${acctRow('acp-privacy', '🔒', 'Privacy & data')}
+      ${acctRow('acp-about', 'ℹ️', 'About Drayvenn Health')}
+    </div>
+    ${about}
+    <div class="acctp-group">For clinics</div>
+    <div class="acctp-list">
+      <a class="acctp-row" href="admin.html"><span class="acctp-ico">🏥</span><span class="acctp-label">Clinic sign-in</span><span class="acctp-chev">›</span></a>
+    </div>`;
+  }
+  host.innerHTML = html;
+
+  const on = (id, fn) => { const el = $('#' + id); if (el) el.onclick = fn; };
+  on('acctp-signin-btn', () => showSignin());
+  on('acp-bookings', () => show('mybookings'));
+  on('acp-track', () => { show('mybookings'); const t = $('#track-ref'); if (t) setTimeout(() => t.focus(), 350); });
+  on('acp-chat', () => { if (window.openChat) window.openChat(); });
+  on('acp-privacy', () => window.open('privacy.html', '_blank', 'noopener'));
+  on('acp-about', () => { const a = $('#acctp-about'); if (a) a.classList.toggle('hidden'); });
+  on('acp-google', () => { location.href = '/api/auth/google/start'; });
+  on('acp-logout', async () => { await logout(); show('account'); });
+  on('acctp-edit-btn', () => { const b = $('#acctp-editbox'); if (b) b.classList.toggle('hidden'); });
+  on('acctp-save', async () => {
+    const err = $('#acctp-error');
+    try {
+      await api('/api/auth/profile', {
+        method: 'POST',
+        body: { name: $('#acctp-in-name').value.trim(), age: $('#acctp-in-age').value.trim() }
+      });
+      const { patient } = await api('/api/auth/me');
+      state.patient = patient;
+      toast('Details saved', 'info');
+      renderAccountPage();
+      renderAcctMenu();
+    } catch (e2) { if (err) err.textContent = e2.message || 'Could not save'; }
+  });
 }
 
 function renderSpecChips() {
@@ -916,6 +1056,16 @@ $('#home-search').addEventListener('keydown', e => {
   show('clinics');
 });
 $('#view-all-clinics').onclick = e => { e.preventDefault(); show('clinics'); };
+$('#svc-book').onclick = () => show('clinics');
+$('#svc-track').onclick = () => show('mybookings');
+$('#svc-chat').onclick = () => { if (window.openChat) window.openChat(); };
+$('#home-area').onchange = e => {
+  state.filter.area = e.target.value;
+  const sel = $('#area-filter');
+  if (sel) sel.value = e.target.value;
+  renderBrowse();
+  show('clinics');
+};
 document.querySelectorAll('#browse-seg .seg-btn').forEach(b => b.onclick = () => {
   state.browse = b.dataset.seg;
   document.querySelectorAll('#browse-seg .seg-btn').forEach(x => x.classList.toggle('active', x === b));
@@ -1006,7 +1156,7 @@ function renderAcctMenu() {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
         Sign out</button>`;
     $('#am-bookings').onclick = () => { closeAcctMenu(); show('mybookings'); };
-    $('#am-account').onclick = () => { closeAcctMenu(); show('mybookings'); };
+    $('#am-account').onclick = () => { closeAcctMenu(); show('account'); };
     $('#am-logout').onclick = async () => { closeAcctMenu(); await logout(); };
   } else {
     btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>';

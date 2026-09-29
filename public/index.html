@@ -41,6 +41,14 @@
 
   <!-- HOME -->
   <section id="view-home">
+    <div class="loc-row">
+      <span class="loc-pin">📍</span>
+      <div class="loc-sel-wrap">
+        <select id="home-area" aria-label="Choose your area">
+          <option value="All">Bengaluru - all areas</option>
+        </select>
+      </div>
+    </div>
     <div class="hero">
       <div class="hero-scene">
         <div class="hero-halo"></div>
@@ -62,11 +70,20 @@
       <div class="searchbar">
         <input type="text" id="home-search" placeholder="Search clinics, doctors, specialties... e.g. dentist">
       </div>
+      <div class="svc-grid">
+        <button type="button" class="svc-tile" id="svc-book"><span class="svc-ico">🗓️</span><span class="svc-label">Book clinic appointment</span></button>
+        <button type="button" class="svc-tile" id="svc-track"><span class="svc-ico">🔎</span><span class="svc-label">Track booking</span></button>
+        <button type="button" class="svc-tile" id="svc-chat"><span class="svc-ico">💬</span><span class="svc-label">Talk to assistant</span></button>
+        <a class="svc-tile" href="admin.html"><span class="svc-ico">🏥</span><span class="svc-label">Clinic sign-in</span></a>
+      </div>
     </div>
     <div id="recent-wrap" class="hidden">
       <div class="recent-label">Recently viewed</div>
       <div class="chips" id="recent-chips"></div>
     </div>
+    <h2 class="section-title">Book a clinic for&hellip;</h2>
+    <div class="spec-circles" id="browse-specs"></div>
+
     <div class="title-row">
       <h2 class="section-title" style="margin-bottom:0">Clinics across Bengaluru</h2>
       <a href="#" id="view-all-clinics" class="title-link">View all →</a>
@@ -75,15 +92,15 @@
       <div class="clinic-card skel-card"></div><div class="clinic-card skel-card"></div><div class="clinic-card skel-card"></div>
     </div>
 
+    <h2 class="section-title">Earliest availability</h2>
+    <div class="soon-scroll" id="soon-row"></div>
+
     <h2 class="section-title">How it works</h2>
     <div class="how-grid">
       <div class="how-card"><div class="how-num">1</div><div class="how-title">Pick a clinic &amp; doctor</div><div class="how-text">Browse clinics across Bengaluru and choose the doctor that fits your need.</div></div>
       <div class="how-card"><div class="how-num">2</div><div class="how-title">Choose date &amp; time</div><div class="how-text">See real open slots for the next two weeks and pick what suits you.</div></div>
       <div class="how-card"><div class="how-num">3</div><div class="how-title">Show your reference</div><div class="how-text">Get a booking reference instantly - show it at the clinic front desk. Pay at the clinic.</div></div>
     </div>
-
-    <h2 class="section-title">Browse by specialty</h2>
-    <div class="browse-grid" id="browse-specs"></div>
 
     <h2 class="section-title">Areas we cover</h2>
     <div class="chips" id="home-areas"></div>
@@ -185,6 +202,11 @@
     <div class="track-card mb-card">
       <div id="signin-panel"><div class="loading">Loading&hellip;</div></div>
     </div>
+  </section>
+
+  <!-- ACCOUNT -->
+  <section id="view-account" class="hidden">
+    <div id="account-page"></div>
   </section>
 
 
