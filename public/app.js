@@ -1449,14 +1449,6 @@ function renderAccount() {
 function renderLogin(host) {
 
   host.innerHTML = `
-    <div class="signin-brand">
-      <img src="brand/icon.png" alt="Drayvenn Lab" class="signin-brand-ico">
-      <div class="signin-brand-name">Drayvenn <b>Lab</b></div>
-      <svg class="signin-ecg" viewBox="0 0 560 64" fill="none" aria-hidden="true">
-        <path class="ecg-base" d="M0 32 H180 L196 32 204 12 216 52 226 22 232 32 H330 L344 32 352 10 364 54 374 20 380 32 H560" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <path class="ecg-pulse" d="M0 32 H180 L196 32 204 12 216 52 226 22 232 32 H330 L344 32 352 10 364 54 374 20 380 32 H560" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </div>
     <div class="signin-head">
       <h2 class="signin-title">Sign in or create account</h2>
       <p style="color:var(--muted);font-size:13.5px;margin:4px 0 16px">One code on your mobile - no passwords. New number? Your account is created automatically.</p>
