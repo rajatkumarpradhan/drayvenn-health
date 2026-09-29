@@ -1299,8 +1299,11 @@ function renderAccount() {
 
 function renderLogin(host) {
   host.innerHTML = `
-    <h2 style="font-size:20px;font-weight:700">Sign in to Drayvenn Health</h2>
-    <p style="color:var(--muted);font-size:13.5px;margin:4px 0 16px">Faster booking with saved details, plus your full history with cancel and reschedule.</p>
+    <div class="signin-head">
+      <div class="signin-mark">✚</div>
+      <h2 class="signin-title">Sign in to Drayvenn Health</h2>
+      <p style="color:var(--muted);font-size:13.5px;margin:4px 0 16px">Faster booking with saved details, plus your full history with cancel and reschedule.</p>
+    </div>
     <div class="form-grid" id="login-phone-step">
       <div class="form-row"><label for="login-phone">Email address</label>
         <input id="login-phone" type="email" placeholder="you@example.com" autocomplete="email" style="width:100%">
@@ -1308,14 +1311,14 @@ function renderLogin(host) {
       <div class="form-error" id="login-error"></div>
       <button class="btn btn-block" id="login-send">Email me a login code</button>
     </div>
-    <div class="form-grid hidden" id="login-otp-step">
+    <div class="form-grid hidden signin-otp" id="login-otp-step">
       <div class="form-row"><label for="login-otp">6-digit code</label><input id="login-otp" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;" inputmode="numeric" maxlength="6" autocomplete="one-time-code" style="letter-spacing:6px;text-align:center;font-size:18px"></div>
       <div class="form-error" id="otp-error"></div>
       <button class="btn btn-block" id="login-verify">Verify &amp; sign in</button>
       <button class="btn btn-block btn-ghost" id="login-back">Use a different email</button>
     </div>
     <div style="display:flex;align-items:center;gap:10px;margin:14px 0;color:var(--muted);font-size:12px"><span style="flex:1;height:1px;background:var(--line,rgba(190,220,215,.4))"></span>or<span style="flex:1;height:1px;background:var(--line,rgba(190,220,215,.4))"></span></div>
-    <a class="btn btn-block btn-ghost google-start" href="/api/auth/google/start" style="display:block;text-align:center">Continue with Google</a>
+    <a class="btn btn-block btn-glass google-start" href="/api/auth/google/start" style="display:block;text-align:center">Continue with Google</a>
     <div class="privacy-line" style="margin-top:14px">Sign-in doubles as registration. Codes expire in 10 minutes.</div>`;
   $('#login-otp').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6); });
   $('#login-send').onclick = requestOtp;
