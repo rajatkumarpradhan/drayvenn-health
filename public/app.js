@@ -499,6 +499,48 @@ function renderHomeHighlights() {
   watchReveals(host);
 }
 
+
+/* ---------- hero video slot ----------
+   Stays on the static hero unless /brand/hero-video.mp4 actually exists.
+   Lazy: HEAD-checks on idle, streams same-origin only after canplay.
+   Reduced-motion users keep the static hero (it acts as the poster). */
+(function heroVideo() {
+  const v = $('#hero-video');
+  if (!v) return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const arm = () => {
+    const isVideo = r => r && r.ok && (r.headers.get('content-type') || '').startsWith('video/');
+    fetch('brand/hero-video.mp4', { method: 'HEAD' }).then(async r => {
+      let src = 'brand/hero-video.mp4';
+      if (!isVideo(r)) {
+        const r2 = await fetch('brand/hero-video.webm', { method: 'HEAD' }).catch(() => null);
+        if (!isVideo(r2)) return;
+        src = 'brand/hero-video.webm';
+      }
+      v.addEventListener('canplay', () => {
+        v.classList.add('ready');
+        const scene = v.closest('.hero-scene');
+        if (scene) scene.classList.add('video-on');
+        v.play().catch(() => {});
+      }, { once: true });
+      v.addEventListener('error', () => v.remove(), { once: true });
+      v.src = src;
+      // pause off-screen / hidden tab to stay inside the Nord 2T budget
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(es => es.forEach(e => {
+          if (v.src) { if (e.isIntersecting) v.play().catch(() => {}); else v.pause(); }
+        }), { threshold: 0.05 }).observe(v);
+      }
+      document.addEventListener('visibilitychange', () => {
+        if (!v.src) return;
+        if (document.hidden) v.pause(); else v.play().catch(() => {});
+      });
+    }).catch(() => {});
+  };
+  if ('requestIdleCallback' in window) requestIdleCallback(arm, { timeout: 3000 });
+  else setTimeout(arm, 1500);
+})();
+
 /* ---------- scroll reveal (one-shot, transform/opacity only) ---------- */
 const revealIO = ('IntersectionObserver' in window) ? new IntersectionObserver(entries => {
   for (const e of entries) {

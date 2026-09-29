@@ -18,6 +18,6 @@
 /*.css
   Cache-Control: no-cache, must-revalidate
 /brand/*
-  Cache-Control: public, max-age=86400
+  Cache-Control: no-cache, must-revalidate
 /*.png
-  Cache-Control: public, max-age=86400
+  Cache-Control: no-cache, must-revalidate
