@@ -467,7 +467,7 @@ async function submitBooking() {
         doctor_id: b.doctor.id,
         patient_name: b.pname,
         phone: b.pphone, age: b.page, concern: b.pconcern,
-        date: b.date, slot: b.slot
+        date: b.date, slot: b.slot, consent: true
       })
     });
     state.lastBooking = booking;

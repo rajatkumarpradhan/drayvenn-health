@@ -8,7 +8,7 @@ export async function onRequestGet(context) {
   if (!session) return json({ error: 'Session expired - sign in again' }, 401);
 
   const rows = await DB.prepare(
-    `SELECT id, ref, patient_name, phone, age, concern, date, slot, status, doctor_name, created_at,
+    `SELECT id, ref, patient_name, phone, age, concern, date, slot, status, doctor_id, doctor_name, created_at,
             (SELECT COUNT(*) FROM bookings p WHERE p.clinic_id = bookings.clinic_id AND p.phone = bookings.phone
              AND p.status != 'cancelled' AND (p.date < bookings.date OR (p.date = bookings.date AND p.id < bookings.id))) AS prior_visits
      FROM bookings WHERE clinic_id = ? AND date = ? ORDER BY slot`

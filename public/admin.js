@@ -188,6 +188,7 @@ function renderList() {
           <div class="menu-pop menu-pop-right hidden">
             <a class="menu-item" href="tel:${esc(b.phone)}">Call patient</a>
             <button class="menu-item" data-act="copy" data-id="${b.id}">Copy booking ref</button>
+            <button class="menu-item" data-act="reschedule" data-id="${b.id}">Reschedule</button>
             <button class="menu-item menu-danger" data-act="cancel" data-id="${b.id}">Cancel booking</button>
           </div>
         </div>` : ''}
@@ -218,6 +219,11 @@ function renderList() {
         document.querySelectorAll('.menu-pop').forEach(x => x.classList.add('hidden'));
         return;
       }
+      if (btn.dataset.act === 'reschedule') {
+        document.querySelectorAll('.menu-pop').forEach(x => x.classList.add('hidden'));
+        openReschedule(parseInt(btn.dataset.id));
+        return;
+      }
       if (btn.dataset.act === 'cancel' && !btn.dataset.armed) {
         btn.dataset.armed = '1';
         btn.textContent = 'Tap again to cancel';
@@ -233,6 +239,71 @@ function renderList() {
 document.addEventListener('click', () => {
   document.querySelectorAll('.menu-pop').forEach(x => x.classList.add('hidden'));
 });
+
+/* ---------- RESCHEDULE ---------- */
+function openReschedule(id) {
+  document.querySelectorAll('.rs-panel').forEach(x => x.remove());
+  const b = bookingsCache.find(x => x.id === id);
+  if (!b) return;
+  const row = document.querySelector(`.booking-row[data-id="${id}"]`);
+  if (!row) return;
+  const panel = document.createElement('div');
+  panel.className = 'rs-panel';
+  const today = todayISO();
+  const max = new Date(); max.setDate(max.getDate() + 13);
+  const maxISO = max.toISOString().slice(0, 10);
+  panel.innerHTML = `
+    <div class="rs-title">Reschedule ${esc(b.patient_name)} - ${esc(b.doctor_name)}</div>
+    <div class="rs-grid">
+      <input type="date" id="rs-date" min="${today}" max="${maxISO}" value="${b.date}">
+      <select id="rs-slot"><option value="">Pick a date first</option></select>
+      <button class="btn btn-small" id="rs-save">Save</button>
+      <button class="btn btn-ghost btn-small" id="rs-close">Close</button>
+    </div>
+    <div class="form-error" id="rs-error"></div>`;
+  row.after(panel);
+  const dateEl = panel.querySelector('#rs-date');
+  const slotEl = panel.querySelector('#rs-slot');
+  const errEl = panel.querySelector('#rs-error');
+  const loadSlots = async () => {
+    slotEl.innerHTML = '<option value="">Loading...</option>';
+    try {
+      const data = await api(`/api/slots?doctor_id=${encodeURIComponent(b.doctor_id)}&date=${dateEl.value}`);
+      const free = data.slots.filter(x => x.available);
+      slotEl.innerHTML = free.length
+        ? '<option value="">Choose new time</option>' + free.map(x => `<option value="${x.time}">${fmtTime(x.time)}</option>`).join('')
+        : '<option value="">No free slots that day</option>';
+    } catch (e) {
+      slotEl.innerHTML = '<option value="">Could not load slots</option>';
+    }
+  };
+  dateEl.onchange = loadSlots;
+  loadSlots();
+  panel.querySelector('#rs-close').onclick = () => panel.remove();
+  panel.querySelector('#rs-save').onclick = async ev => {
+    const btn2 = ev.currentTarget;
+    errEl.style.display = 'none';
+    if (!slotEl.value) { errEl.textContent = 'Pick a new time slot.'; errEl.style.display = 'block'; return; }
+    btn2.disabled = true;
+    try {
+      await api(`/api/admin/bookings/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reschedule', date: dateEl.value, slot: slotEl.value })
+      });
+      toast(`Moved to ${fmtTime(slotEl.value)} on ${dateEl.value}`, 'success');
+      if (dateEl.value !== currentDate) {
+        $('#dash-date').value = dateEl.value;
+        currentDate = dateEl.value;
+      }
+      await loadBookings();
+    } catch (e) {
+      errEl.textContent = e.message;
+      errEl.style.display = 'block';
+      btn2.disabled = false;
+    }
+  };
+}
 
 async function act(id, action, btn) {
   btn.disabled = true;
