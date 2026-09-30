@@ -137,19 +137,24 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
 #acct-menu a, #acct-menu button { text-align: left; padding: 10px 12px; border-radius: 10px; font-size: 13.5px; font-weight: 600; color: var(--body); }
 #acct-menu a:hover, #acct-menu button:hover { background: rgba(255,255,255,.9); color: var(--ink); }
 
-/* ---------- footer (content layer - quiet, opaque) ---------- */
-.footer { flex-shrink: 0; margin-top: auto; background: #0d2333; color: #9fb4c4; padding: 34px 20px 22px; }
-.footer-cols { max-width: var(--maxw); margin: 0 auto; display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 22px; }
-.footer-logo { display: flex; align-items: center; gap: 9px; margin-bottom: 10px; }
+/* ---------- v93 footer - WeCare shape: blue rounded panel, get-in-touch, quick links ---------- */
+.footer { flex-shrink: 0; margin-top: auto; padding: 34px 0 0; }
+.footer-panel { background: var(--primary); border-radius: 30px 30px 0 0; color: #DCEAFF; padding: 40px 22px 18px; }
+.footer-top { max-width: var(--maxw); margin: 0 auto; display: grid; grid-template-columns: 1fr; gap: 26px; text-align: center; }
+.footer-cell-head { font-size: 11.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #B9D4FF; margin-bottom: 10px; }
+.footer-cell a { color: #fff; text-decoration: none; display: block; margin: 6px 0; font-size: 14.5px; }
+.footer-phone { font-weight: 700; font-size: 16px !important; }
+.footer-cta-title { font-family: 'Plus Jakarta Sans'; font-weight: 800; font-size: 22px; color: #fff; letter-spacing: -.02em; }
+.footer-cta-sub { font-size: 13.5px; color: #C9DCFF; margin: 8px auto 14px; max-width: 320px; }
+.footer-wa { display: inline-block !important; background: #fff; color: var(--primary-deep) !important; font-weight: 800; border-radius: var(--r-pill); padding: 12px 24px; font-size: 14.5px !important; box-shadow: 0 10px 24px rgba(4,20,60,.25); }
+.footer-mid { max-width: var(--maxw); margin: 30px auto 0; padding-top: 22px; border-top: 1px solid rgba(255,255,255,.22); display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.footer-logo { display: flex; align-items: center; gap: 9px; }
 .footer-logo img { width: 30px; height: 30px; border-radius: 9px; }
-.footer-logo b { color: #fff; font-family: 'Plus Jakarta Sans'; font-size: 15px; }
-.footer-brand p { font-size: 13px; line-height: 1.6; max-width: 300px; }
-.footer-head { font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #6f8a9c; margin-bottom: 10px; }
-.footer-col { display: grid; gap: 7px; align-content: start; }
-.footer-col a { color: #b8c9d6; font-size: 13.5px; transition: color var(--t-fast); }
-.footer-col a:hover { color: #fff; }
-.footer-base { max-width: var(--maxw); margin: 24px auto 0; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.08); font-size: 12px; color: #68808f; }
-
+.footer-logo b { color: #fff; font-family: 'Plus Jakarta Sans'; font-size: 15.5px; }
+.footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 22px; }
+.footer-links a { color: #DCEAFF; text-decoration: none; font-size: 14px; }
+.footer-links a:hover { color: #fff; }
+.footer-base { max-width: var(--maxw); margin: 22px auto 0; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.22); text-align: center; font-size: 12.5px; color: #B9D4FF; }
 /* ---------- buttons ---------- */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
@@ -317,6 +322,13 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
 
 /* ECG pulse line across the lower hero */
 .hero-ecg { position: absolute; left: 0; right: 0; bottom: -6px; width: 100%; height: 40px; z-index: 1; opacity: .9; pointer-events: none; }
+@media (min-width: 900px) {
+  .footer { padding-top: 46px; }
+  .footer-panel { border-radius: 36px 36px 0 0; padding: 52px 40px 22px; }
+  .footer-top { grid-template-columns: 1fr 1.4fr 1fr; text-align: left; align-items: start; }
+  .footer-cta-cell { text-align: center; }
+  .footer-mid { flex-direction: row; justify-content: space-between; }
+}
 @media (min-width: 900px) { .hero-ecg { bottom: 8px; height: 44px; } }
 .ecg-base { opacity: .8; }
 .ecg-pulse { stroke-dasharray: 90 1200; animation: ecgRun 4.2s linear infinite; filter: drop-shadow(0 0 5px rgba(16,104,252,.55)); }
