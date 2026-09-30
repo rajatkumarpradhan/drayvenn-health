@@ -1298,3 +1298,13 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
 .faq-a > div { overflow: hidden; }
 .faq-a p { margin: 0; padding: 0 18px 16px; font-size: 13.5px; color: var(--muted); line-height: 1.55; }
 @media (prefers-reduced-motion: reduce) { .faq-a, .faq-q .faq-plus { transition: none; } }
+
+/* v94 - WeCare header anatomy: phone + Book CTA (desktop) */
+.hdr-phone { display: none; align-items: center; font-size: 13.5px; font-weight: 700; color: var(--ink); text-decoration: none; }
+.hdr-book { display: none; background: var(--primary); color: #fff; border: 0; border-radius: var(--r-pill); padding: 10px 20px; font: inherit; font-size: 13.5px; font-weight: 800; cursor: pointer; box-shadow: 0 8px 20px rgba(16,104,252,.3); }
+@media (min-width: 900px) {
+  .hdr-book { display: inline-flex; align-items: center; }
+}
+@media (min-width: 1180px) {
+  .hdr-phone { display: inline-flex; }
+}

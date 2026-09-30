@@ -2207,3 +2207,7 @@ document.querySelectorAll('.faq-q').forEach(btn => btn.addEventListener('click',
   document.querySelectorAll('.faq-item.open').forEach(x => x.classList.remove('open'));
   if (!wasOpen) item.classList.add('open');
 }));
+
+/* v94 - header Book CTA scrolls to featured clinics */
+const topnavBook = document.getElementById('topnav-book');
+if (topnavBook) topnavBook.onclick = () => { const g = document.getElementById('featured-grid'); if (g) g.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
