@@ -138,8 +138,8 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
 #acct-menu a:hover, #acct-menu button:hover { background: rgba(255,255,255,.9); color: var(--ink); }
 
 /* ---------- v93 footer - WeCare shape: blue rounded panel, get-in-touch, quick links ---------- */
-.footer { flex: 1 0 auto; margin-top: 0; padding: 34px 0 0; display: flex; flex-direction: column; }
-.footer-panel { flex: 1 0 auto; background: var(--primary); border-radius: 30px 30px 0 0; color: #DCEAFF; padding: 40px 22px 18px; }
+.footer { flex-shrink: 0; padding: 34px 0 0; }
+.footer-panel { background: var(--primary); border-radius: 30px 30px 0 0; color: #DCEAFF; padding: 40px 22px 18px; }
 .footer-top { max-width: var(--maxw); margin: 0 auto; display: grid; grid-template-columns: 1fr; gap: 26px; text-align: center; }
 .footer-cell-head { font-size: 11.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #B9D4FF; margin-bottom: 10px; }
 .footer-cell a { color: #fff; text-decoration: none; display: block; margin: 6px 0; font-size: 14.5px; }
