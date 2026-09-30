@@ -1921,6 +1921,9 @@ function renderLogin(host) {
       <h2 class="signin-title">Sign in or create account</h2>
       <p style="color:var(--muted);font-size:13.5px;margin:4px 0 16px">One code on your mobile - no passwords. New number? Your account is created automatically.</p>
     </div>
+    <a class="btn btn-block btn-glass google-start" href="/api/auth/google/start" style="display:block;text-align:center">Continue with Google</a>
+    <button type="button" class="btn btn-block btn-apple" id="login-apple" style="margin-top:10px">Continue with Apple</button>
+    <div style="display:flex;align-items:center;gap:10px;margin:16px 0;color:var(--muted);font-size:12px"><span style="flex:1;height:1px;background:var(--line,rgba(190,220,215,.4))"></span>or use your mobile number<span style="flex:1;height:1px;background:var(--line,rgba(190,220,215,.4))"></span></div>
     <div class="form-grid" id="login-phone-step">
       <div class="form-row"><label for="login-phone">Mobile number</label>
         <div class="phone-wrap"><span class="phone-prefix">+91</span><input id="login-phone" type="tel" placeholder="98765 43210" inputmode="numeric" maxlength="10" autocomplete="tel-national"></div>
@@ -1935,9 +1938,6 @@ function renderLogin(host) {
       <button class="btn btn-block" id="login-verify">Verify &amp; sign in</button>
       <button class="btn btn-block btn-ghost" id="login-back">Change number</button>
     </div>
-    <div style="display:flex;align-items:center;gap:10px;margin:14px 0;color:var(--muted);font-size:12px"><span style="flex:1;height:1px;background:var(--line,rgba(190,220,215,.4))"></span>or<span style="flex:1;height:1px;background:var(--line,rgba(190,220,215,.4))"></span></div>
-    <a class="btn btn-block btn-glass google-start" href="/api/auth/google/start" style="display:block;text-align:center">Continue with Google</a>
-    <button type="button" class="btn btn-block btn-apple" id="login-apple" style="margin-top:10px">Continue with Apple</button>
     <div class="privacy-line" style="margin-top:14px">Codes expire in 10 minutes. Signing in creates your account on first use.</div>`;
   $('#login-phone').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10); });
   $('#login-otp').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6); });
@@ -2200,15 +2200,22 @@ function myReschedulePanel(row, ref, doctorId) {
 /* Handle Google redirect landings. */
 (function () {
   const q = new URLSearchParams(location.search);
-  if (q.get('login') === 'google') { toast('Signed in with Google', 'info'); history.replaceState(null, '', location.pathname + location.hash); }
-  if (q.get('linked') === 'google') { toast('Google account linked', 'info'); history.replaceState(null, '', location.pathname + location.hash); }
+  let landing = null;
+  if (q.get('login') === 'google') { toast('Signed in with Google', 'info'); landing = 'account'; }
+  if (q.get('linked') === 'google') { toast('Google account linked', 'info'); landing = 'account'; }
+  if (landing) history.replaceState(null, '', location.pathname + location.hash);
+  window.__postLoginLanding = landing;
 })();
 
 window.openClinicFromChat = openClinic;
 window.showFromChat = show;
 loadClinics();
 initAcctMenu();
-loadPatient().then(() => { renderAcctMenu(); if (!$('#view-mybookings').classList.contains('hidden')) renderAccount(); });
+loadPatient().then(() => {
+  renderAcctMenu();
+  if (window.__postLoginLanding) show(window.__postLoginLanding);
+  else if (!$('#view-mybookings').classList.contains('hidden')) renderAccount();
+});
 
 /* v92 - FAQ accordion */
 document.querySelectorAll('.faq-q').forEach(btn => btn.addEventListener('click', () => {

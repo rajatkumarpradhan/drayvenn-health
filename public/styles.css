@@ -1341,3 +1341,6 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
 
 /* v97: search tab lands with the input clear of the floating header */
 #search-input { scroll-margin-top: 110px; }
+
+/* keep sign-in buttons clear of the sticky topbar on scroll-into-view */
+.google-start, #login-apple, #signin-panel { scroll-margin-top: 120px; }
