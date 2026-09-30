@@ -67,7 +67,9 @@ export async function onRequestGet(context) {
   await logAuthEvent(DB, patient.id, 'login_google', { email });
   await notifyLogin(context.env, patient, 'google', context.request);
 
-  const res = Response.redirect(origin + '/?login=google#account', 302);
+  // Response.redirect() responses have immutable headers - Set-Cookie on one throws
+  // "Can't modify immutable headers" (crashed every Google login after session creation).
+  const res = new Response(null, { status: 302, headers: { Location: origin + '/?login=google#account' } });
   res.headers.append('Set-Cookie', sessionCookie(token, maxAge));
   return res;
 }
