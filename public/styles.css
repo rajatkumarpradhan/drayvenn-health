@@ -328,7 +328,7 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
 @media (min-width: 900px) {
   .footer { padding-top: 46px; }
   .footer-panel { border-radius: 36px 36px 0 0; padding: 52px 40px 22px; }
-  .footer-top { grid-template-columns: 1fr 1.4fr 1fr; text-align: left; align-items: start; }
+  .footer-top { grid-template-columns: minmax(0,1fr) minmax(0,1.4fr) minmax(0,1fr); text-align: left; align-items: start; }
   .footer-cta-cell { text-align: center; }
   .footer-mid { flex-direction: row; justify-content: space-between; }
 }
@@ -901,8 +901,8 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
   body { padding-bottom: 0; }
   main.wrap { padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)); }
   .footer { padding-top: 26px; }
-  .footer-panel { padding: 26px 18px 14px; border-radius: 24px 24px 0 0; }
-  .footer-top { grid-template-columns: 1fr 1fr; gap: 18px 12px; }
+  .footer-panel { padding: 26px 18px calc(104px + env(safe-area-inset-bottom, 0px)); border-radius: 24px 24px 0 0; }
+  .footer-top { grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 18px 12px; }
   .footer-cta-cell { grid-column: 1 / -1; grid-row: 1; }
   .footer-cell-head { margin-bottom: 6px; }
   .footer-cell a { margin: 4px 0; }
@@ -910,8 +910,7 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
   .footer-cta-sub { margin: 6px auto 10px; }
   .footer-wa { padding: 10px 20px; }
   .footer-mid { margin-top: 20px; padding-top: 14px; gap: 10px; }
-  .footer-base { margin-top: 14px; padding-top: 10px; }
-  .footer { margin-bottom: calc(92px + env(safe-area-inset-bottom, 0px)); }
+  .footer-base { margin-top: 14px; padding: 10px 10px 0; }
   #acct-menu-btn { display: none; }
   .tabbar { display: flex; position: fixed; z-index: 150; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); left: 14px; right: 14px; border-radius: var(--r-pill); background: rgba(255,255,255,.5); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-brd); box-shadow: 0 10px 30px rgba(13,36,64,.16), var(--spec); padding: 8px 12px 6px; }
   .tabbar .tab { flex: 1; display: grid; justify-items: center; gap: 3px; padding: 0; font-size: 10px; font-weight: 600; color: var(--muted); }
