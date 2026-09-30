@@ -666,8 +666,47 @@ function clinicCardHTML(c, i) {
         <span class="fee">from ₹${c.min_fee}</span>
       </div>
       ${fmtNext(c.next_available) ? `<div class="next-slot">Next slot: <b>${fmtNext(c.next_available)}</b></div>` : ''}
-      <button type="button" class="btn btn-small btn-block cc-book" data-book="${esc(c.id)}">Book Now</button>
+      <div class="cc-actions"><button type="button" class="btn btn-small btn-block cc-book" data-book="${esc(c.id)}">Book Now</button><button type="button" class="cc-cmp${cmpHas(c.id) ? ' on' : ''}" data-cmp="${esc(c.id)}" aria-pressed="${cmpHas(c.id)}">${cmpHas(c.id) ? 'Added' : 'Compare'}</button></div>
     </div>`;
+}
+
+/* ---------- compare clinics (local only) ---------- */
+const cmpIds = [];
+function cmpHas(id) { return cmpIds.includes(id); }
+function cmpToggle(id) {
+  const i = cmpIds.indexOf(id);
+  if (i >= 0) cmpIds.splice(i, 1);
+  else if (cmpIds.length >= 3) { toast('Compare up to 3 clinics', 'info'); return; }
+  else cmpIds.push(id);
+  cmpRefresh();
+}
+function cmpRefresh() {
+  document.querySelectorAll('.cc-cmp').forEach(b => { const on = cmpHas(b.dataset.cmp); b.classList.toggle('on', on); b.textContent = on ? 'Added' : 'Compare'; b.setAttribute('aria-pressed', on); });
+  let bar = document.getElementById('cmp-bar');
+  if (!cmpIds.length) { if (bar) bar.remove(); return; }
+  if (!bar) { bar = document.createElement('div'); bar.id = 'cmp-bar'; bar.className = 'cmp-bar'; document.body.appendChild(bar); }
+  bar.innerHTML = `<span>${cmpIds.length} selected</span><button type="button" id="cmp-go" ${cmpIds.length < 2 ? 'disabled' : ''}>Compare</button><button type="button" id="cmp-clear" class="cmp-x" aria-label="Clear comparison">&times;</button>`;
+  $('#cmp-clear').onclick = () => { cmpIds.length = 0; cmpRefresh(); };
+  $('#cmp-go').onclick = cmpOpen;
+}
+function cmpOpen() {
+  const list = cmpIds.map(id => state.clinics.find(c => c.id === id)).filter(Boolean);
+  if (list.length < 2) return;
+  const row = (k, f) => `<tr><th>${k}</th>${list.map(c => `<td>${f(c)}</td>`).join('')}</tr>`;
+  const m = document.createElement('div'); m.className = 'cmp-modal'; m.id = 'cmp-modal';
+  m.innerHTML = `<div class="cmp-sheet" role="dialog" aria-label="Compare clinics"><div class="cmp-head"><b>Compare clinics</b><button type="button" id="cmp-close" aria-label="Close">&times;</button></div><div class="cmp-scroll"><table class="cmp-table">
+    <tr><th></th>${list.map(c => `<td class="cmp-name">${esc(c.name)}</td>`).join('')}</tr>
+    ${row('Area', c => esc(c.area))}
+    ${row('From', c => '\u20B9' + c.min_fee)}
+    ${row('Doctors', c => (c.doctors || []).length)}
+    ${row('Next slot', c => esc(fmtNext(c.next_available) || '-'))}
+    ${row('Specialties', c => esc((c.specialties || []).join(', ')))}
+    <tr><th></th>${list.map(c => `<td><button type="button" class="btn btn-small cmp-open" data-id="${esc(c.id)}">View</button></td>`).join('')}</tr>
+  </table></div></div>`;
+  document.body.appendChild(m);
+  const close = () => m.remove();
+  $('#cmp-close').onclick = close; m.onclick = e => { if (e.target === m) close(); };
+  m.querySelectorAll('.cmp-open').forEach(b => b.onclick = () => { close(); openClinic(b.dataset.id); });
 }
 
 function bookClinicQuick(clinicId) {
@@ -684,6 +723,7 @@ function bindClinicCards(host) {
     el.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openClinic(el.dataset.id); } };
   });
   host.querySelectorAll('.cc-book').forEach(b => b.onclick = e => { e.stopPropagation(); bookClinicQuick(b.dataset.book); });
+  host.querySelectorAll('.cc-cmp').forEach(b => b.onclick = e => { e.stopPropagation(); cmpToggle(b.dataset.cmp); });
 }
 
 
