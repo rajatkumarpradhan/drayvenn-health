@@ -901,7 +901,7 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
   body { padding-bottom: 0; }
   main.wrap { padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)); }
   .footer { padding-top: 26px; }
-  .footer-panel { padding: 26px 18px calc(104px + env(safe-area-inset-bottom, 0px)); border-radius: 24px 24px 0 0; }
+  .footer-panel { padding: 26px 18px calc(164px + env(safe-area-inset-bottom, 0px)); border-radius: 24px 24px 0 0; }
   .footer-top { grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 18px 12px; }
   .footer-cta-cell { grid-column: 1 / -1; grid-row: 1; }
   .footer-cell-head { margin-bottom: 6px; }
