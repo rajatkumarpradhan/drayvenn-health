@@ -967,7 +967,7 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
   .footer-cols { grid-template-columns: 1fr 1fr; gap: 18px; }
   .footer-brand { grid-column: 1 / -1; }
   /* real-device fixes: footer clears the floating tabbar; inputs >=16px stop focus zoom/jump */
-  .footer { padding-bottom: calc(118px + env(safe-area-inset-bottom, 0px)); }
+  .footer { padding-bottom: 0; }
   input:not([type=checkbox]):not([type=radio]), select, textarea { font-size: 16px; }
   .section-title { font-size: 18px; }
   .wiz-doc { font-size: 15px; }
