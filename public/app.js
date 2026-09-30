@@ -2219,8 +2219,7 @@ function myReschedulePanel(row, ref, doctorId) {
   if (seen) return;
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const ov = document.getElementById('intro-overlay');
-  const vid = document.getElementById('intro-video');
-  if (!ov || !vid) return;
+  if (!ov) return;
   ov.hidden = false;
   document.body.classList.add('intro-open');
   let finished = false;
@@ -2233,12 +2232,8 @@ function myReschedulePanel(row, ref, doctorId) {
     document.body.classList.remove('intro-open');
     setTimeout(() => ov.remove(), 650);
   };
-  vid.src = 'brand/hero-video.mp4?v=116';
-  vid.addEventListener('ended', done, { once: true });
-  vid.addEventListener('error', done, { once: true });
   document.getElementById('intro-skip').onclick = done;
-  const kill = setTimeout(done, 12000);
-  vid.play().catch(done);
+  const kill = setTimeout(done, 3400);
 })();
 
 const hsv = document.getElementById('hero-slot-video'); if (hsv) hsv.play().catch(() => {});
