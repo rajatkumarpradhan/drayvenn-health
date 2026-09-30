@@ -95,7 +95,7 @@ input, select, textarea { font-family: inherit; }
 @keyframes panelIn { from { opacity: 0; transform: translateY(10px) scale(.985); } to { opacity: 1; transform: none; } }
 
 /* ---------- app shell ---------- */
-.wrap { flex: 0 0 auto; width: 100%; max-width: var(--maxw); margin: 0 auto; padding: 14px 14px 28px; }
+.wrap { flex: 0 0 auto; width: 100%; max-width: var(--maxw); margin: 0 auto; padding: 14px 14px 28px; min-height: 100dvh; }
 main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
 
 /* ---------- top bar (glass - functional layer) ---------- */
@@ -900,6 +900,17 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
 @media (max-width: 760px) {
   body { padding-bottom: 0; }
   main.wrap { padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)); }
+  .footer { padding-top: 26px; }
+  .footer-panel { padding: 26px 18px 14px; border-radius: 24px 24px 0 0; }
+  .footer-top { grid-template-columns: 1fr 1fr; gap: 18px 12px; }
+  .footer-cta-cell { grid-column: 1 / -1; grid-row: 1; }
+  .footer-cell-head { margin-bottom: 6px; }
+  .footer-cell a { margin: 4px 0; }
+  .footer-cta-title { font-size: 19px; }
+  .footer-cta-sub { margin: 6px auto 10px; }
+  .footer-wa { padding: 10px 20px; }
+  .footer-mid { margin-top: 20px; padding-top: 14px; gap: 10px; }
+  .footer-base { margin-top: 14px; padding-top: 10px; }
   .footer { margin-bottom: calc(92px + env(safe-area-inset-bottom, 0px)); }
   #acct-menu-btn { display: none; }
   .tabbar { display: flex; position: fixed; z-index: 150; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); left: 14px; right: 14px; border-radius: var(--r-pill); background: rgba(255,255,255,.5); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-brd); box-shadow: 0 10px 30px rgba(13,36,64,.16), var(--spec); padding: 8px 12px 6px; }
