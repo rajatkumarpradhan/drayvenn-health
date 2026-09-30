@@ -324,8 +324,7 @@ function renderAccountPage() {
     <div class="acctp-group">Support</div>
     <div class="acctp-list">
       ${acctRow('acp-chat', 'chat', 'Talk to the assistant')}
-      <a class="acctp-row" href="mailto:hello@drayvennlab.in"><span class="acctp-ico">${acctIcon('mail')}</span><span class="acctp-label">Email - hello@drayvennlab.in</span><span class="acctp-chev">›</span></a>
-      <a class="acctp-row" href="https://wa.me/917735521019?text=Hi%20Drayvenn%20Health" target="_blank" rel="noopener"><span class="acctp-ico">${acctIcon('phone')}</span><span class="acctp-label">WhatsApp - +91 77355 21019</span><span class="acctp-chev">›</span></a>
+      ${acctRow('acp-support', 'phone', 'Contact us')}
       ${acctRow('acp-privacy', 'lock', 'Privacy & data')}
       ${acctRow('acp-about', 'info', 'About Drayvenn Health')}
     </div>
@@ -352,8 +351,7 @@ function renderAccountPage() {
     <div class="acctp-group">Support</div>
     <div class="acctp-list">
       ${acctRow('acp-chat', 'chat', 'Talk to the assistant')}
-      <a class="acctp-row" href="mailto:hello@drayvennlab.in"><span class="acctp-ico">${acctIcon('mail')}</span><span class="acctp-label">Email - hello@drayvennlab.in</span><span class="acctp-chev">›</span></a>
-      <a class="acctp-row" href="https://wa.me/917735521019?text=Hi%20Drayvenn%20Health" target="_blank" rel="noopener"><span class="acctp-ico">${acctIcon('phone')}</span><span class="acctp-label">WhatsApp - +91 77355 21019</span><span class="acctp-chev">›</span></a>
+      ${acctRow('acp-support', 'phone', 'Contact us')}
       ${acctRow('acp-privacy', 'lock', 'Privacy & data')}
       ${acctRow('acp-about', 'info', 'About Drayvenn Health')}
     </div>
@@ -370,6 +368,7 @@ function renderAccountPage() {
   on('acp-bookings', () => show('mybookings'));
   on('acp-track', () => { show('track'); const t = $('#bk-ref'); if (t) setTimeout(() => t.focus({ preventScroll: true }), 350); });
   on('acp-chat', () => { if (window.openChat) window.openChat(); });
+  on('acp-support', () => show('contact'));
   on('acp-privacy', () => window.open('privacy.html', '_blank', 'noopener'));
   on('acp-about', () => { const a = $('#acctp-about'); if (a) a.classList.toggle('hidden'); });
   on('acp-google', () => { location.href = '/api/auth/google/start'; });
