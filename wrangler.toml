@@ -6,6 +6,8 @@ compatibility_date = "2025-09-01"
 binding = "DB"
 database_name = "drayvenn-health-db"
 database_id = "9ef176b1-d282-4a5e-83d6-2aacc1be0d20"
+# Preview deployments (e.g. the redesign branch) use this isolated demo DB - never production patient data.
+preview_database_id = "f4515ae6-ae9f-4b6f-8b98-b362facbfe38"
 migrations_dir = "migrations"
 
 [ai]
