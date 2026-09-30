@@ -1351,11 +1351,18 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
 .support-sub-title { text-align: center; font-size: 17px; font-weight: 800; margin: 26px 0 12px; }
 
 /* intro splash (once per session) */
-#intro-overlay { position: fixed; inset: 0; z-index: 1000; background: #fff; display: flex; align-items: center; justify-content: center; transition: opacity .5s ease; }
+#intro-overlay { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; transition: opacity .5s ease;
+  background:
+    radial-gradient(620px 420px at 50% 42%, rgba(27,91,215,.09), transparent 65%),
+    linear-gradient(rgba(27,91,215,.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(27,91,215,.055) 1px, transparent 1px),
+    #fff;
+  background-size: auto, 44px 44px, 44px 44px, auto; }
 #intro-overlay[hidden] { display: none; }
 #intro-overlay.intro-hide { opacity: 0; pointer-events: none; }
-.intro-inner { display: flex; flex-direction: column; align-items: center; gap: 20px; }
-#intro-logo { width: 132px; height: auto; }
+.intro-inner { display: flex; flex-direction: column; align-items: center; gap: 20px; animation: ilPop .7s cubic-bezier(.2,.7,.3,1); }
+@keyframes ilPop { from { transform: scale(.92); opacity: .35; } }
+#intro-logo { width: 150px; height: auto; filter: drop-shadow(0 0 7px rgba(27,91,215,.35)); }
 #intro-logo path { fill: none; stroke: #1B5BD7; stroke-width: 13; stroke-linecap: round; stroke-linejoin: round; }
 .il-d { stroke-dasharray: 640; stroke-dashoffset: 640; animation: ilDraw 1.05s .1s cubic-bezier(.6,0,.3,1) forwards; }
 .il-ecg { stroke-dasharray: 460; stroke-dashoffset: 460; animation: ilDraw .8s 1s cubic-bezier(.5,0,.3,1) forwards, ilGlow 1.6s 2s ease-in-out infinite; }
