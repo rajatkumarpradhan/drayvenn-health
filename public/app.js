@@ -306,7 +306,7 @@ function renderAccountPage() {
       <div class="acctp-avatar">${initial}</div>
       <div class="acctp-info">
         <div class="acctp-name" id="acctp-name">${esc(p.name || 'Set your name')}</div>
-        <div class="acctp-sub">${esc(p.email || (p.phone ? maskPhone(p.phone) : 'Signed in'))}${p.has_google ? ' · Google linked' : ''}</div>
+        <div class="acctp-sub">${esc(p.email || (p.phone ? maskPhone(p.phone) : 'Signed in'))}${p.has_google ? ' · Signed in with Google' : ''}</div>
       </div>
       <button type="button" class="acctp-edit" id="acctp-edit-btn">EDIT</button>
     </div>
@@ -332,7 +332,7 @@ function renderAccountPage() {
     ${about}
     <div class="acctp-group">Account</div>
     <div class="acctp-list">
-      ${!p.has_google ? acctRow('acp-google', 'link', 'Link Google account') : ''}
+      ${!p.has_google ? acctRow('acp-google', 'link', 'Connect Google account') : ''}
       ${acctRow('acp-logout', 'logout', 'Sign out', true)}
     </div>`;
   } else {
@@ -2208,7 +2208,7 @@ function myReschedulePanel(row, ref, doctorId) {
   const q = new URLSearchParams(location.search);
   let landing = null;
   if (q.get('login') === 'google') { toast('Signed in with Google', 'info'); landing = 'account'; }
-  if (q.get('linked') === 'google') { toast('Google account linked', 'info'); landing = 'account'; }
+  if (q.get('linked') === 'google') { toast('Google account connected', 'info'); landing = 'account'; }
   if (landing) history.replaceState(null, '', location.pathname + location.hash);
   window.__postLoginLanding = landing;
 })();
