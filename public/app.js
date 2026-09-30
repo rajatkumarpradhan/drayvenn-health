@@ -2241,6 +2241,7 @@ function myReschedulePanel(row, ref, doctorId) {
   vid.play().catch(done);
 })();
 
+const hsv = document.getElementById('hero-slot-video'); if (hsv) hsv.play().catch(() => {});
 window.openClinicFromChat = openClinic;
 window.showFromChat = show;
 loadClinics();
