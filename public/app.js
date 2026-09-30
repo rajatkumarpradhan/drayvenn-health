@@ -25,6 +25,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 function show(view) {
   // safety: a stuck scroll lock must never survive a view switch
   if (!document.getElementById('wizard-overlay')) document.body.classList.remove('wiz-open');
+  closeBModal();
   if (view === 'mybookings') renderAccount();
   if (view === 'account') renderAccountPage();
   for (const v of ['home', 'clinics', 'clinic', 'confirm', 'mybookings', 'track', 'signin', 'account', 'about', 'services', 'contact', '404']) {
