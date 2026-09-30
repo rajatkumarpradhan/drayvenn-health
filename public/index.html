@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=104">
+<link rel="stylesheet" href="styles.css?v=105">
 <link rel="icon" type="image/png" href="/favicon-64.png">
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#1068FC">
@@ -69,7 +69,7 @@
   <section id="view-home">
     <div class="hero">
       <div class="hero-copy">
-        <div class="loc-row">
+        <div class="loc-row reveal" style="--i:0">
           <span class="loc-pin"><svg class="pin-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
           <div class="loc-sel-wrap">
             <select id="home-area" aria-label="Choose your area">
@@ -77,29 +77,29 @@
             </select>
           </div>
         </div>
-        <h1>Book a clinic<br>near you, without<br><span>the phone calls.</span></h1>
-        <p>Neighbourhood clinics across Bengaluru. Pick a clinic, choose a time, done in under a minute.</p>
-        <div class="hero-ctas">
+        <h1 class="reveal" style="--i:1">Book a clinic<br>near you, without<br><span>the phone calls.</span></h1>
+        <p class="reveal" style="--i:2">Neighbourhood clinics across Bengaluru. Pick a clinic, choose a time, done in under a minute.</p>
+        <div class="hero-ctas reveal" style="--i:3">
           <button type="button" class="btn btn-hero" id="cta-find">Find a Clinic</button>
           <button type="button" class="btn btn-outline btn-hero" id="cta-track">Track Booking</button>
         </div>
         <div class="live-pill hidden" id="live-pill"><span class="live-dot"></span><span id="live-text"></span></div>
       </div>
-      <div class="hero-visual" aria-hidden="true">
+      <div class="hero-visual reveal reveal-slow" style="--i:3" aria-hidden="true">
         <div class="hv-panel">
           <div class="hv-clip"><img class="hv-doc" src="brand/doctor-hero3.png?v=91" alt="" loading="eager" decoding="async"></div>
-          <div class="hv-card hv-card-a">
+          <div class="hv-card hv-card-a reveal" style="--i:5">
             <span class="hv-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="5"/></svg></span>
             <span class="hv-txt"><strong>8+</strong><small>Specialities</small></span>
           </div>
-          <div class="hv-card hv-card-b">
+          <div class="hv-card hv-card-b reveal" style="--i:6">
             <span class="hv-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></span>
             <span class="hv-txt"><strong>Under 5 mins</strong><small>Clinic confirms</small></span>
           </div>
         </div>
       </div>
     </div>
-    <div class="searchbar hero-search">
+    <div class="searchbar hero-search reveal" style="--i:4">
       <input type="text" id="home-search" placeholder="Search clinics, doctors, specialties... e.g. dentist">
     </div>
     <div class="trust-strip reveal">
@@ -445,7 +445,7 @@
 </main>
 
 <footer class="footer" id="contact">
-  <div class="footer-panel">
+  <div class="footer-panel reveal">
     <div class="footer-top">
       <div class="footer-cell">
         <div class="footer-cell-head">Contact Us</div>
@@ -499,7 +499,7 @@
 <link rel="stylesheet" href="vendor/leaflet.css">
 <script src="vendor/leaflet.js" defer></script>
 <script>window.__bootErrs=[];addEventListener("error",function(e){__bootErrs.push((e.message||"")+" @ "+(e.filename||"").split("/").pop()+":"+e.lineno)});</script>
-  <script src="app.js?v=98"></script>
+  <script src="app.js?v=105"></script>
 <script src="chat.js?v=85"></script>
 </body>
 </html>

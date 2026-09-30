@@ -770,8 +770,10 @@ function watchReveals(root) {
   });
   (root || document).querySelectorAll('.reveal:not(.revealed):not([data-rv])').forEach(el => {
     el.dataset.rv = '1';
+    const rawI = el.style.getPropertyValue('--i');
     const sibs = [...el.parentElement.children].filter(x => x.classList && x.classList.contains('reveal'));
-    el.style.transitionDelay = Math.min(sibs.indexOf(el) * 45, 270) + 'ms';
+    const idx = rawI !== '' ? parseFloat(rawI) : sibs.indexOf(el);
+    el.style.transitionDelay = Math.min((isNaN(idx) ? 0 : idx) * 110, 660) + 'ms';
     revealIO.observe(el);
   });
   /* Safety net: if IntersectionObserver never fires (throttled tab, odd WebView),
