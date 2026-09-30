@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=110">
+<link rel="stylesheet" href="styles.css?v=111">
 <link rel="icon" type="image/png" href="/favicon-64.png">
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#1068FC">
@@ -30,7 +30,7 @@
        even if JS dies, removed from DOM by JS. Hidden for reduced-motion. -->
   <div class="splash" id="splash" aria-hidden="true">
     <div class="splash-inner">
-      <img class="splash-logo" src="brand/icon.png?v=110" alt="">
+      <img class="splash-logo" src="brand/icon.png?v=111" alt="">
       <div class="splash-word">Drayvenn <b>Health</b></div>
       <svg class="splash-ecg" viewBox="0 0 200 40" fill="none" aria-hidden="true">
         <path d="M0 20 H58 L70 6 L82 34 L94 12 L102 20 H200"/>
@@ -41,7 +41,7 @@
 <header class="topbar">
   <div class="topbar-inner">
     <div class="logo" id="logo-home" style="cursor:pointer">
-      <img src="brand/icon.png?v=110" alt="Drayvenn Lab logo" class="logo-mark-img">
+      <img src="brand/icon.png?v=111" alt="Drayvenn Lab logo" class="logo-mark-img">
       <div>
         <div class="logo-name">Drayvenn Health</div>
         <div class="logo-sub">by Drayvenn Lab</div>
@@ -86,7 +86,7 @@
       </div>
       <div class="hero-visual reveal reveal-slow" style="--i:3" aria-hidden="true">
         <div class="hv-panel">
-          <div class="hv-clip"><img class="hv-doc" src="brand/doctor-hero4.png?v=110" alt="" loading="eager" decoding="async"></div>
+          <div class="hv-clip" id="hero-video-slot"><!-- hero video from Rajat drops in here --></div>
           <div class="hv-card hv-card-a reveal" style="--i:5">
             <span class="hv-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="5"/></svg></span>
             <span class="hv-txt"><strong>8+</strong><small>Specialities</small></span>
@@ -178,7 +178,7 @@
           </div>
         </div>
         <div class="why-visual" aria-hidden="true">
-          <div class="wv-panel"><img src="brand/doctor-hero4.png?v=110" alt="" loading="lazy" decoding="async"></div>
+          <div class="wv-panel"></div>
         </div>
       </div>
     </div>
@@ -190,7 +190,7 @@
         <p class="about-sub">We bring neighbourhood clinics online with live slots and instant confirmations - healthcare that fits your day, not the other way around.</p>
         <div class="about-grid">
           <div class="about-visual" aria-hidden="true">
-            <div class="av-panel"><img src="brand/doctor-about3.png?v=110" alt="" loading="lazy" decoding="async"></div>
+            <div class="av-panel"><img src="brand/doctor-about3.png?v=111" alt="" loading="lazy" decoding="async"></div>
           </div>
           <div class="about-rows">
             <div class="about-row">
@@ -429,7 +429,7 @@
     <a class="back-link" id="back-home-4">&larr; All clinics</a>
     <div class="auth-scene" id="auth-scene">
       <video class="auth-video" id="auth-video" muted loop playsinline preload="metadata" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>
-      <img src="brand/lockup.png?v=110" alt="Drayvenn Lab" class="auth-static" loading="lazy" decoding="async">
+      <img src="brand/lockup.png?v=111" alt="Drayvenn Lab" class="auth-static" loading="lazy" decoding="async">
     </div>
     <div class="track-card mb-card">
       <div id="signin-panel"><div class="loading">Loading&hellip;</div></div>
@@ -463,7 +463,7 @@
       </div>
     </div>
     <div class="footer-mid">
-      <div class="footer-logo"><img src="brand/icon.png?v=110" alt="Drayvenn Lab logo"><b>Drayvenn Health</b></div>
+      <div class="footer-logo"><img src="brand/icon.png?v=111" alt="Drayvenn Lab logo"><b>Drayvenn Health</b></div>
       <nav class="footer-links">
         <a href="#about-sec">About Us</a>
         <a href="#services">Services</a>
@@ -499,7 +499,7 @@
 <link rel="stylesheet" href="vendor/leaflet.css">
 <script src="vendor/leaflet.js" defer></script>
 <script>window.__bootErrs=[];addEventListener("error",function(e){__bootErrs.push((e.message||"")+" @ "+(e.filename||"").split("/").pop()+":"+e.lineno)});</script>
-  <script src="app.js?v=110"></script>
-<script src="chat.js?v=110"></script>
+  <script src="app.js?v=111"></script>
+<script src="chat.js?v=111"></script>
 </body>
 </html>
