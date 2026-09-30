@@ -1444,3 +1444,4 @@ body.intro-open { overflow: hidden; }
 .cmp-table td { padding: 9px 8px; vertical-align: top; border-top: 1px solid #eef2f8; min-width: 110px; }
 .cmp-table th { border-top: 1px solid #eef2f8; }
 .cmp-name { font-weight: 800; color: var(--primary-deep); }
+.cmp-bar span { white-space: nowrap; }
