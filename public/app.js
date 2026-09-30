@@ -1024,7 +1024,15 @@ const WIZ_STEPS = ['slot', 'details'];
 const WIZ_LABELS = { slot: 'Select slot', details: 'Your details' };
 
 function openBooking(doctorId, pre) {
-  const doctor = state.clinic.doctors.find(d => d.id === doctorId);
+  /* resolve the doctor's clinic even when opened straight from a browse card,
+     where state.clinic is null or a different clinic */
+  let doctor = state.clinic && state.clinic.doctors ? state.clinic.doctors.find(d => d.id === doctorId) : null;
+  if (!doctor) {
+    const c = state.clinics.find(x => (x.doctors || []).some(d => d.id === doctorId));
+    if (c) state.clinic = c;
+    doctor = c ? c.doctors.find(d => d.id === doctorId) : null;
+  }
+  if (!doctor) { toast('Could not start booking - please reopen the clinic and try again.', 'error'); return; }
   state.booking = { doctor, date: pre && pre.date ? pre.date : null, slot: pre && pre.slot ? pre.slot : null, step: 'slot' };
   if (state.patient) {
     if (state.patient.name) state.booking.pname = state.patient.name;
