@@ -288,7 +288,8 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.55), 0 24px 54px rgba(1,59,53,.14); }
 .hv-panel::before { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
   background: radial-gradient(300px 210px at 50% 90%, rgba(255,255,255,.55), transparent 72%); }
-.hv-doc { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); height: 97%; width: auto; max-width: none;
+.hv-clip { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; }
+.hv-doc { position: absolute; left: 50%; bottom: -2px; transform: translateX(-50%); height: 104%; width: auto; max-width: none;
   filter: drop-shadow(0 16px 26px rgba(1,59,53,.20)); }
 .hv-card { position: absolute; z-index: 2; display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 16px;
   background: rgba(255,255,255,.74); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
