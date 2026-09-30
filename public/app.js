@@ -40,7 +40,7 @@ function show(view) {
   const tabFor = { home: 'home', clinics: 'search', clinic: 'search', confirm: 'home', mybookings: 'mybookings', track: 'mybookings', account: 'profile' };
   document.querySelectorAll('.tabbar .tab').forEach(t =>
     t.classList.toggle('active', t.dataset.tab === tabFor[view]));
-  window.scrollTo({ top: 0 });
+  window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
 const toastQueue = [];
@@ -1590,7 +1590,7 @@ document.querySelectorAll('.tabbar .tab').forEach(tab => {
     if (window.closeChat) window.closeChat();
     if (t === 'search') {
       show('clinics');
-      setTimeout(() => { const si = $('#search-input'); if (si) si.focus({ preventScroll: true }); }, 120);
+      requestAnimationFrame(() => { const si = $('#search-input'); if (si) { si.scrollIntoView({ block: 'start', behavior: 'instant' }); si.focus({ preventScroll: true }); } });
     } else if (t === 'profile') {
       show('account');
     } else {

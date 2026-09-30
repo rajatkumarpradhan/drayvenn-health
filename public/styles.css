@@ -161,7 +161,7 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
   background: var(--grad); color: #fff; font-weight: 700; font-size: 14.5px;
   padding: 12px 20px; border-radius: var(--r-field); border: 1px solid rgba(255,255,255,.28);
   box-shadow: var(--shadow-teal);
-  transition: transform var(--t-fast) var(--spring), box-shadow var(--t-fast) var(--ease), filter var(--t-fast);
+  transition: transform var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease), filter var(--t-fast);
   -webkit-tap-highlight-color: transparent; text-align: center;
 }
 .btn:hover { filter: brightness(1.05); }
@@ -169,6 +169,9 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
 .btn-outline:hover { background: var(--primary-soft); border-color: rgba(13,148,136,.35); }
 .clinic-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
 .btn:active { transform: scale(.965); }
+.btn { position: relative; overflow: hidden; }
+.ripple { position: absolute; border-radius: 50%; background: rgba(255,255,255,.45); transform: scale(0); opacity: .8; pointer-events: none; animation: dhRipple .6s ease-out forwards; }
+@keyframes dhRipple { to { transform: scale(1); opacity: 0; } }
 .btn-block { width: 100%; border-radius: var(--r-pill); padding: 13px 20px; font-size: 15px; }
 .btn-small { padding: 9px 15px; font-size: 13px; border-radius: 12px; }
 .btn-outline { background: var(--surface); color: var(--ink); border: 1.5px solid var(--line-strong); box-shadow: var(--shadow-xs); }
@@ -294,7 +297,7 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
 .sample-tag { font-size: 10px; font-weight: 700; color: var(--amber); background: #fdf6e8; border-radius: var(--r-pill); padding: 2px 8px; margin-left: 4px; }
 
 /* ---------- hero ---------- */
-.hero { position: relative; margin: 0 -16px; padding: 24px 20px 30px; overflow: hidden; border-radius: 0 0 34px 34px;
+.hero { position: relative; margin: 0 -14px; padding: 24px 20px 30px; overflow: hidden; border-radius: 0 0 34px 34px;
   background: radial-gradient(900px 520px at 88% -12%, rgba(16,104,252,.12), transparent 62%), linear-gradient(180deg, #F4F9FF 0%, #E6F1FF 100%); }
 .hero-copy { position: relative; z-index: 1; text-align: center; }
 .hero-visual { position: relative; margin-top: 26px; }
