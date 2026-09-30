@@ -324,7 +324,7 @@ function renderAccountPage() {
     </div>
     <div class="acctp-group">My care circle</div>
     <div class="acctp-list">
-      ${acctRow('acp-wishlist', 'heart', 'Wishlist')}
+      ${acctRow('acp-wishlist', 'heart', 'Saved clinics')}
       ${acctRow('acp-family', 'users', 'Family Members')}
     </div>
     <div class="acctp-expand hidden" id="acp-wishlist-panel">
@@ -1768,7 +1768,7 @@ function toggleSaveClinic(c) {
   const list = getSavedClinics();
   const i = list.findIndex(x => x.id === c.id);
   if (i >= 0) { list.splice(i, 1); toast('Removed from saved clinics', 'info'); }
-  else { list.push({ id: c.id, name: c.name, area: c.area, min_fee: c.min_fee }); toast('Saved to your wishlist', 'info'); }
+  else { list.push({ id: c.id, name: c.name, area: c.area, min_fee: c.min_fee }); toast('Saved to your clinics', 'info'); }
   localStorage.setItem('dh_saved_clinics', JSON.stringify(list));
 }
 function updateSaveBtn() {
