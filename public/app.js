@@ -2232,8 +2232,7 @@ function myReschedulePanel(row, ref, doctorId) {
     document.body.classList.remove('intro-open');
     setTimeout(() => ov.remove(), 650);
   };
-  document.getElementById('intro-skip').onclick = done;
-  const kill = setTimeout(done, 3400);
+  const kill = setTimeout(done, 2700);
 })();
 
 const hsv = document.getElementById('hero-slot-video'); if (hsv) hsv.play().catch(() => {});
