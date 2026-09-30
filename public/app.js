@@ -974,8 +974,8 @@ function initDetailMap(c) {
   detailMap = L.map('detail-map', { scrollWheelZoom: false, attributionControl: false, zoomControl: false }).setView(co, 15);
   L.control.zoom({ position: 'bottomright' }).addTo(detailMap);
   L.tileLayer('/api/tile?z={z}&x={x}&y={y}', { maxZoom: 18 }).addTo(detailMap);
-  L.circle(co, { radius: 400, color: '#0D9488', weight: 1.5, opacity: .5, fillColor: '#0D9488', fillOpacity: .07 }).addTo(detailMap);
-  L.circle(co, { radius: 170, color: '#0D9488', weight: 1, opacity: .35, fillColor: '#0D9488', fillOpacity: .10 }).addTo(detailMap);
+  L.circle(co, { radius: 400, color: '#1068FC', weight: 1.5, opacity: .5, fillColor: '#1068FC', fillOpacity: .07 }).addTo(detailMap);
+  L.circle(co, { radius: 170, color: '#1068FC', weight: 1, opacity: .35, fillColor: '#1068FC', fillOpacity: .10 }).addTo(detailMap);
   L.marker(co, {
     icon: L.divIcon({ className: 'dh-pin dh-pin-hero', html: '<span class="dh-pin-halo"></span><span class="dh-pin-mark">' + CLINIC_MARK_SVG + '</span>', iconSize: [52, 52], iconAnchor: [26, 49] })
   }).addTo(detailMap);
