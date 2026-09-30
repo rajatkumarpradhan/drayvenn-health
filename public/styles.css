@@ -1349,3 +1349,11 @@ main.wrap section { animation: panelIn var(--t-std) var(--ease) backwards; }
 /* support extras on the contact page */
 .support-note { text-align: center; color: var(--muted); font-size: 13.5px; margin: 18px auto 6px; max-width: 420px; }
 .support-sub-title { text-align: center; font-size: 17px; font-weight: 800; margin: 26px 0 12px; }
+
+/* intro splash (once per session) */
+#intro-overlay { position: fixed; inset: 0; z-index: 1000; background: #fff; display: flex; align-items: center; justify-content: center; transition: opacity .5s ease; }
+#intro-overlay[hidden] { display: none; }
+#intro-overlay.intro-hide { opacity: 0; pointer-events: none; }
+#intro-video { width: 100%; max-width: 640px; height: auto; object-fit: contain; }
+body.intro-open { overflow: hidden; }
+#intro-skip { position: absolute; top: calc(14px + env(safe-area-inset-top)); right: 16px; background: rgba(4,20,60,.07); color: var(--ink); border: none; border-radius: 999px; padding: 9px 18px; font: inherit; font-weight: 700; font-size: 13px; cursor: pointer; }

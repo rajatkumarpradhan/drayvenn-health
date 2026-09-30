@@ -2212,7 +2212,35 @@ function myReschedulePanel(row, ref, doctorId) {
   window.__postLoginLanding = landing;
 })();
 
-const hv = document.getElementById('hero-video'); if (hv) hv.play().catch(() => {});
+/* Intro splash: Rajat's logo animation plays once per session, then reveals the site. */
+(function introSplash() {
+  let seen = false;
+  try { seen = sessionStorage.getItem('dh_intro') === '1'; } catch (e) {}
+  if (seen) return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const ov = document.getElementById('intro-overlay');
+  const vid = document.getElementById('intro-video');
+  if (!ov || !vid) return;
+  ov.hidden = false;
+  document.body.classList.add('intro-open');
+  let finished = false;
+  const done = () => {
+    if (finished) return;
+    finished = true;
+    try { sessionStorage.setItem('dh_intro', '1'); } catch (e) {}
+    clearTimeout(kill);
+    ov.classList.add('intro-hide');
+    document.body.classList.remove('intro-open');
+    setTimeout(() => ov.remove(), 650);
+  };
+  vid.src = 'brand/hero-video.mp4?v=116';
+  vid.addEventListener('ended', done, { once: true });
+  vid.addEventListener('error', done, { once: true });
+  document.getElementById('intro-skip').onclick = done;
+  const kill = setTimeout(done, 12000);
+  vid.play().catch(done);
+})();
+
 window.openClinicFromChat = openClinic;
 window.showFromChat = show;
 loadClinics();
