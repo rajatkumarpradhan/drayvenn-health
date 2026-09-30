@@ -275,7 +275,9 @@ const ACCT_ICONS = {
   link: '<path d="M10 14a4 4 0 0 0 6 .4l3-3a4 4 0 0 0-5.6-5.6l-1.5 1.5"/><path d="M14 10a4 4 0 0 0-6-.4l-3 3a4 4 0 0 0 5.6 5.6l1.5-1.5"/>',
   logout: '<path d="M9 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3"/><path d="m16 17 5-5-5-5M21 12H9"/>',
   hospital: '<path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-4h6v4"/><path d="M12 9v6M9 12h6"/>',
-  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/>'
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/>',
+  phone: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>'
 };
 function acctIcon(name) {
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ACCT_ICONS[name] || ACCT_ICONS.info}</svg>`;
@@ -322,6 +324,8 @@ function renderAccountPage() {
     <div class="acctp-group">Support</div>
     <div class="acctp-list">
       ${acctRow('acp-chat', 'chat', 'Talk to the assistant')}
+      <a class="acctp-row" href="mailto:hello@drayvennlab.in"><span class="acctp-ico">${acctIcon('mail')}</span><span class="acctp-label">Email - hello@drayvennlab.in</span><span class="acctp-chev">›</span></a>
+      <a class="acctp-row" href="https://wa.me/917735521019?text=Hi%20Drayvenn%20Health" target="_blank" rel="noopener"><span class="acctp-ico">${acctIcon('phone')}</span><span class="acctp-label">WhatsApp - +91 77355 21019</span><span class="acctp-chev">›</span></a>
       ${acctRow('acp-privacy', 'lock', 'Privacy & data')}
       ${acctRow('acp-about', 'info', 'About Drayvenn Health')}
     </div>
@@ -348,6 +352,8 @@ function renderAccountPage() {
     <div class="acctp-group">Support</div>
     <div class="acctp-list">
       ${acctRow('acp-chat', 'chat', 'Talk to the assistant')}
+      <a class="acctp-row" href="mailto:hello@drayvennlab.in"><span class="acctp-ico">${acctIcon('mail')}</span><span class="acctp-label">Email - hello@drayvennlab.in</span><span class="acctp-chev">›</span></a>
+      <a class="acctp-row" href="https://wa.me/917735521019?text=Hi%20Drayvenn%20Health" target="_blank" rel="noopener"><span class="acctp-ico">${acctIcon('phone')}</span><span class="acctp-label">WhatsApp - +91 77355 21019</span><span class="acctp-chev">›</span></a>
       ${acctRow('acp-privacy', 'lock', 'Privacy & data')}
       ${acctRow('acp-about', 'info', 'About Drayvenn Health')}
     </div>
