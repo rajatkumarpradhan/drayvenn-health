@@ -1421,6 +1421,9 @@ function renderConfirmation(b) {
   setTimeout(confettiBurst, 250);
   $('#confirm-sub').textContent = `${b.clinic_name} will confirm your slot shortly. Save your booking reference.`;
   $('#confirm-ref').innerHTML = `Booking ID <b>${esc(b.ref)}</b>`;
+  let prep = document.getElementById('confirm-prep');
+  if (!prep) { prep = document.createElement('div'); prep.id = 'confirm-prep'; prep.className = 'confirm-prep'; $('#confirm-ref').insertAdjacentElement('afterend', prep); }
+  prep.innerHTML = `<div class="cp-title">Before your visit</div><ul><li>Carry a photo ID and this booking ID</li><li>Bring any earlier prescriptions or reports</li><li>Reach 5 minutes early</li><li>Consultation fee is paid at the clinic</li></ul>`;
   $('#wa-bubble').innerHTML = `
     <div class="wa-head">Drayvenn Lab · Appointment booked</div>
     <div class="wa-row"><span class="k">Patient</span><span class="v">${esc(b.patient_name)}${b.age ? ' · ' + esc(b.age) + ' yrs' : ''}</span></div>
