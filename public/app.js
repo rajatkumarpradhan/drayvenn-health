@@ -2228,3 +2228,6 @@ document.querySelectorAll('.footer-links a').forEach(a => {
   else if (href === '#services') { a.setAttribute('href', '#services'); }
   else if (href === '#contact') { a.setAttribute('href', '#contact'); }
 });
+
+/* v95b - honor hash on initial load */
+setTimeout(() => { const h = location.hash.replace('#', ''); if (PAGE_VIEWS[h]) openPage(h); }, 60);
