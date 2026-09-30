@@ -2212,6 +2212,7 @@ function myReschedulePanel(row, ref, doctorId) {
   window.__postLoginLanding = landing;
 })();
 
+const hv = document.getElementById('hero-video'); if (hv) hv.play().catch(() => {});
 window.openClinicFromChat = openClinic;
 window.showFromChat = show;
 loadClinics();
