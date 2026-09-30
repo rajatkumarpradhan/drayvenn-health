@@ -277,7 +277,9 @@ const ACCT_ICONS = {
   hospital: '<path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-4h6v4"/><path d="M12 9v6M9 12h6"/>',
   user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/>',
   mail: '<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/>',
-  phone: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>'
+  phone: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',
+  heart: '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
+  users: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>'
 };
 function acctIcon(name) {
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ACCT_ICONS[name] || ACCT_ICONS.info}</svg>`;
@@ -313,8 +315,32 @@ function renderAccountPage() {
     <div class="acctp-editbox hidden" id="acctp-editbox">
       <div class="form-row"><label for="acctp-in-name">Your name</label><input id="acctp-in-name" maxlength="60" autocomplete="name" value="${esc(p.name || '')}" placeholder="Used to prefill bookings"></div>
       <div class="form-row"><label for="acctp-in-age">Age</label><input id="acctp-in-age" inputmode="numeric" maxlength="3" value="${p.age != null ? p.age : ''}" placeholder="Optional"></div>
+      <div class="form-row"><label>Mobile Number</label><input value="${esc(p.phone ? maskPhone(p.phone) : '-')}" disabled></div>
+      <div class="form-row"><label>Email</label><input value="${esc(p.email || '-')}" disabled></div>
+      <p class="dash-note">Mobile and email are your sign-in - they can't be changed here.</p>
       <div class="form-error" id="acctp-error"></div>
       <button type="button" class="btn btn-block" id="acctp-save">Save</button>
+    </div>
+    <div class="acctp-group">My care circle</div>
+    <div class="acctp-list">
+      ${acctRow('acp-wishlist', 'heart', 'Wishlist')}
+      ${acctRow('acp-family', 'users', 'Family Members')}
+    </div>
+    <div class="acctp-expand hidden" id="acp-wishlist-panel">
+      <p class="dash-sub" style="margin:2px 0 10px">Clinics you save with the heart button live here for quick booking.</p>
+      <div id="saved-list"></div>
+    </div>
+    <div class="acctp-expand hidden" id="acp-family-panel">
+      <p class="dash-sub" style="margin:2px 0 10px">Add your family once - book appointments for them from your account.</p>
+      <div id="family-list">${LOADER('Loading&hellip;', 'rows')}</div>
+      <form class="fam-form" id="family-form">
+        <input id="fam-name" placeholder="Full name" maxlength="60" autocomplete="off">
+        <input id="fam-age" placeholder="Age" inputmode="numeric" maxlength="3">
+        <select id="fam-gender"><option value="">Gender</option><option>Female</option><option>Male</option><option>Other</option></select>
+        <select id="fam-relation"><option value="">Relation</option><option>Spouse</option><option>Child</option><option>Parent</option><option>Sibling</option><option>Other</option></select>
+        <button class="btn btn-small" type="submit">Add member</button>
+      </form>
+      <div class="form-error" id="fam-error"></div>
     </div>
     <div class="acctp-group">Bookings</div>
     <div class="acctp-list">
@@ -373,6 +399,9 @@ function renderAccountPage() {
   on('acp-about', () => { const a = $('#acctp-about'); if (a) a.classList.toggle('hidden'); });
   on('acp-google', () => { location.href = '/api/auth/google/start'; });
   on('acp-logout', async () => { await logout(); show('account'); });
+  on('acp-wishlist', () => { const pn = $('#acp-wishlist-panel'); if (!pn) return; pn.classList.toggle('hidden'); if (!pn.classList.contains('hidden')) renderSaved(); });
+  on('acp-family', () => { const pn = $('#acp-family-panel'); if (!pn) return; pn.classList.toggle('hidden'); if (!pn.classList.contains('hidden')) loadFamily(); });
+  wireFamilyForm();
   on('acctp-edit-btn', () => { const b = $('#acctp-editbox'); if (b) b.classList.toggle('hidden'); });
   on('acctp-save', async () => {
     const err = $('#acctp-error');
@@ -1716,89 +1745,19 @@ function renderAccount() {
     $('#acct-goto-signin').onclick = showSignin;
     return;
   }
-  const p = state.patient;
-  const initial = esc(((p.name || p.email || 'A').trim()[0] || 'A').toUpperCase());
   host.innerHTML = `
-  <div class="dash">
-    <aside class="dash-side">
-      <div class="dash-user">
-        <div class="acctp-avatar">${initial}</div>
-        <div class="dash-user-info">
-          <div class="dash-name">${esc(p.name || 'Set your name')}</div>
-          <div class="dash-contact">${esc(p.phone ? maskPhone(p.phone) : (p.email || ''))}</div>
-        </div>
-      </div>
-      <nav class="dash-nav" id="dash-nav">
-        <button type="button" class="dash-nav-btn active" data-tab="bookings">My Bookings</button>
-        <button type="button" class="dash-nav-btn" data-tab="saved">Saved Clinics</button>
-        <button type="button" class="dash-nav-btn" data-tab="family">Family Members</button>
-        <button type="button" class="dash-nav-btn" data-tab="profile">Profile Settings</button>
-        <button type="button" class="dash-nav-btn dash-logout" id="dash-logout">Logout</button>
-      </nav>
-    </aside>
-    <div class="dash-body">
-      <div class="dash-panel" id="dash-panel-bookings">
-        <div class="mb-tabs" id="mb-tabs">
-          <button type="button" class="mb-tab active" data-mbtab="upcoming">Upcoming</button>
-          <button type="button" class="mb-tab" data-mbtab="past">Past</button>
-          <button type="button" class="mb-tab" data-mbtab="cancelled">Cancelled</button>
-        </div>
-        <div id="my-bookings">${LOADER('Loading your bookings&hellip;', 'cards')}</div>
-      </div>
-      <div class="dash-panel hidden" id="dash-panel-saved">
-        <h3 class="dash-h">Saved Clinics</h3>
-        <p class="dash-sub">Clinics you save show up here for quick booking.</p>
-        <div id="saved-list"></div>
-      </div>
-      <div class="dash-panel hidden" id="dash-panel-family">
-        <h3 class="dash-h">Family Members</h3>
-        <p class="dash-sub">Add your family once - book appointments for them from your account.</p>
-        <div id="family-list">${LOADER('Loading&hellip;', 'rows')}</div>
-        <form class="fam-form" id="family-form">
-          <input id="fam-name" placeholder="Full name" maxlength="60" autocomplete="off">
-          <input id="fam-age" placeholder="Age" inputmode="numeric" maxlength="3">
-          <select id="fam-gender"><option value="">Gender</option><option>Female</option><option>Male</option><option>Other</option></select>
-          <select id="fam-relation"><option value="">Relation</option><option>Spouse</option><option>Child</option><option>Parent</option><option>Sibling</option><option>Other</option></select>
-          <button class="btn btn-small" type="submit">Add member</button>
-        </form>
-        <div class="form-error" id="fam-error"></div>
-      </div>
-      <div class="dash-panel hidden" id="dash-panel-profile">
-        <h3 class="dash-h">Profile Settings</h3>
-        <p class="dash-sub">Your name and age prefill new bookings.</p>
-        <div class="prof-grid">
-          <div class="form-row"><label for="prof-name">Full Name</label><input id="prof-name" maxlength="60" value="${(p.name || '').replace(/"/g, '&quot;')}"></div>
-          <div class="form-row"><label for="prof-age">Age</label><input id="prof-age" inputmode="numeric" maxlength="3" value="${p.age != null ? p.age : ''}"></div>
-          <div class="form-row"><label>Mobile Number</label><input value="${esc(p.phone ? maskPhone(p.phone) : '-')}" disabled></div>
-          <div class="form-row"><label>Email</label><input value="${esc(p.email || '-')}" disabled></div>
-        </div>
-        <p class="dash-note">Mobile and email are your sign-in - they can't be changed here.</p>
-        <button type="button" class="btn btn-small" id="prof-save">Save changes</button>
-        <div class="form-error" id="prof-error"></div>
-      </div>
+    <div class="mb-tabs" id="mb-tabs">
+      <button type="button" class="mb-tab active" data-mbtab="upcoming">Upcoming</button>
+      <button type="button" class="mb-tab" data-mbtab="past">Past</button>
+      <button type="button" class="mb-tab" data-mbtab="cancelled">Cancelled</button>
     </div>
-  </div>`;
-  $('#dash-nav').querySelectorAll('.dash-nav-btn[data-tab]').forEach(btn => btn.onclick = () => showDash(btn.dataset.tab));
-  $('#dash-logout').onclick = async () => { await logout(); };
+    <div id="my-bookings">${LOADER('Loading your bookings&hellip;', 'cards')}</div>`;
   $('#mb-tabs').querySelectorAll('.mb-tab').forEach(btn => btn.onclick = () => {
     state.mbTab = btn.dataset.mbtab;
     $('#mb-tabs').querySelectorAll('.mb-tab').forEach(t => t.classList.toggle('active', t === btn));
     renderMbList();
   });
-  wireFamilyForm();
-  $('#prof-save').onclick = saveProfile;
   loadMyBookings();
-}
-
-function showDash(tab) {
-  state.dashTab = tab;
-  document.querySelectorAll('#dash-nav .dash-nav-btn[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-  document.querySelectorAll('.dash-panel').forEach(pn => pn.classList.add('hidden'));
-  const panel = $('#dash-panel-' + tab);
-  if (panel) panel.classList.remove('hidden');
-  if (tab === 'bookings') renderMbList();
-  if (tab === 'saved') renderSaved();
-  if (tab === 'family') loadFamily();
 }
 
 /* Saved clinics (localStorage). */
@@ -1808,7 +1767,7 @@ function toggleSaveClinic(c) {
   const list = getSavedClinics();
   const i = list.findIndex(x => x.id === c.id);
   if (i >= 0) { list.splice(i, 1); toast('Removed from saved clinics', 'info'); }
-  else { list.push({ id: c.id, name: c.name, area: c.area, min_fee: c.min_fee }); toast('Saved - find it under My Account', 'info'); }
+  else { list.push({ id: c.id, name: c.name, area: c.area, min_fee: c.min_fee }); toast('Saved to your wishlist', 'info'); }
   localStorage.setItem('dh_saved_clinics', JSON.stringify(list));
 }
 function updateSaveBtn() {
@@ -1904,19 +1863,6 @@ function wireFamilyForm() {
       loadFamily();
     } catch (e) { err.textContent = e.message; err.style.display = 'block'; }
   };
-}
-
-/* Profile settings. */
-async function saveProfile() {
-  const err = $('#prof-error'); err.style.display = 'none';
-  try {
-    await api('/api/auth/profile', { method: 'POST', body: { name: $('#prof-name').value.trim(), age: $('#prof-age').value.trim() } });
-    const { patient } = await api('/api/auth/me');
-    state.patient = patient;
-    toast('Details saved', 'info');
-    renderAccount();
-    renderAcctMenu();
-  } catch (e) { err.textContent = e.message; err.style.display = 'block'; }
 }
 
 function renderLogin(host) {
