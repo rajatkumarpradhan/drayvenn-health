@@ -1,9 +1,9 @@
-/* Drayvenn Health service worker.
+/* Drayvenn Lab service worker.
    Network-first for documents/scripts/styles so fresh deploys always land
    (the "one refresh" workflow stays intact), cache-first for versioned static
    images under /brand and /vendor (filenames change when content changes),
    network-only for /api/ - booking and auth data is never cached. */
-const CACHE = 'drayvenn-shell-v34';
+const CACHE = 'drayvenn-shell-v35';
 const SHELL = ['/', '/index.html', '/styles.css', '/app.js', '/brand/icon.png'];
 const STATIC_RE = /^\/(brand|vendor)\/.*\.(png|webp|jpg|jpeg|svg|ico|css|js|woff2?)$/;
 

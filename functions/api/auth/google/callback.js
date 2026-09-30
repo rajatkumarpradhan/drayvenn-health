@@ -7,7 +7,7 @@ import { notifyLogin } from '../../_alerts.js';
    Google to the signed-in patient or finds/creates the patient by google_sub. */
 function htmlError(msg) {
   return new Response(
-    '<!doctype html><meta charset="utf-8"><title>Sign-in failed</title><body style="font-family:sans-serif;background:#0b1025;color:#eef;min-height:100vh;display:grid;place-items:center;margin:0"><div style="text-align:center;max-width:320px"><h2>Sign-in failed</h2><p>' + msg + '</p><p><a href="/" style="color:#5eead4">Back to Drayvenn Health</a></p></div></body>',
+    '<!doctype html><meta charset="utf-8"><title>Sign-in failed</title><body style="font-family:sans-serif;background:#0b1025;color:#eef;min-height:100vh;display:grid;place-items:center;margin:0"><div style="text-align:center;max-width:320px"><h2>Sign-in failed</h2><p>' + msg + '</p><p><a href="/" style="color:#5eead4">Back to Drayvenn Lab</a></p></div></body>',
     { status: 400, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
 }
 

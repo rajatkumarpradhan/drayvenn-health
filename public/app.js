@@ -297,7 +297,7 @@ function renderAccountPage() {
   const p = state.patient;
   const about = `
     <div class="acctp-about hidden" id="acctp-about">
-      Drayvenn Health is a clinic-booking product by Drayvenn Lab, built for neighbourhood clinics in Bengaluru.
+      Drayvenn Lab is a clinic-booking product built for neighbourhood clinics in Bengaluru.
       Patients book real slots in under a minute and pay at the clinic. The clinics shown in this demo are
       marked SAMPLE - no real clinic data is used yet. One account keeps every booking in one place.
     </div>`;
@@ -353,7 +353,7 @@ function renderAccountPage() {
       ${acctRow('acp-chat', 'chat', 'Talk to the assistant')}
       ${acctRow('acp-support', 'phone', 'Contact us')}
       ${acctRow('acp-privacy', 'lock', 'Privacy & data')}
-      ${acctRow('acp-about', 'info', 'About Drayvenn Health')}
+      ${acctRow('acp-about', 'info', 'About Drayvenn Lab')}
     </div>
     ${about}
     <div class="acctp-group">Account</div>
@@ -380,7 +380,7 @@ function renderAccountPage() {
       ${acctRow('acp-chat', 'chat', 'Talk to the assistant')}
       ${acctRow('acp-support', 'phone', 'Contact us')}
       ${acctRow('acp-privacy', 'lock', 'Privacy & data')}
-      ${acctRow('acp-about', 'info', 'About Drayvenn Health')}
+      ${acctRow('acp-about', 'info', 'About Drayvenn Lab')}
     </div>
     ${about}
     <div class="acctp-group">For clinics</div>
@@ -1283,7 +1283,7 @@ function wizDetailsHTML() {
         </select></div>
       </div>
       <div class="form-row"><label for="wz-concern">Symptoms / notes <span style="color:var(--muted);font-weight:400">(optional)</span></label><textarea id="wz-concern" rows="2" placeholder="e.g. fever since 2 days" maxlength="300">${esc(b.pconcern || '')}</textarea></div>
-      <div class="consent-row">By confirming, you agree to Drayvenn Health storing your name, mobile number and booking details so the clinic can manage this appointment, as described in the <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>. You can ask for your data to be deleted anytime.</div>
+      <div class="consent-row">By confirming, you agree to Drayvenn Lab storing your name, mobile number and booking details so the clinic can manage this appointment, as described in the <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>. You can ask for your data to be deleted anytime.</div>
       <div class="form-note" style="text-align:center;margin-top:2px">No payment now - pay \u20B9${b.doctor.fee} at the clinic. The clinic confirms your slot shortly.</div>
       <div class="form-error" id="wz-error"></div>
     </div></div>`;
@@ -1335,7 +1335,7 @@ function wizReviewHTML() {
       ${b.pconcern ? row('Concern', b.pconcern) : ''}
       <div class="wiz-review-row wiz-review-total"><span>Consult fee</span><b>₹${b.doctor.fee} <span class="wiz-pay-note">pay at clinic</span></b></div>
     </div>
-    <div class="consent-row">By confirming, you agree to Drayvenn Health storing your name, mobile number and booking details so the clinic can manage this appointment, as described in the <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>. You can ask for your data to be deleted anytime.</div>
+    <div class="consent-row">By confirming, you agree to Drayvenn Lab storing your name, mobile number and booking details so the clinic can manage this appointment, as described in the <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>. You can ask for your data to be deleted anytime.</div>
     <div class="form-error" id="bk-error2"></div>
     <div class="form-note" style="text-align:center;margin-top:2px">The clinic confirms your slot shortly.</div></div>`;
 }
@@ -1390,7 +1390,7 @@ function gcalLink(b) {
     action: 'TEMPLATE',
     text: `Appointment: ${b.doctor_name} - ${b.clinic_name}`,
     dates: dt + '/' + end,
-    details: `Booking ref ${b.ref} · Patient ${b.patient_name}${b.fee ? ' · Fee ₹' + b.fee : ''} (pay at clinic) · Booked via Drayvenn Health`,
+    details: `Booking ref ${b.ref} · Patient ${b.patient_name}${b.fee ? ' · Fee ₹' + b.fee : ''} (pay at clinic) · Booked via Drayvenn Lab`,
     location: b.clinic_address
   });
   return 'https://calendar.google.com/calendar/render?' + params.toString();
@@ -1422,7 +1422,7 @@ function renderConfirmation(b) {
   $('#confirm-sub').textContent = `${b.clinic_name} will confirm your slot shortly. Save your booking reference.`;
   $('#confirm-ref').innerHTML = `Booking ID <b>${esc(b.ref)}</b>`;
   $('#wa-bubble').innerHTML = `
-    <div class="wa-head">Drayvenn Health · Appointment booked</div>
+    <div class="wa-head">Drayvenn Lab · Appointment booked</div>
     <div class="wa-row"><span class="k">Patient</span><span class="v">${esc(b.patient_name)}${b.age ? ' · ' + esc(b.age) + ' yrs' : ''}</span></div>
     <div class="wa-row"><span class="k">Doctor</span><span class="v">${esc(b.doctor_name)}</span></div>
     <div class="wa-row"><span class="k">Clinic</span><span class="v">${esc(b.clinic_name)}</span></div>
@@ -1602,7 +1602,7 @@ $('#confirm-copy').onclick = async () => {
 $('#confirm-share').onclick = async () => {
   const b = state.lastBooking;
   if (!b) return;
-  const text = `Drayvenn Health appointment\n${b.doctor_name} - ${b.clinic_name}\n${fmtDate(b.date)}, ${fmtTime(b.slot)}\nBooking ref: ${b.ref}`;
+  const text = `Drayvenn Lab appointment\n${b.doctor_name} - ${b.clinic_name}\n${fmtDate(b.date)}, ${fmtTime(b.slot)}\nBooking ref: ${b.ref}`;
   window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
 };
 $('#confirm-manage').onclick = () => {
@@ -2098,7 +2098,7 @@ function openBookingModal(b) {
   $('#bmodal-close').onclick = closeBModal;
   ov.addEventListener('click', e => { if (e.target === ov) closeBModal(); });
   $('#bm-share').onclick = () => {
-    const text = `Drayvenn Health appointment\n${b.doctor_name} - ${b.clinic_name}\n${fmtDate(b.date)}, ${fmtTime(b.slot)}\nBooking ref: ${b.ref}`;
+    const text = `Drayvenn Lab appointment\n${b.doctor_name} - ${b.clinic_name}\n${fmtDate(b.date)}, ${fmtTime(b.slot)}\nBooking ref: ${b.ref}`;
     window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
   };
   const rc = $('#bm-resched'); if (rc) rc.onclick = () => { closeBModal(); const card = document.querySelector(`.bk-card[data-ref="${CSS.escape(b.ref)}"]`); if (card) myReschedulePanel(card, b.ref, b.doctor_id); };
