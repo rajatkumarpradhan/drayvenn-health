@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=84">
+<link rel="stylesheet" href="styles.css?v=85">
 <link rel="icon" type="image/png" href="/favicon-64.png">
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#0D9488">
@@ -64,31 +64,36 @@
   <!-- HOME -->
   <section id="view-home">
     <div class="hero">
-      <div class="hero-main">
-      <div class="loc-row">
-        <span class="loc-pin"><svg class="pin-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
-        <div class="loc-sel-wrap">
-          <select id="home-area" aria-label="Choose your area">
-            <option value="All">Bengaluru - all areas</option>
-          </select>
+      <div class="hero-copy">
+        <div class="loc-row">
+          <span class="loc-pin"><svg class="pin-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+          <div class="loc-sel-wrap">
+            <select id="home-area" aria-label="Choose your area">
+              <option value="All">Bengaluru - all areas</option>
+            </select>
+          </div>
+        </div>
+        <h1>Book a doctor<br>near you, without<br><span>the phone calls.</span></h1>
+        <p>Neighbourhood clinics across Bengaluru. Pick a doctor, choose a time, done in under a minute.</p>
+        <div class="hero-ctas">
+          <button type="button" class="btn btn-hero" id="cta-find">Find a Doctor</button>
+          <button type="button" class="btn btn-outline btn-hero" id="cta-track">Track Booking</button>
+        </div>
+        <div class="live-pill hidden" id="live-pill"><span class="live-dot"></span><span id="live-text"></span></div>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <div class="hv-panel">
+          <img class="hv-doc" src="brand/doctor-hero.png" alt="" loading="eager" decoding="async">
+          <div class="hv-card hv-card-a">
+            <span class="hv-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="5"/></svg></span>
+            <span class="hv-txt"><strong>8+</strong><small>Specialities</small></span>
+          </div>
+          <div class="hv-card hv-card-b">
+            <span class="hv-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></span>
+            <span class="hv-txt"><strong>Under 5 mins</strong><small>Clinic confirms</small></span>
+          </div>
         </div>
       </div>
-      <h1>Book a doctor near you,<br><span>without the phone calls.</span></h1>
-      <p>Neighbourhood clinics across Bengaluru. Pick a doctor, choose a time, done in under a minute.</p>
-      <div class="hero-ctas">
-        <button type="button" class="btn btn-hero" id="cta-find">Find a Doctor</button>
-        <button type="button" class="btn btn-outline btn-hero" id="cta-track">Track Booking</button>
-      </div>
-      <div class="live-pill hidden" id="live-pill"><span class="live-dot"></span><span id="live-text"></span></div>
-      <div class="hero-scene" aria-hidden="true">
-        <video class="hero-vid" src="brand/hero-loop.mp4" poster="brand/hero-poster.jpg" autoplay muted loop playsinline preload="auto" disablepictureinpicture aria-hidden="true"></video>
-      </div>
-      </div>
-    <svg class="hero-ecg" viewBox="0 0 560 64" preserveAspectRatio="none" fill="none" aria-hidden="true">
-          <path class="ecg-base" d="M0 32 H180 L196 32 204 12 216 52 226 22 232 32 H330 L344 32 352 10 364 54 374 20 380 32 H560" stroke="rgba(255,255,255,.3)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path class="ecg-pulse" d="M0 32 H180 L196 32 204 12 216 52 226 22 232 32 H330 L344 32 352 10 364 54 374 20 380 32 H560" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle class="ecg-dot" r="4.5" fill="#FFFFFF" style="filter:drop-shadow(0 0 6px #2dd4bf)"/>
-        </svg>
     </div>
     <div class="searchbar hero-search">
       <input type="text" id="home-search" placeholder="Search clinics, doctors, specialties... e.g. dentist">
@@ -98,6 +103,9 @@
       <div class="trust-item">✓ Pay at clinic - no advance</div>
       <div class="trust-item">✓ Verified neighbourhood clinics</div>
       <div class="trust-item">✓ Instant booking reference</div>
+    </div>
+    <div class="video-band reveal">
+      <video class="hero-vid" src="brand/hero-loop.mp4" poster="brand/hero-poster.jpg" autoplay muted loop playsinline preload="auto" disablepictureinpicture aria-hidden="true"></video>
     </div>
     <div id="recent-wrap" class="hidden">
       <div class="recent-label">Recently viewed</div>
@@ -337,7 +345,7 @@
 <link rel="stylesheet" href="vendor/leaflet.css">
 <script src="vendor/leaflet.js" defer></script>
 <script>window.__bootErrs=[];addEventListener("error",function(e){__bootErrs.push((e.message||"")+" @ "+(e.filename||"").split("/").pop()+":"+e.lineno)});</script>
-  <script src="app.js?v=84"></script>
-<script src="chat.js?v=84"></script>
+  <script src="app.js?v=85"></script>
+<script src="chat.js?v=85"></script>
 </body>
 </html>
