@@ -2199,3 +2199,11 @@ window.showFromChat = show;
 loadClinics();
 initAcctMenu();
 loadPatient().then(() => { renderAcctMenu(); if (!$('#view-mybookings').classList.contains('hidden')) renderAccount(); });
+
+/* v92 - FAQ accordion */
+document.querySelectorAll('.faq-q').forEach(btn => btn.addEventListener('click', () => {
+  const item = btn.closest('.faq-item');
+  const wasOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(x => x.classList.remove('open'));
+  if (!wasOpen) item.classList.add('open');
+}));
