@@ -234,7 +234,8 @@ const UI_ICONS = {
   search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
   pulse: '<path d="M3 12h4l2-7 4 14 2-7h6"/>',
   check: '<path d="M4 12.5l5 5L20 6.5"/>',
-  shield: '<path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6z"/><path d="M9 11.5l2.2 2.2L15.5 9.5"/>'
+  shield: '<path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6z"/><path d="M9 11.5l2.2 2.2L15.5 9.5"/>',
+  arrow: '<path d="M7 17L17 7M9.5 7H17v7.5"/>'
 };
 function uiIcon(name) {
   return `<svg class="pin-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${UI_ICONS[name]}</svg>`;
@@ -656,24 +657,24 @@ function renderFeatured() {
   const host = $('#featured-grid');
   if (!host || !state.clinics.length) return;
   host.innerHTML = state.clinics.slice(0, 3).map((c, i) => {
-    const specs = (c.specialties || []).slice(0, 3).map(s => `<span class="feat-spec">${esc(s)}</span>`).join('');
     const next = fmtNext(c.next_available);
+    const spec0 = (c.specialties || [])[0] || '';
     return `<article class="feat-card reveal" data-id="${c.id}" role="button" tabindex="0" aria-label="View ${esc(c.name)}">
-      <div class="feat-visual">${clinicMark(c, 'feat-mark')}</div>
-      <div class="feat-body">
-        <div class="feat-name">${esc(c.name)}</div>
-        <div class="feat-area">${uiIcon('pin')} ${esc(c.area)} <span class="sample-tag">Sample clinic</span></div>
-        <div class="feat-specs">${specs}</div>
-        <div class="feat-meta"><span class="feat-fee">from ₹${c.min_fee}</span>${next ? `<span class="feat-next">${uiIcon('cal')} Next: ${esc(next)}</span>` : ''}</div>
-        <button type="button" class="btn btn-block feat-book" data-book="${c.id}">Book Now</button>
+      <div class="feat-visual">${clinicMark(c, 'feat-mark')}
+        <span class="sample-tag feat-sample">Sample clinic</span>
+        <span class="feat-arrow">${uiIcon('arrow')}</span>
+        <div class="feat-pill">
+          <div class="feat-name">${esc(c.name)}</div>
+          <div class="feat-area">${uiIcon('pin')} ${esc(c.area)}${spec0 ? ' · ' + esc(spec0) : ''}</div>
+          <div class="feat-meta"><span class="feat-fee">from ₹${c.min_fee}</span>${next ? `<span class="feat-next">${uiIcon('cal')} Next: ${esc(next)}</span>` : ''}</div>
+        </div>
       </div>
     </article>`;
   }).join('');
   host.querySelectorAll('.feat-card').forEach(el => {
-    el.onclick = e => { if (e.target.closest('.feat-book')) return; openClinic(el.dataset.id); };
+    el.onclick = () => openClinic(el.dataset.id);
     el.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openClinic(el.dataset.id); } };
   });
-  host.querySelectorAll('.feat-book').forEach(b => b.onclick = e => { e.stopPropagation(); openClinic(b.dataset.book); });
   watchReveals(host);
 }
 
