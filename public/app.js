@@ -2235,7 +2235,7 @@ const topnavBook = document.getElementById('topnav-book');
 if (topnavBook) topnavBook.onclick = () => { const g = document.getElementById('featured-grid'); if (g) g.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
 
 /* v95 - page views routing */
-const PAGE_VIEWS = { about: 'about', services: 'services', contact: 'contact', faqs: 'faqs' };
+const PAGE_VIEWS = { about: 'about', services: 'services', contact: 'contact', faqs: 'faqs', track: 'track' };
 function openPage(p) { if (p === 'faqs') { show('home'); setTimeout(() => { const f = document.getElementById('faqs'); if (f) f.scrollIntoView({ behavior: 'smooth' }); }, 120); return; } show(PAGE_VIEWS[p] || '404'); }
 window.addEventListener('hashchange', () => {
   const h = location.hash.replace('#', '');
