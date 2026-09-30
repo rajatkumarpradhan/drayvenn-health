@@ -181,6 +181,11 @@ function renderHomeExtras() {
       if (lp && lt) { lt.textContent = d.bookings + ' appointments booked so far'; lp.classList.remove('hidden'); }
     }
   }).catch(() => {});
+  const tbInner = document.querySelector('.topbar-inner');
+  if (tbInner) {
+    const onScroll = () => tbInner.classList.toggle('scrolled', window.scrollY > 24);
+    addEventListener('scroll', onScroll, { passive: true }); onScroll();
+  }
   const host = $('#browse-specs');
   if (host) {
     host.innerHTML = [...specs.entries()].slice(0, 8).map(([s, n], i) =>
