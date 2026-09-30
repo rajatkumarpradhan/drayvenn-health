@@ -191,6 +191,11 @@ function renderHomeExtras() {
       show('clinics');
     });
   }
+  document.querySelectorAll('.svc-card').forEach(b => b.onclick = () => {
+    state.filter.specs = [b.dataset.spec];
+    renderSpecChips(); renderActiveFilters(); renderBrowse();
+    show('clinics');
+  });
   const ah = $('#home-areas');
   if (ah) {
     const areas = [...new Set(state.clinics.map(c => c.area))].sort();
