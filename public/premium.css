@@ -46,3 +46,5 @@ input,select,textarea{border-radius:var(--r-field)}
 input:focus,select:focus,textarea:focus{border-color:rgba(47,102,208,.45);box-shadow:0 0 0 4px rgba(47,102,208,.10);outline:none}
 .hero-search input,.admin-search input{box-shadow:var(--shadow-sm);border:1px solid var(--line)}
 .trust-chip,.hero-trust span{border:1px solid var(--line);box-shadow:var(--shadow-xs);color:var(--primary-deep);font-weight:600}
+.btn-hero,.btn-block{border-radius:var(--r-pill)}
+.services-panel h2,.services-panel h3,.services-panel .svc-title,.services-panel .svc-card h3{color:#fff}
