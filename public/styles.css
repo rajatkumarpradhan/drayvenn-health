@@ -1493,3 +1493,4 @@ body.intro-open { overflow: hidden; }
 .pf-approve input[type=email] { width: 100%; box-sizing: border-box; }
 .pf-check { display: flex; gap: 8px; align-items: center; font-size: 14px; margin: 8px 0; }
 .pf-card .doc-actions { margin-top: 10px; }
+.pf-check input { width: auto !important; flex: none; }
