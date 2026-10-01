@@ -85,3 +85,5 @@ main.wrap { padding-top: 18px; padding-bottom: calc(40px + env(safe-area-inset-b
   .menu-pop { bottom: auto; top: 50px; }
   .stat-card .num { font-size: 28px; }
 }
+.stat-card .lbl { font-size: 10px; letter-spacing: .02em; }
+.stat-card { min-width: 0; overflow: hidden; }
