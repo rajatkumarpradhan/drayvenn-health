@@ -75,3 +75,4 @@ input:focus,select:focus,textarea:focus{border-color:rgba(47,102,208,.45);box-sh
 .ds-slot{border:1.5px solid #cfe3f7;background:#f4f9ff;color:#1a4a9a;border-radius:10px;padding:8px 12px;font:700 13px Inter,sans-serif;cursor:pointer}
 .ds-slot:hover{background:#1f5fbf;color:#fff;border-color:#1f5fbf}
 .ds-note{font-size:13px;color:#7a8799}
+.doctor-card{flex-wrap:wrap}
