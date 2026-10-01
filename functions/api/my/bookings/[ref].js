@@ -49,12 +49,19 @@ export async function onRequestPost(context) {
       const cutoff = String(n.getUTCHours()).padStart(2, '0') + ':' + String(n.getUTCMinutes()).padStart(2, '0');
       if (slot <= cutoff) return badRequest('That time has already passed today');
     }
+    if (date === booking.date && slot === booking.slot) return badRequest('That is already your current time - pick a different one');
     const clash = await DB.prepare(
       "SELECT id FROM bookings WHERE doctor_id = ? AND date = ? AND slot = ? AND status != 'cancelled' AND id != ?"
     ).bind(booking.doctor_id, date, slot, booking.id).first();
-    if (clash) return json({ error: 'That slot is already taken' }, 409);
-    await DB.prepare('UPDATE bookings SET date = ?, slot = ? WHERE id = ?').bind(date, slot, booking.id).run();
-    const res = json({ ok: true, ref, date, slot });
+    if (clash) return json({ error: 'That slot was just taken - please pick another' }, 409);
+    /* A moved appointment goes back to pending so the clinic re-confirms the new time. */
+    try {
+      await DB.prepare("UPDATE bookings SET date = ?, slot = ?, status = 'pending' WHERE id = ?").bind(date, slot, booking.id).run();
+    } catch (e) {
+      if (/UNIQUE/i.test(String(e))) return json({ error: 'That slot was just taken - please pick another' }, 409);
+      throw e;
+    }
+    const res = json({ ok: true, ref, date, slot, status: 'pending' });
     return withSessionMaintenance(DB, state, context.request, res);
   }
 

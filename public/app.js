@@ -1598,15 +1598,18 @@ function renderManageBooking(b) {
   const host = $('#bk-result');
   const stepIdx = b.status === 'pending' ? 0 : b.status === 'confirmed' ? 1 : -1;
   const upcoming = b.status !== 'cancelled' && b.date >= toISODate(new Date());
+  const ds = dispStatus(b);
+  const SB = { pending: ['\u23F3', 'Pending', 'Waiting for the clinic to confirm', '#8a5a00', '#fff4d6'], confirmed: ['\u2713', 'Confirmed', 'Your slot is confirmed', '#0b6b3a', '#e3f7ec'], cancelled: ['\u2715', 'Cancelled', 'This booking was cancelled', '#a12020', '#fde8e8'], completed: ['\u2713', 'Completed', 'This visit is done', '#2F66D0', '#e8f0fe'], expired: ['\u2013', 'Not confirmed', 'The date has passed without clinic confirmation', '#5b6577', '#eef1f5'] }[ds] || ['', ds, '', '#333', '#eee'];
   host.innerHTML = `
     <div class="track-result">
-      ${stepIdx >= 0 ? `<div class="track-steps">
+      <div class="track-status" style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;background:${SB[4]};color:${SB[3]};margin-bottom:14px"><div style="width:40px;height:40px;border-radius:50%;background:#fff;display:grid;place-items:center;font-weight:800;font-size:18px">${SB[0]}</div><div><div style="font-weight:800;font-size:17px">${SB[1]}</div><div style="font-size:13px;opacity:.85">${SB[2]}</div></div></div>
+      ${stepIdx >= 0 && ds !== 'completed' && ds !== 'expired' ? `<div class="track-steps">
         <div class="tstep done"><div class="tdot"></div>Booked</div>
         <div class="tline ${stepIdx >= 1 ? 'done' : ''}"></div>
         <div class="tstep ${stepIdx >= 1 ? 'done' : ''}"><div class="tdot"></div>Confirmed</div>
       </div>
       ${stepIdx === 0 ? '<div class="track-note">Waiting for clinic confirmation</div>' : ''}
-      ${stepIdx === 1 ? '<div class="track-note track-note-ok">Confirmed - show your booking reference at the clinic</div>' : ''}` : `<div style="text-align:center;margin-bottom:10px"><span class="status-badge status-cancelled">Cancelled</span></div>`}
+      ${stepIdx === 1 ? '<div class="track-note track-note-ok">Confirmed - show your booking reference at the clinic</div>' : ''}` : ''}
       <div class="wa-row"><span class="k">Patient</span><span class="v">${esc(b.patient_name)}</span></div>
       <div class="wa-row"><span class="k">Doctor</span><span class="v">${esc(b.doctor_name)} (${esc(b.specialty)})</span></div>
       <div class="wa-row"><span class="k">Clinic</span><span class="v">${esc(b.clinic_name)}, ${esc(b.clinic_area)}</span></div>
@@ -1874,7 +1877,7 @@ function renderAccount() {
         <div class="empty-sub">Sign in with your mobile number to see every booking in one place, with cancel and reschedule.</div>
         <button class="btn btn-block" id="acct-goto-signin">Sign in</button>
       </div>`;
-    $('#acct-goto-signin').onclick = showSignin;
+    $('#acct-goto-signin').onclick = () => openLoginModal(() => { show('mybookings'); renderAccount(); });
     return;
   }
   host.innerHTML = `
@@ -2127,7 +2130,13 @@ async function logout() {
   renderAcctMenu();
 }
 
-const MB_STATUS = { pending: 'Pending confirmation', confirmed: 'Confirmed', cancelled: 'Cancelled', completed: 'Completed' };
+function dispStatus(b) {
+  const today = new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10);
+  if (b.status === 'cancelled') return 'cancelled';
+  if (b.date < today) return b.status === 'confirmed' ? 'completed' : 'expired';
+  return b.status;
+}
+const MB_STATUS = { pending: 'Pending confirmation', confirmed: 'Confirmed', cancelled: 'Cancelled', completed: 'Completed', expired: 'Not confirmed (past)' };
 
 async function loadMyBookings() {
   const host = $('#my-bookings');
@@ -2174,7 +2183,7 @@ function renderMbList() {
     <div class="bk-card" data-ref="${esc(b.ref)}">
       <div class="bk-top">
         <span class="bk-ref">${esc(b.ref)}</span>
-        <span class="bk-badge bdg-${esc(b.status)}">${esc(MB_STATUS[b.status] || b.status)}</span>
+        <span class="bk-badge bdg-${esc(dispStatus(b))}">${esc(MB_STATUS[dispStatus(b)] || b.status)}</span>
       </div>
       <div class="bk-clinic">${esc(b.clinic_name)}</div>
       <div class="bk-doc">${esc(b.doctor_name)}${b.specialty ? ' · ' + esc(b.specialty) : ''}</div>
@@ -2217,7 +2226,7 @@ function openBookingModal(b) {
     <div class="bmodal" role="dialog" aria-modal="true" aria-label="Booking details">
       <div class="bmodal-head">
         <div>
-          <span class="bk-badge bdg-${esc(b.status)}">${esc(MB_STATUS[b.status] || b.status)}</span>
+          <span class="bk-badge bdg-${esc(dispStatus(b))}">${esc(MB_STATUS[dispStatus(b)] || b.status)}</span>
           <h3 class="bmodal-title">${esc(b.clinic_name)}</h3>
         </div>
         <button type="button" class="bmodal-x" id="bmodal-close" aria-label="Close">&times;</button>
@@ -2252,46 +2261,77 @@ function openBookingModal(b) {
 }
 
 async function myCancel(row, ref) {
-  if (!confirm('Cancel booking ' + ref + '?')) return;
-  try {
-    await api('/api/my/bookings/' + encodeURIComponent(ref), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'cancel' }) });
-    toast('Booking ' + ref + ' cancelled', 'info');
-    loadMyBookings();
-  } catch (e) { toast(e.message, 'error'); }
+  const panel = row.querySelector('.rs-panel');
+  panel.classList.remove('hidden');
+  panel.innerHTML = `<div class="rs-title">Cancel ${esc(ref)}?</div>
+    <p class="dash-note" style="margin:0 0 10px">The slot is released for other patients. You can book again anytime.</p>
+    <div class="form-error"></div>
+    <div class="bk-actions"><button type="button" class="btn btn-small btn-outline rs-keep">Keep booking</button>
+    <button type="button" class="btn btn-small btn-danger rs-yes">Yes, cancel</button></div>`;
+  const err = panel.querySelector('.form-error');
+  panel.querySelector('.rs-keep').onclick = () => { panel.classList.add('hidden'); panel.innerHTML = ''; };
+  const yes = panel.querySelector('.rs-yes');
+  yes.onclick = async () => {
+    yes.disabled = true; yes.textContent = 'Cancelling...';
+    try {
+      await api('/api/my/bookings/' + encodeURIComponent(ref), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'cancel' }) });
+      toast('Booking ' + ref + ' cancelled', 'info');
+      loadMyBookings();
+    } catch (e) { err.textContent = e.message; err.style.display = 'block'; yes.disabled = false; yes.textContent = 'Yes, cancel'; }
+  };
 }
 
 function myReschedulePanel(row, ref, doctorId) {
   const panel = row.querySelector('.rs-panel');
-  const today = new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10);
-  const max = new Date(Date.now() + 330 * 60000 + 13 * 86400000).toISOString().slice(0, 10);
+  const b0 = (state.myBookings || []).find(x => x.ref === ref) || {};
+  const days = [];
+  const now = new Date(Date.now() + 330 * 60000);
+  for (let i = 0; i < 14; i++) days.push(new Date(now.getTime() + i * 86400000).toISOString().slice(0, 10));
   panel.innerHTML = `
     <div class="rs-title">Reschedule ${esc(ref)}</div>
-    <div class="rs-grid">
-      <input type="date" class="rs-date" min="${today}" max="${max}" value="${today}">
-      <select class="rs-slot"><option value="">Pick date first</option></select>
-      <button class="btn rs-save">Move booking</button>
-    </div>
-    <div class="form-error" style="margin-top:6px"></div>`;
+    <div class="dash-note" style="margin:0 0 8px">Currently ${esc(fmtDate(b0.date || ''))} · ${esc(fmtTime(b0.slot || '00:00'))}. Pick a new day and time.</div>
+    <div class="date-row">${days.map((iso, i) => {
+      const d = new Date(iso + 'T00:00:00Z');
+      return `<button type="button" class="date-pill" data-iso="${iso}"><div class="dow">${i === 0 ? 'Today' : d.toLocaleDateString('en-IN', { weekday: 'short', timeZone: 'UTC' })}</div><div class="dnum">${d.getUTCDate()}</div><div class="dow">${d.toLocaleDateString('en-IN', { month: 'short', timeZone: 'UTC' })}</div></button>`;
+    }).join('')}</div>
+    <div class="rs-slots"><div class="wiz-slot-hint">Pick a day to see open times</div></div>
+    <div class="form-error" style="margin-top:6px"></div>
+    <div class="bk-actions"><button type="button" class="btn btn-small btn-outline rs-close">Close</button><button type="button" class="btn btn-small rs-save" disabled>Move booking</button></div>`;
   panel.classList.remove('hidden');
-  const dateEl = panel.querySelector('.rs-date');
-  const slotEl = panel.querySelector('.rs-slot');
+  const slotsEl = panel.querySelector('.rs-slots');
   const errEl = panel.querySelector('.form-error');
-  dateEl.onchange = async () => {
-    slotEl.innerHTML = '<option value="">Loading...</option>';
+  const save = panel.querySelector('.rs-save');
+  let pickDate = null, pickSlot = null;
+  panel.querySelector('.rs-close').onclick = () => { panel.classList.add('hidden'); panel.innerHTML = ''; };
+  panel.querySelectorAll('.date-pill').forEach(pill => pill.onclick = async () => {
+    panel.querySelectorAll('.date-pill').forEach(x => x.classList.toggle('active', x === pill));
+    pickDate = pill.dataset.iso; pickSlot = null; save.disabled = true; errEl.style.display = 'none';
+    slotsEl.innerHTML = '<div class="wiz-slot-hint">Loading times...</div>';
     try {
-      const { slots } = await api('/api/slots?doctor_id=' + encodeURIComponent(doctorId) + '&date=' + dateEl.value);
-      slotEl.innerHTML = slots.map(s => `<option value="${s.time}" ${s.available ? '' : 'disabled'}>${fmtTime(s.time)}${s.available ? '' : ' (taken)'}</option>`).join('');
-    } catch (e) { slotEl.innerHTML = '<option value="">No slots</option>'; errEl.textContent = e.message; errEl.style.display = 'block'; }
-  };
-  panel.querySelector('.rs-save').onclick = async () => {
+      const { slots } = await api('/api/slots?doctor_id=' + encodeURIComponent(doctorId) + '&date=' + pickDate);
+      const same = x => pickDate === b0.date && x.time === b0.slot;
+      const open = slots.filter(x => x.available || same(x));
+      if (!open.length) { slotsEl.innerHTML = '<div class="empty-note">No open times that day. Pick another day.</div>'; return; }
+      slotsEl.innerHTML = '<div class="slot-grid">' + slots.map(x => `<button type="button" class="slot-btn" data-time="${x.time}" ${x.available && !same(x) ? '' : 'disabled'}>${fmtTime(x.time)}</button>`).join('') + '</div>';
+      slotsEl.querySelectorAll('.slot-btn:not(:disabled)').forEach(sb => sb.onclick = () => {
+        slotsEl.querySelectorAll('.slot-btn').forEach(x => x.classList.toggle('active', x === sb));
+        pickSlot = sb.dataset.time; save.disabled = false;
+      });
+    } catch (e) { slotsEl.innerHTML = ''; errEl.textContent = e.message; errEl.style.display = 'block'; }
+  });
+  save.onclick = async () => {
     errEl.style.display = 'none';
-    const slot = slotEl.value;
-    if (!dateEl.value || !slot) { errEl.textContent = 'Pick a date and a time.'; errEl.style.display = 'block'; return; }
+    if (!pickDate || !pickSlot) { errEl.textContent = 'Pick a date and a time.'; errEl.style.display = 'block'; return; }
+    save.disabled = true; save.textContent = 'Moving...';
     try {
-      await api('/api/my/bookings/' + encodeURIComponent(ref), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'reschedule', date: dateEl.value, slot }) });
-      toast('Moved to ' + fmtDate(dateEl.value) + ' ' + fmtTime(slot), 'info');
+      const r = await api('/api/my/bookings/' + encodeURIComponent(ref), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'reschedule', date: pickDate, slot: pickSlot }) });
+      toast('Moved to ' + fmtDate(pickDate) + ' ' + fmtTime(pickSlot) + (r.status === 'pending' ? '. The clinic will confirm the new time.' : ''), 'info');
       loadMyBookings();
-    } catch (e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
+    } catch (e) {
+      errEl.textContent = e.message; errEl.style.display = 'block';
+      save.textContent = 'Move booking'; save.disabled = false;
+      if (/taken/i.test(e.message)) { const act = panel.querySelector('.date-pill.active'); if (act) act.click(); }
+    }
   };
 }
 
