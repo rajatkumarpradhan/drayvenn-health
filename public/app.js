@@ -105,7 +105,7 @@ async function api(path, opts) {
   }
   const res = await fetch(path, opts);
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.message || data.error || 'Something went wrong');
+  if (!res.ok) { const er = new Error(data.message || data.error || 'Something went wrong'); er.status = res.status; throw er; }
   return data;
 }
 
@@ -1113,6 +1113,14 @@ function openBooking(doctorId, pre) {
     doctor = c ? c.doctors.find(d => d.id === doctorId) : null;
   }
   if (!doctor) { toast('Could not start booking - please reopen the clinic and try again.', 'error'); return; }
+  if (!state.patient) {
+    /* Only signed-in patients can book. Remember the choice, open the login
+       modal, and resume this exact booking once they are in. */
+    const resume = { clinicId: state.clinic.id, doctorId, date: pre && pre.date || null, slot: pre && pre.slot || null, t: Date.now() };
+    try { sessionStorage.setItem('dl_resume', JSON.stringify(resume)); } catch {}
+    openLoginModal(() => resumeBooking(resume));
+    return;
+  }
   state.booking = { doctor, date: pre && pre.date ? pre.date : null, slot: pre && pre.slot ? pre.slot : null, step: 'slot' };
   if (state.patient) {
     if (state.patient.name) state.booking.pname = state.patient.name;
@@ -1154,6 +1162,44 @@ function openBooking(doctorId, pre) {
   $('#wiz-next').onclick = wizNext;
   document.addEventListener('keydown', wizEsc);
   renderWizard('none');
+}
+
+function openLoginModal(after) {
+  closeLoginModal();
+  state.afterLogin = after || null;
+  state.authMode = state.authMode || 'signin';
+  const ov = document.createElement('div');
+  ov.id = 'login-overlay';
+  ov.innerHTML = `<div class="wizard login-modal" role="dialog" aria-modal="true" aria-label="Sign in to book">
+    <button class="book-close" id="login-modal-close" aria-label="Close">\u2715</button>
+    <div class="login-modal-note">Sign in to book your appointment. Your slot choice is saved.</div>
+    <div id="login-modal-host"></div></div>`;
+  ov.style.cssText = 'position:fixed;inset:0;z-index:780;background:rgba(15,23,42,.42);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:grid;place-items:end center';
+  document.body.appendChild(ov);
+  document.body.classList.add('wiz-open');
+  ov.addEventListener('click', e => { if (e.target === ov) closeLoginModal(true); });
+  $('#login-modal-close').onclick = () => closeLoginModal(true);
+  renderLogin($('#login-modal-host'));
+}
+function closeLoginModal(cancelled) {
+  const ov = document.getElementById('login-overlay');
+  if (ov) ov.remove();
+  if (!document.getElementById('wizard-overlay')) document.body.classList.remove('wiz-open');
+  if (cancelled) { state.afterLogin = null; try { sessionStorage.removeItem('dl_resume'); } catch {} }
+}
+async function resumeBooking(r) {
+  try { sessionStorage.removeItem('dl_resume'); } catch {}
+  if (!r || !state.patient) return;
+  try {
+    if (!state.clinic || state.clinic.id !== r.clinicId) {
+      const { clinic } = await api('/api/clinics/' + encodeURIComponent(r.clinicId));
+      state.clinic = clinic;
+      if (!state.clinics.some(c => c.id === clinic.id)) state.clinics.push(clinic);
+      renderClinicDetail();
+      show('clinic');
+    }
+    openBooking(r.doctorId, { date: r.date, slot: r.slot });
+  } catch (e) { toast('Signed in. Please pick your doctor again to continue.', 'info'); }
 }
 
 function closeWizard() {
@@ -1311,6 +1357,7 @@ function wizDetailsHTML() {
     <div class="wiz-step-title">Your details</div>
     <div class="wiz-step-sub">For ${esc(b.doctor.name)} · ${esc(fmtDateShort(b.date))} · ${fmtTime(b.slot)}</div>
     <div class="form-grid">
+      <div class="form-row" id="wz-who-row"><label>Who is this appointment for?</label><div class="who-chips" id="wz-who"><span class="dash-note">Loading...</span></div></div>
       ${state.bookingFor ? `<div class="for-member">Booking for <b>${esc(state.bookingFor.name)}</b>${state.bookingFor.relation ? ' (' + esc(state.bookingFor.relation) + ')' : ''} · from your account. <button type="button" class="linklike" id="wz-for-clear">Book for myself instead</button></div>` : ''}
       <div class="form-row"><label for="wz-name">Full Name</label><input id="wz-name" placeholder="Full name" maxlength="60" autocomplete="name" value="${v('pname')}"></div>
       <div class="form-row"><label for="wz-phone">Mobile Number</label>
@@ -1331,7 +1378,32 @@ function wizDetailsHTML() {
       <div class="form-error" id="wz-error"></div>
     </div></div>`;
 }
+async function wizLoadWho() {
+  const host = $('#wz-who'); if (!host) return;
+  let members = state.familyMembers;
+  try { if (!members || !members.length) { const r = await api('/api/my/family'); members = state.familyMembers = r.members || []; } } catch { members = []; }
+  const p = state.patient || {};
+  const cur = state.bookingFor ? 'm' + (state.bookingFor.id || state.bookingFor.name) : 'me';
+  const chips = [{ key: 'me', label: 'Myself', name: p.name || '', age: p.age, gender: '' }]
+    .concat(members.map(m => ({ key: 'm' + (m.id || m.name), label: m.name + (m.relation ? ' (' + m.relation + ')' : ''), name: m.name, age: m.age, gender: m.gender, m })));
+  host.innerHTML = chips.map(c => `<button type="button" class="who-chip${c.key === cur ? ' active' : ''}" data-k="${esc(c.key)}">${esc(c.label)}</button>`).join('')
+    + '<a href="#account" class="who-add" id="wz-who-add">+ Add family member</a>';
+  host.querySelectorAll('.who-chip').forEach(btn => {
+    btn.onclick = () => {
+      const c = chips.find(x => x.key === btn.dataset.k);
+      host.querySelectorAll('.who-chip').forEach(x => x.classList.toggle('active', x === btn));
+      state.bookingFor = c.m ? { id: c.m.id, name: c.m.name, age: c.m.age, gender: c.m.gender, relation: c.m.relation } : null;
+      $('#wz-name').value = c.name || '';
+      $('#wz-age').value = c.age != null ? c.age : '';
+      $('#wz-gender').value = c.gender || '';
+      const fm = document.querySelector('.for-member'); if (fm) fm.remove();
+    };
+  });
+  const add = $('#wz-who-add');
+  if (add) add.onclick = e => { e.preventDefault(); toast('Add family members from Profile > Family Members, then come back to book.', 'info'); };
+}
 function wireWizDetails() {
+  wizLoadWho();
   const fc = $('#wz-for-clear');
   if (fc) fc.onclick = () => {
     state.bookingFor = null;
@@ -1415,11 +1487,24 @@ async function submitBooking() {
     renderConfirmation(booking);
     show('confirm');
   } catch (e) {
-    err.textContent = e.message;
-    err.style.display = 'block';
-    toast(e.message, 'error');
+    const msg = e.message || 'Could not book right now';
     btn.disabled = false;
     btn.innerHTML = '✓ Confirm Booking';
+    if (e.status === 401 || /sign in/i.test(msg)) {
+      state.patient = null; renderAcctMenu();
+      const resume = { clinicId: state.clinic.id, doctorId: b.doctor.id, date: b.date, slot: b.slot, t: Date.now() };
+      try { sessionStorage.setItem('dl_resume', JSON.stringify(resume)); } catch {}
+      closeWizard(); openLoginModal(() => resumeBooking(resume)); return;
+    }
+    if (/taken|not available|already passed/i.test(msg)) {
+      state.booking.slot = null;
+      toast(msg, 'error');
+      wizGoto('slot', 'back');
+      return;
+    }
+    err.textContent = msg;
+    err.style.display = 'block';
+    toast(msg, 'error');
   }
 }
 
@@ -1463,7 +1548,7 @@ function confettiBurst() {
 function renderConfirmation(b) {
   setTimeout(confettiBurst, 250);
   $('#confirm-sub').textContent = `${b.clinic_name} will confirm your slot shortly. Save your booking reference.`;
-  $('#confirm-ref').innerHTML = `Booking ID <b>${esc(b.ref)}</b>`;
+  $('#confirm-ref').innerHTML = `Booking ID <b>${esc(b.ref)}</b> <span class="status-pill-pending" style="display:inline-block;margin-left:6px;padding:3px 10px;border-radius:999px;background:#fff4d6;color:#8a5a00;font-size:12px;font-weight:700;vertical-align:2px">Pending</span>`;
   let prep = document.getElementById('confirm-prep');
   if (!prep) { prep = document.createElement('div'); prep.id = 'confirm-prep'; prep.className = 'confirm-prep'; $('#confirm-ref').insertAdjacentElement('afterend', prep); }
   prep.innerHTML = `<div class="cp-title">Before your visit</div><ul><li>Carry a photo ID and this booking ID</li><li>Bring any earlier prescriptions or reports</li><li>Reach 5 minutes early</li><li>Consultation fee is paid at the clinic</li></ul>`;
@@ -2022,6 +2107,7 @@ async function verifyOtp() {
     state.patient = patient;
     renderAcctMenu();
     toast(created ? 'Account created. Welcome, ' + ((patient.name || '').split(' ')[0] || 'there') : 'Signed in', 'info');
+    if (state.afterLogin) { const fn = state.afterLogin; state.afterLogin = null; closeLoginModal(); fn(); return; }
     show('mybookings');
     renderAccount();
   } catch (e) {
@@ -2249,6 +2335,11 @@ loadClinics();
 initAcctMenu();
 loadPatient().then(() => {
   renderAcctMenu();
+  try {
+    const r = JSON.parse(sessionStorage.getItem('dl_resume') || 'null');
+    if (r && state.patient && Date.now() - r.t < 30 * 60 * 1000) { window.__postLoginLanding = null; setTimeout(() => resumeBooking(r), 400); }
+    else if (r && Date.now() - r.t >= 30 * 60 * 1000) sessionStorage.removeItem('dl_resume');
+  } catch {}
   if (window.__postLoginLanding) show(window.__postLoginLanding);
   else if (!$('#view-mybookings').classList.contains('hidden')) renderAccount();
 });

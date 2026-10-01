@@ -11,7 +11,8 @@ export async function onRequestPost(context) {
   const { clinic_id, doctor_id, patient_name, phone, date, slot } = body || {};
   // Optional auth: a signed-in patient's bookings attach to their account.
   const authState = await getPatientSession(DB, context.request);
-  const patientId = authState ? authState.patient.id : null;
+  if (!authState) return json({ error: 'Please sign in to book an appointment.', code: 'login_required' }, 401);
+  const patientId = authState.patient.id;
   if (body.consent !== true) return badRequest('Consent to the privacy policy is required to book');
   const age = body.age ? parseInt(body.age, 10) : null;
   const concern = (body.concern || '').toString().slice(0, 300).trim();
@@ -51,10 +52,15 @@ export async function onRequestPost(context) {
     ref = makeRef();
   }
 
+  try {
   await DB.prepare(
     `INSERT INTO bookings (ref, clinic_id, clinic_name, doctor_id, doctor_name, patient_name, phone, age, gender, concern, date, slot, status, consent_at, patient_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), ?)`
   ).bind(ref, clinic_id, clinic.name, doctor_id, doctor.name, name, ph, age, gender, concern || null, date, slot, patientId).run();
+  } catch (e) {
+    if (/UNIQUE/i.test(String(e))) return json({ error: 'That slot was just taken - please pick another' }, 409);
+    throw e;
+  }
 
   return json({
     booking: {
