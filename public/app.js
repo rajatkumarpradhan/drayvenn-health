@@ -1913,42 +1913,55 @@ function wireFamilyForm() {
 }
 
 function renderLogin(host) {
-
+  state.authMode = state.authMode || 'signin';
   host.innerHTML = `
     <div class="signin-head">
-      <h2 class="signin-title">Sign in or create account</h2>
-      <p style="color:var(--muted);font-size:13.5px;margin:4px 0 16px">One code on your mobile - no passwords. New number? Your account is created automatically.</p>
+      <h2 class="signin-title">Welcome to Drayvenn Lab</h2>
+      <p style="color:var(--muted);font-size:13.5px;margin:4px 0 14px">Sign in with a code on your mobile, or continue with Google. No passwords.</p>
+    </div>
+    <div class="auth-seg" role="tablist" style="display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:14px;background:rgba(47,102,208,.08);margin-bottom:14px">
+      <button type="button" role="tab" id="auth-t-in" class="auth-seg-btn">Sign in</button>
+      <button type="button" role="tab" id="auth-t-up" class="auth-seg-btn">Sign up</button>
     </div>
     <a class="btn btn-block btn-glass google-start" href="/api/auth/google/start" style="display:block;text-align:center">Continue with Google</a>
-    <button type="button" class="btn btn-block btn-apple" id="login-apple" style="margin-top:10px">Continue with Apple</button>
     <div style="display:flex;align-items:center;gap:10px;margin:16px 0;color:var(--muted);font-size:12px"><span style="flex:1;height:1px;background:var(--line,rgba(190,220,215,.4))"></span>or use your mobile number<span style="flex:1;height:1px;background:var(--line,rgba(190,220,215,.4))"></span></div>
     <div class="form-grid" id="login-phone-step">
+      <div class="form-row" id="login-name-row"><label for="login-name">Full name</label><input id="login-name" maxlength="60" autocomplete="name" placeholder="As on your ID"></div>
       <div class="form-row"><label for="login-phone">Mobile number</label>
         <div class="phone-wrap"><span class="phone-prefix">+91</span><input id="login-phone" type="tel" placeholder="98765 43210" inputmode="numeric" maxlength="10" autocomplete="tel-national"></div>
       </div>
       <div class="form-error" id="login-error"></div>
-      <button class="btn btn-block" id="login-send">Get OTP</button>
+      <button class="btn btn-block" id="login-send">Send OTP</button>
     </div>
     <div class="form-grid hidden signin-otp" id="login-otp-step">
       <div class="form-row"><label for="login-otp">Code sent to <b id="login-sent-to"></b></label><input id="login-otp" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;" inputmode="numeric" maxlength="6" autocomplete="one-time-code" style="letter-spacing:6px;text-align:center;font-size:18px"></div>
       <div class="dev-code hidden" id="login-devcode"></div>
       <div class="form-error" id="otp-error"></div>
-      <button class="btn btn-block" id="login-verify">Verify &amp; sign in</button>
+      <button class="btn btn-block" id="login-verify">Verify</button>
       <button class="btn btn-block btn-ghost" id="login-back">Change number</button>
     </div>
-    <div class="privacy-line" style="margin-top:14px">Codes expire in 10 minutes. Signing in creates your account on first use.</div>`;
+    <div class="privacy-line" style="margin-top:14px">Codes expire in 10 minutes. We only use your number to sign you in and confirm bookings.</div>`;
+  const paint = () => {
+    const up = state.authMode === 'signup';
+    const on = 'background:#fff;color:#1d3f8f;box-shadow:0 2px 8px rgba(30,60,130,.14)', off = 'background:transparent;color:var(--muted)';
+    const base = 'border:0;border-radius:11px;padding:10px 0;font-weight:700;font-size:14px;cursor:pointer;';
+    $('#auth-t-in').style.cssText = base + (up ? off : on);
+    $('#auth-t-up').style.cssText = base + (up ? on : off);
+    $('#auth-t-in').setAttribute('aria-selected', String(!up)); $('#auth-t-up').setAttribute('aria-selected', String(up));
+    $('#login-name-row').classList.toggle('hidden', !up);
+    $('#login-send').textContent = 'Send OTP';
+    $('#login-verify').textContent = up ? 'Verify & create account' : 'Verify & sign in';
+    $('#login-error').style.display = 'none';
+  };
+  $('#auth-t-in').onclick = () => { state.authMode = 'signin'; paint(); };
+  $('#auth-t-up').onclick = () => { state.authMode = 'signup'; paint(); };
+  paint();
   $('#login-phone').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10); });
   $('#login-otp').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6); });
   $('#login-send').onclick = requestOtp;
   $('#login-verify').onclick = verifyOtp;
   $('#login-back').onclick = () => { $('#login-otp-step').classList.add('hidden'); $('#login-phone-step').classList.remove('hidden'); };
   bindGoogleStart(host);
-  $('#login-apple').onclick = () => {
-    /* Apple sign-in is staged, not faked: it needs a paid Apple Developer
-       account (Services ID + key), which is not in the zero-budget plan yet.
-       Honest message, no dead endpoint. */
-    toast('Apple sign-in is being set up - use Google or your mobile number for now', 'info');
-  };
 }
 
 /* Follows /api/auth/google/start in JS so the clean "switching on" message
@@ -1971,15 +1984,16 @@ async function requestOtp() {
   const err = $('#login-error');
   err.style.display = 'none';
   const phone = $('#login-phone').value.trim();
+  if (state.authMode === 'signup' && ($('#login-name').value.trim().length < 2)) { err.textContent = 'Enter your full name.'; err.style.display = 'block'; return; }
   if (!/^[6-9]\d{9}$/.test(phone)) { err.textContent = 'Enter a valid 10-digit mobile number.'; err.style.display = 'block'; return; }
   const btn = $('#login-send');
-  btn.disabled = true; btn.textContent = 'Sending...';
+  btn.disabled = true; btn.textContent = 'Sending code...';
   try {
     const data = await api('/api/auth/otp/request', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone }) });
     $('#login-sent-to').textContent = '+91 ' + phone.slice(0, 5) + ' ' + phone.slice(5);
     const dev = $('#login-devcode');
     if (data && data.dev && data.devCode) {
-      dev.innerHTML = '<b>Preview demo</b> - real SMS starts when MSG91 is connected. Demo code: <b>' + esc(data.devCode) + '</b>';
+      dev.innerHTML = '<b>Preview test number</b> - real SMS is not live yet, so the code is shown here. Code: <b>' + esc(data.devCode) + '</b>';
       dev.classList.remove('hidden');
       $('#login-otp').value = data.devCode;
     } else {
@@ -1992,7 +2006,7 @@ async function requestOtp() {
   } catch (e) {
     err.textContent = e.message; err.style.display = 'block';
   }
-  btn.disabled = false; btn.textContent = 'Get OTP';
+  btn.disabled = false; btn.textContent = 'Send OTP';
 }
 
 async function verifyOtp() {
@@ -2004,16 +2018,16 @@ async function verifyOtp() {
   const btn = $('#login-verify');
   btn.disabled = true; btn.textContent = 'Verifying...';
   try {
-    const { patient } = await api('/api/auth/otp/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone, code }) });
+    const { patient, created } = await api('/api/auth/otp/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone, code, mode: state.authMode, name: ($('#login-name') || {}).value || '' }) });
     state.patient = patient;
     renderAcctMenu();
-    toast('Signed in', 'info');
+    toast(created ? 'Account created. Welcome, ' + ((patient.name || '').split(' ')[0] || 'there') : 'Signed in', 'info');
     show('mybookings');
     renderAccount();
   } catch (e) {
     err.textContent = e.message; err.style.display = 'block';
   }
-  btn.disabled = false; btn.textContent = 'Verify & sign in';
+  btn.disabled = false; btn.textContent = state.authMode === 'signup' ? 'Verify & create account' : 'Verify & sign in';
 }
 
 async function logout() {

@@ -75,10 +75,16 @@ export async function onRequestPost(context) {
     }
   } else {
     patient = await DB.prepare('SELECT * FROM patients WHERE phone = ?').bind(identifier).first();
+    const mode = body.mode === 'signup' ? 'signup' : 'signin';
+    const fullName = String(body.name || '').trim().replace(/\s+/g, ' ').slice(0, 60);
     if (!patient) {
+      if (mode !== 'signup') {
+        return json({ error: 'No account found for this number. Please sign up first.', code: 'no_account' }, 404);
+      }
+      if (fullName.length < 2) return badRequest('Enter your full name to create the account');
       const id = 'pt_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-      await DB.prepare('INSERT INTO patients (id, phone) VALUES (?, ?)').bind(id, identifier).run();
-      patient = { id, phone: identifier, name: null, age: null, google_sub: null, google_email: null, email: null };
+      await DB.prepare('INSERT INTO patients (id, phone, name) VALUES (?, ?, ?)').bind(id, identifier, fullName).run();
+      patient = { id, phone: identifier, name: fullName, age: null, google_sub: null, google_email: null, email: null, _created: true };
     }
     await DB.prepare('UPDATE bookings SET patient_id = ? WHERE phone = ? AND patient_id IS NULL').bind(patient.id, identifier).run();
   }
@@ -87,7 +93,7 @@ export async function onRequestPost(context) {
   await logAuthEvent(DB, patient.id, 'login_otp_' + channel, { ip });
   await notifyLogin(context.env, patient, 'email', context.request);
 
-  const res = json({ ok: true, patient: { name: patient.name, phone: patient.phone, email: patient.email || null, age: patient.age, has_google: !!patient.google_sub } });
+  const res = json({ ok: true, created: !!patient._created, patient: { name: patient.name, phone: patient.phone, email: patient.email || null, age: patient.age, has_google: !!patient.google_sub } });
   res.headers.append('Set-Cookie', sessionCookie(token, maxAge));
   return res;
 }

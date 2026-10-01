@@ -8,6 +8,7 @@ import { sendOtpEmail } from '../../_email.js';
    provider is configured (deferred: DLT registration cost; WhatsApp OTP is
    the pilot-stage upgrade). Generic responses, no account enumeration.
    Rate limits: 3 codes / 10 min / identifier, 8 / 10 min / IP -> 15 min block. */
+const PREVIEW_TEST_PHONE = '9000000000';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export async function onRequestPost(context) {
@@ -49,20 +50,24 @@ export async function onRequestPost(context) {
     : await sendOtpSms(context.env, display, code);
 
   if (!sent.ok) {
-    /* Preview demo path (redesign branch ONLY, never production): MSG91 is not
-       live yet, so the preview hands the code back to the UI as a clearly-marked
-       demo. The code row stays live and verify runs the real hash check - no
-       bypass. On main, not_configured still answers 503. */
-    if (sent.reason === 'not_configured' && channel === 'phone' && context.env.CF_PAGES_BRANCH === 'redesign') {
+    /* Preview-only labelled test number (redesign branch ONLY, never production).
+       SMS is not live (needs MSG91 + DLT), so ONE fixed test number gets its code
+       handed back on screen. The code row is real and verify runs the real hash
+       check - no bypass. Every other number gets the honest not-configured answer. */
+    const isPreview = context.env.CF_PAGES_BRANCH === 'redesign';
+    if (sent.reason === 'not_configured' && channel === 'phone' && isPreview && identifier === PREVIEW_TEST_PHONE) {
       return json({ ok: true, dev: true, devCode: code,
-        message: 'Preview demo mode: SMS goes live with MSG91. Use the demo code shown on screen.' });
+        message: 'Preview test number: the code is shown on screen because SMS is not live yet.' });
     }
     await DB.prepare('UPDATE otp_codes SET consumed = 1 WHERE identifier = ?').bind(identifier).run();
+    const isPreview2 = context.env.CF_PAGES_BRANCH === 'redesign';
     if (sent.reason === 'not_configured') {
       return json({ ok: false, error: channel + '_provider_not_configured',
         message: channel === 'email'
           ? 'Email sign-in is being switched on. Please use Google sign-in or track with your booking reference for now.'
-          : 'SMS sign-in is being switched on. Please use Google sign-in or track with your booking reference for now.' }, 503);
+          : (isPreview2
+              ? 'SMS codes are not live yet (needs the SMS provider). Preview testing: use the test number 90000 00000, or Google sign-in.'
+              : 'SMS sign-in is being switched on. Please use Google sign-in or track with your booking reference for now.') }, 503);
     }
     return json({ ok: false, error: 'otp_send_failed', message: 'Could not send the code right now - please try again in a minute.' }, 502);
   }
