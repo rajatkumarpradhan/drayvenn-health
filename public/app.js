@@ -905,7 +905,7 @@ function renderClinicDetail() {
   const facilities = CLINIC_FACILITIES[c.id] || ['AC waiting area', 'Pharmacy'];
   const next = fmtNext(c.next_available);
   $('#clinic-detail').innerHTML = `
-    <div class="detail-cover reveal"><div class="detail-cover-pattern"></div><div class="detail-cover-mark">${CLINIC_MARK_SVG}</div>${c.cover_video && /^brand\/[\w.-]+\.mp4$/.test(c.cover_video) ? `<div class="detail-cover-video"><video src="${c.cover_video}?v=1" poster="${c.cover_video.replace(/\.mp4$/, '.jpg')}?v=1" autoplay muted loop playsinline preload="auto" aria-label="Clinic intro video"></video></div>` : `<div class="detail-cover-emoji">${c.emoji || ''}</div>`}</div>
+    <div class="detail-cover reveal${c.cover_video && /^brand\/[\w.-]+\.mp4$/.test(c.cover_video) ? " has-video" : ""}"><div class="detail-cover-pattern"></div><div class="detail-cover-mark">${CLINIC_MARK_SVG}</div>${c.cover_video && /^brand\/[\w.-]+\.mp4$/.test(c.cover_video) ? `<div class="detail-cover-video"><video src="${c.cover_video}?v=1" poster="${c.cover_video.replace(/\.mp4$/, '.jpg')}?v=1" autoplay muted loop playsinline preload="auto" aria-label="Clinic intro video"></video></div>` : `<div class="detail-cover-emoji">${c.emoji || ''}</div>`}</div>
     <div class="detail-head reveal">
       <div class="detail-head-main">
         <h1 class="detail-name">${esc(c.name)}</h1>
