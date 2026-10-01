@@ -1,0 +1,3 @@
+/admin /clinic-admin/login 302
+/admin.html /clinic-admin/login 302
+/clinic-admin /clinic-admin/login 302

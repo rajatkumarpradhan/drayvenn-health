@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clinic Partner Login - Drayvenn Lab Clinic Portal</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0f2a4d">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/clinic-admin.css?v=160">
+<link rel="icon" type="image/png" href="/favicon-64.png">
+</head>
+<body class="ca-body">
+<div class="ca-shell">
+  <aside class="ca-brand">
+    <div class="ca-brand-top">
+      <img src="/brand/icon.png" alt="" class="ca-logo">
+      <div class="ca-wordmark">Drayvenn <b>Lab</b><span>Clinic Portal</span></div>
+    </div>
+    <div class="ca-brand-mid">
+      <h1>Run your clinic's appointments, calmly.</h1>
+      <ul class="ca-points">
+        <li><i></i><span>See every booking for the day, confirm or reschedule in a tap</span></li>
+        <li><i></i><span>Manage doctors, schedules and slots from one place</span></li>
+        <li><i></i><span>Patient details stay private to your clinic</span></li>
+      </ul>
+    </div>
+    <div class="ca-brand-foot">Secure partner access &middot; Sessions end after 12 hours</div>
+  </aside>
+
+  <main class="ca-main">
+    <div class="ca-card">
+      <div class="ca-mobile-brand"><img src="/brand/icon.png" alt="" class="ca-logo-sm"><div>Drayvenn <b>Lab</b> <span>Clinic Portal</span></div></div>
+
+      <section id="v-login">
+        <div class="ca-eyebrow">Clinic Partner</div>
+        <h2>Clinic Partner Login</h2>
+        <p class="ca-sub">Sign in with your clinic email and password.</p>
+        <div class="ca-notice hidden" id="ca-expired">Your session ended. Please sign in again.</div>
+        <form id="f-login" novalidate>
+          <label for="ca-email">Email</label>
+          <input id="ca-email" type="email" autocomplete="username" inputmode="email" placeholder="you@yourclinic.in">
+          <label for="ca-pass">Password</label>
+          <div class="ca-pw"><input id="ca-pass" type="password" autocomplete="current-password" placeholder="Your password"><button type="button" id="ca-toggle" aria-label="Show password">Show</button></div>
+          <div class="ca-err" id="ca-error" role="alert"></div>
+          <button class="ca-btn" id="ca-submit" type="submit">Sign in</button>
+        </form>
+        <div class="ca-links"><a href="#" id="l-forgot">Forgot password?</a></div>
+        <div class="ca-lock"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Only registered clinic partners can login</div>
+        <div class="ca-join">New clinic? <a href="#" id="l-join">Request to join</a></div>
+      </section>
+
+      <section id="v-forgot" class="hidden">
+        <h2>Reset your password</h2>
+        <p class="ca-sub">Enter your login email. We will send a reset link that works for 30 minutes.</p>
+        <form id="f-forgot" novalidate>
+          <label for="fg-email">Login email</label>
+          <input id="fg-email" type="email" autocomplete="username" placeholder="you@yourclinic.in">
+          <div class="ca-err" id="fg-error" role="alert"></div>
+          <div class="ca-ok hidden" id="fg-ok"></div>
+          <button class="ca-btn" id="fg-btn" type="submit">Send reset link</button>
+        </form>
+        <div class="ca-links"><a href="#" class="l-back">Back to sign in</a></div>
+      </section>
+
+      <section id="v-reset" class="hidden">
+        <h2>Set a new password</h2>
+        <p class="ca-sub">Use at least 10 characters.</p>
+        <form id="f-reset" novalidate>
+          <label for="rs-pass">New password</label>
+          <input id="rs-pass" type="password" autocomplete="new-password">
+          <label for="rs-pass2">Repeat password</label>
+          <input id="rs-pass2" type="password" autocomplete="new-password">
+          <div class="ca-err" id="rs-error" role="alert"></div>
+          <button class="ca-btn" id="rs-btn" type="submit">Save new password</button>
+        </form>
+      </section>
+
+      <section id="v-join" class="hidden">
+        <h2>Request to join</h2>
+        <p class="ca-sub">Tell us about your clinic. Our team will contact you to set up your listing and login.</p>
+        <form id="f-join" novalidate>
+          <label for="jn-clinic">Clinic name</label><input id="jn-clinic" maxlength="100" autocomplete="organization">
+          <label for="jn-contact">Contact person</label><input id="jn-contact" maxlength="80" autocomplete="name">
+          <label for="jn-email">Email</label><input id="jn-email" type="email" maxlength="120" autocomplete="email">
+          <label for="jn-phone">Phone</label><input id="jn-phone" type="tel" inputmode="tel" maxlength="20" autocomplete="tel" placeholder="10-digit mobile">
+          <label for="jn-area">Area in Bengaluru</label><input id="jn-area" maxlength="80" placeholder="e.g. Marathahalli">
+          <label for="jn-specs">Specialties (optional)</label><input id="jn-specs" maxlength="200" placeholder="e.g. General Medicine, Dental">
+          <input id="jn-web" class="ca-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <div class="ca-err" id="jn-error" role="alert"></div>
+          <div class="ca-ok hidden" id="jn-ok"></div>
+          <button class="ca-btn" id="jn-btn" type="submit">Send request</button>
+        </form>
+        <div class="ca-links"><a href="#" class="l-back">Back to sign in</a></div>
+      </section>
+    </div>
+    <div class="ca-foot"><a href="/">Patient site</a><span>&middot;</span><a href="/privacy.html">Privacy</a></div>
+  </main>
+</div>
+<script src="/clinic-admin-login.js?v=160"></script>
+</body>
+</html>

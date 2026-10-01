@@ -50,14 +50,17 @@ async function api(path, opts) {
   return data;
 }
 
+const ON_PORTAL = location.pathname.indexOf('/clinic-admin/dashboard') === 0;
+function toPortalLogin(expired) { location.replace('/clinic-admin/login' + (expired ? '?expired=1' : '')); }
 async function init() {
   $('#dash-date').value = todayISO();
+  if (ON_PORTAL && !auth.token) { toPortalLogin(); return; }
   if (auth.token && sessionStorage.getItem('dh_admin_role') === 'platform') { return; /* shown by admin-portal.js once loaded */ }
   if (auth.token) {
     try {
       await loadBookings();
       showDash();
-    } catch (e) { /* session invalid, stay on login */ }
+    } catch (e) { /* session invalid */ if (ON_PORTAL) { sessionStorage.removeItem('dh_admin_token'); toPortalLogin(true); } }
   }
 }
 
@@ -117,6 +120,7 @@ function logout(expired) {
   if (window.portalReset) portalReset();
   $('#admin-dash-view').classList.add('hidden');
   $('#admin-login-view').classList.remove('hidden');
+  if (ON_PORTAL) { toPortalLogin(!!expired); return; }
   if (expired) toast('Session expired - sign in again', 'error');
 }
 

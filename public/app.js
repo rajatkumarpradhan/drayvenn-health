@@ -386,7 +386,7 @@ function renderAccountPage() {
     ${about}
     <div class="acctp-group">For clinics</div>
     <div class="acctp-list">
-      <a class="acctp-row" href="admin.html"><span class="acctp-ico">${acctIcon('hospital')}</span><span class="acctp-label">Clinic sign-in</span><span class="acctp-chev">›</span></a>
+      <a class="acctp-row" href="/clinic-admin/login"><span class="acctp-ico">${acctIcon('hospital')}</span><span class="acctp-label">Clinic sign-in</span><span class="acctp-chev">›</span></a>
     </div>`;
   }
   host.innerHTML = html;

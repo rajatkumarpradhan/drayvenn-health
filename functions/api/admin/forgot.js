@@ -34,7 +34,7 @@ export async function onRequestPost(context) {
   await DB.prepare("INSERT INTO password_resets (token_hash, kind, subject_id, expires_at) VALUES (?, ?, ?, datetime('now', '+30 minutes'))")
     .bind(await sha256hex(token), kind, subject).run();
   const origin = new URL(context.request.url).origin;
-  const link = `${origin}/admin.html?reset=${token}`;
+  const link = `${origin}/clinic-admin/login?reset=${token}`;
 
   const sent = await sendPlainEmail(context.env, email, 'Reset your Drayvenn Lab clinic password',
     `Use this link to set a new password (valid 30 minutes, one use):\n\n${link}\n\nIf you did not ask for this, ignore this email.\n\n- Drayvenn Lab`);

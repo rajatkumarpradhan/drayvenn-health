@@ -207,14 +207,14 @@
       try {
         const d = await pfApi({ id, action: 'approve', login_email: $('#pf-em-' + id).value, sample: $('#pf-sm-' + id).checked });
         $('#pf-ap-' + id).classList.add('hidden');
-        $('#pf-res-' + id).innerHTML = `<div class="adm-note"><b>Clinic created.</b> Share these once with the clinic (the password is not shown again):<br><br>Login page: <b>${esc(location.origin)}/admin</b><br>Email: <b>${esc(d.login_email)}</b><br>Password: <b>${esc(d.temp_password)}</b><br><br>The clinic should use "Forgot password?" to set its own password, then add its doctors in "Clinic &amp; doctors". The clinic appears on the site after its first doctor is added.</div>`;
+        $('#pf-res-' + id).innerHTML = `<div class="adm-note"><b>Clinic created.</b> Share these once with the clinic (the password is not shown again):<br><br>Login page: <b>${esc(location.origin)}/clinic-admin/login</b><br>Email: <b>${esc(d.login_email)}</b><br>Password: <b>${esc(d.temp_password)}</b><br><br>The clinic should use "Forgot password?" to set its own password, then add its doctors in "Clinic &amp; doctors". The clinic appears on the site after its first doctor is added.</div>`;
         toast('Clinic created', 'success');
       } catch (e) { err('#pf-er-' + id, e.message); btn.disabled = false; }
     }
   }
   window.portalPlatformShow = function () { showView('admin-platform-view'); pfLoad(); };
   $('#pf-refresh').onclick = pfLoad;
-  $('#pf-logout').onclick = () => { auth.token = null; sessionStorage.removeItem('dh_admin_token'); sessionStorage.removeItem('dh_admin_role'); sessionStorage.removeItem('dh_admin_clinic'); showView('admin-login-view'); };
+  $('#pf-logout').onclick = () => { auth.token = null; sessionStorage.removeItem('dh_admin_token'); sessionStorage.removeItem('dh_admin_role'); sessionStorage.removeItem('dh_admin_clinic'); if (location.pathname.indexOf('/clinic-admin/') === 0) { location.href = '/clinic-admin/login'; return; } showView('admin-login-view'); };
 
   if (auth.token && sessionStorage.getItem('dh_admin_role') === 'platform') window.portalPlatformShow();
   else if (resetToken) showView('admin-reset-view');
