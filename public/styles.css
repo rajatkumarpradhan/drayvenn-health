@@ -1478,3 +1478,7 @@ body.intro-open { overflow: hidden; }
 .doc-form .day-chip input { width: auto; }
 .sess-row input { width: auto; }
 .form-row.two > div { min-width: 0; }
+.doc-form .form-grid > *, .adm-card .form-grid > * { min-width: 0; }
+.doc-form .form-grid, .adm-card .form-grid { grid-template-columns: minmax(0, 1fr); }
+.sess-row input { flex: 1 1 0; width: 0; min-width: 0; }
+.form-row.two input { width: 100%; }
