@@ -89,3 +89,4 @@ input:focus,select:focus,textarea:focus{border-color:rgba(47,102,208,.45);box-sh
   .detail-tabs{margin-top:12px!important}
 }
 .detail-cover.has-video{height:auto!important;aspect-ratio:640/314}
+@media (min-width:900px){.detail-cover.has-video{max-width:860px;margin-left:auto;margin-right:auto}}
