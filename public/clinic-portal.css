@@ -114,3 +114,4 @@
   .cp-g2{grid-template-columns:1fr 1fr}
   .cp-h1{font-size:21px}
 }
+.cp-sess input[type=time]::-webkit-calendar-picker-indicator{display:none}
