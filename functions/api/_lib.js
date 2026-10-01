@@ -83,7 +83,7 @@ export async function requireAdmin(DB, request) {
   const token = auth.replace(/^Bearer\s+/i, '').trim();
   if (!token) return null;
   return DB.prepare(
-    `SELECT s.clinic_id, c.name AS clinic_name FROM admin_sessions s
+    `SELECT s.clinic_id, s.doctor_id, c.name AS clinic_name FROM admin_sessions s
      JOIN clinics c ON c.id = s.clinic_id
      WHERE s.token = ? AND s.expires_at > datetime('now')`
   ).bind(token).first();

@@ -11,10 +11,10 @@ export async function onRequestGet(context) {
     `SELECT id, ref, patient_name, phone, age, concern, date, slot, status, doctor_id, doctor_name, created_at,
             (SELECT COUNT(*) FROM bookings p WHERE p.clinic_id = bookings.clinic_id AND p.phone = bookings.phone
              AND p.status != 'cancelled' AND (p.date < bookings.date OR (p.date = bookings.date AND p.id < bookings.id))) AS prior_visits
-     FROM bookings WHERE clinic_id = ? AND date = ? ORDER BY slot`
-  ).bind(session.clinic_id, date).all();
+     FROM bookings WHERE clinic_id = ? AND date = ? ${session.doctor_id ? 'AND doctor_id = ?' : ''} ORDER BY slot`
+  ).bind(...[session.clinic_id, date].concat(session.doctor_id ? [session.doctor_id] : [])).all();
 
   const counts = { total: 0, pending: 0, confirmed: 0, cancelled: 0 };
   for (const r of rows.results) { counts.total++; counts[r.status] = (counts[r.status] || 0) + 1; }
-  return json({ clinic: { id: session.clinic_id, name: session.clinic_name }, date, counts, bookings: rows.results });
+  return json({ clinic: { id: session.clinic_id, name: session.clinic_name }, role: session.doctor_id ? 'doctor' : 'clinic', date, counts, bookings: rows.results });
 }

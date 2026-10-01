@@ -63,7 +63,8 @@ async function init() {
 function showDash() {
   $('#admin-login-view').classList.add('hidden');
   $('#admin-dash-view').classList.remove('hidden');
-  $('#dash-clinic-name').textContent = auth.clinicName || '';
+  $('#dash-clinic-name').textContent = (auth.clinicName || '') + (sessionStorage.getItem('dh_admin_role') === 'doctor' ? ' - ' + (sessionStorage.getItem('dh_admin_doctor') || 'Doctor') : '');
+  if (window.portalInit) portalInit(sessionStorage.getItem('dh_admin_role') || 'clinic');
   loadSummary();
 }
 
@@ -88,6 +89,8 @@ async function login() {
     });
     auth.token = data.token;
     auth.clinicName = data.clinic.name;
+    auth.role = data.role || 'clinic'; auth.doctorName = data.doctor_name || '';
+    sessionStorage.setItem('dh_admin_role', auth.role); sessionStorage.setItem('dh_admin_doctor', auth.doctorName);
     sessionStorage.setItem('dh_admin_token', data.token);
     sessionStorage.setItem('dh_admin_clinic', data.clinic.name);
     currentDate = todayISO();
@@ -108,7 +111,8 @@ function logout(expired) {
   auth.token = null;
   auth.clinicName = null;
   sessionStorage.removeItem('dh_admin_token');
-  sessionStorage.removeItem('dh_admin_clinic');
+  sessionStorage.removeItem('dh_admin_clinic'); sessionStorage.removeItem('dh_admin_role'); sessionStorage.removeItem('dh_admin_doctor');
+  if (window.portalReset) portalReset();
   $('#admin-dash-view').classList.add('hidden');
   $('#admin-login-view').classList.remove('hidden');
   if (expired) toast('Session expired - sign in again', 'error');

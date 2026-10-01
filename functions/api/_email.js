@@ -49,3 +49,8 @@ export async function sendLoginAlertEmail(env, toEmail, method) {
     '- Drayvenn Lab');
   return { sent: r.ok, provider: r.ok ? 'brevo' : undefined, reason: r.ok ? undefined : r.reason };
 }
+
+export async function sendPlainEmail(env, toEmail, subject, text) {
+  if (!env.BREVO_API_KEY) return { ok: false, reason: 'not_configured' };
+  return sendViaBrevo(env, toEmail, subject, text);
+}

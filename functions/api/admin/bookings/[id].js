@@ -11,6 +11,7 @@ export async function onRequestPost(context) {
 
   const id = parseInt(context.params.id, 10);
   const booking = await DB.prepare('SELECT id, status, doctor_id, date, slot FROM bookings WHERE id = ? AND clinic_id = ?').bind(id, session.clinic_id).first();
+  if (booking && session.doctor_id && booking.doctor_id !== session.doctor_id) return json({ error: 'Booking not found' }, 404);
   if (!booking) return json({ error: 'Booking not found' }, 404);
 
   if (action === 'reschedule') {

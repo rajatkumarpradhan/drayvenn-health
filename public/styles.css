@@ -1445,3 +1445,32 @@ body.intro-open { overflow: hidden; }
 .cmp-table th { border-top: 1px solid #eef2f8; }
 .cmp-name { font-weight: 800; color: var(--primary-deep); }
 .cmp-bar span { white-space: nowrap; }
+
+/* ---------- clinic portal extras ---------- */
+.adm-links { display: flex; justify-content: center; gap: 10px; font-size: 14px; margin-top: 4px; }
+.adm-links a { color: var(--primary-deep); font-weight: 600; }
+.adm-links span { color: var(--muted); }
+.adm-note { background: var(--primary-soft); color: var(--primary-deep); border-radius: 14px; padding: 14px 16px; font-size: 14px; line-height: 1.55; }
+.hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.adm-tabs { display: flex; gap: 6px; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 4px; margin: 4px 0 16px; }
+.adm-tab { flex: 1; border: 0; background: none; border-radius: 999px; padding: 10px 8px; font: 700 14px inherit; font-family: inherit; color: var(--muted); cursor: pointer; }
+.adm-tab.active { background: var(--primary); color: #fff; }
+.adm-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-panel); padding: 18px; margin-bottom: 16px; }
+.adm-card h3 { margin: 0 0 12px; font-size: 17px; }
+.adm-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.adm-card-head h3 { margin: 0; }
+.doc-row { display: flex; flex-direction: column; gap: 10px; padding: 14px 0; border-top: 1px solid var(--line); }
+.doc-name { font-weight: 800; }
+.doc-meta { font-size: 13px; color: var(--muted); line-height: 1.5; }
+.doc-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.doc-del { color: #b42318; }
+.doc-form { margin-top: 14px; padding: 16px; border: 1.5px solid var(--primary-soft); border-radius: 16px; background: #f7faff; }
+.doc-form h4 { margin: 0 0 8px; }
+.doc-form-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.form-row.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.day-pick { display: flex; flex-wrap: wrap; gap: 6px; }
+.day-chip input { position: absolute; opacity: 0; pointer-events: none; }
+.day-chip span { display: inline-block; padding: 8px 12px; border: 1.5px solid var(--line); border-radius: 999px; font-size: 13px; font-weight: 700; cursor: pointer; background: #fff; }
+.day-chip input:checked + span { background: var(--primary); border-color: var(--primary); color: #fff; }
+.sess-row { display: flex; align-items: center; gap: 8px; }
+.sess-row input { flex: 1; min-width: 0; }

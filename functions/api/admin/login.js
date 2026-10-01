@@ -14,11 +14,22 @@ export async function onRequestPost(context) {
   const password = ((body || {}).password || '');
   if (!email || !password) return badRequest('Enter your clinic email and password');
 
-  const account = await DB.prepare(
+  let account = await DB.prepare(
     `SELECT a.clinic_id, a.salt, a.password_hash, a.fails, a.locked_until, c.name
      FROM clinic_admins a JOIN clinics c ON c.id = a.clinic_id WHERE a.email = ?`
   ).bind(email).first();
+  let doctorId = null;
+  if (!account) {
+    account = await DB.prepare(
+      `SELECT a.clinic_id, a.doctor_id, a.salt, a.password_hash, a.fails, a.locked_until, c.name, d.name AS doctor_name
+       FROM doctor_admins a JOIN clinics c ON c.id = a.clinic_id JOIN doctors d ON d.id = a.doctor_id WHERE a.email = ?`
+    ).bind(email).first();
+    if (account) doctorId = account.doctor_id;
+  }
   if (!account) return json({ error: 'Wrong email or password' }, 401);
+  const failTable = doctorId ? 'doctor_admins' : 'clinic_admins';
+  const failKey = doctorId ? 'doctor_id' : 'clinic_id';
+  const failVal = doctorId || account.clinic_id;
 
   if (account.locked_until && account.locked_until > new Date().toISOString()) {
     return json({ error: `Too many failed attempts. This account is locked until about ${account.locked_until.slice(11, 16)} UTC. Try again later.` }, 429);
@@ -30,19 +41,19 @@ export async function onRequestPost(context) {
     const locked = fails >= MAX_FAILS
       ? new Date(Date.now() + LOCK_MINUTES * 60000).toISOString()
       : null;
-    await DB.prepare('UPDATE clinic_admins SET fails = ?, locked_until = ? WHERE clinic_id = ?')
-      .bind(locked ? 0 : fails, locked, account.clinic_id).run();
+    await DB.prepare(`UPDATE ${failTable} SET fails = ?, locked_until = ? WHERE ${failKey} = ?`)
+      .bind(locked ? 0 : fails, locked, failVal).run();
     if (locked) return json({ error: `Too many failed attempts. Account locked for ${LOCK_MINUTES} minutes.` }, 429);
     return json({ error: 'Wrong email or password' }, 401);
   }
 
-  await DB.prepare('UPDATE clinic_admins SET fails = 0, locked_until = NULL WHERE clinic_id = ?').bind(account.clinic_id).run();
+  await DB.prepare(`UPDATE ${failTable} SET fails = 0, locked_until = NULL WHERE ${failKey} = ?`).bind(failVal).run();
   await DB.prepare("DELETE FROM admin_sessions WHERE expires_at <= datetime('now')").run();
   const buf = new Uint8Array(24);
   crypto.getRandomValues(buf);
   const token = Array.from(buf, b => b.toString(16).padStart(2, '0')).join('');
   await DB.prepare(
-    "INSERT INTO admin_sessions (token, clinic_id, expires_at) VALUES (?, ?, datetime('now', '+12 hours'))"
-  ).bind(token, account.clinic_id).run();
-  return json({ token, clinic: { id: account.clinic_id, name: account.name } });
+    "INSERT INTO admin_sessions (token, clinic_id, doctor_id, expires_at) VALUES (?, ?, ?, datetime('now', '+12 hours'))"
+  ).bind(token, account.clinic_id, doctorId).run();
+  return json({ token, role: doctorId ? 'doctor' : 'clinic', doctor_name: account.doctor_name || null, clinic: { id: account.clinic_id, name: account.name } });
 }

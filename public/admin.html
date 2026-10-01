@@ -48,7 +48,56 @@
         </div>
         <div class="form-error" id="adm-error"></div>
         <button class="btn btn-block" id="adm-login-btn">Open dashboard</button>
+        <div class="adm-links"><a href="#" id="adm-forgot-link">Forgot password?</a><span>·</span><a href="#" id="adm-join-link">Join as a clinic</a></div>
       </div>
+    </div>
+  </section>
+
+  <section id="admin-forgot-view" class="hidden">
+    <div class="admin-login">
+      <h2>Reset your password</h2>
+      <p>Enter the email you sign in with. We will send a reset link that works for 30 minutes.</p>
+      <div class="form-grid">
+        <div class="form-row"><label for="fg-email">Login email</label><input id="fg-email" type="email" autocomplete="username" placeholder="you@yourclinic.in"></div>
+        <div class="form-error" id="fg-error"></div>
+        <div class="adm-note hidden" id="fg-ok"></div>
+        <button class="btn btn-block" id="fg-btn">Send reset link</button>
+        <div class="adm-links"><a href="#" class="adm-back">Back to sign in</a></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="admin-reset-view" class="hidden">
+    <div class="admin-login">
+      <h2>Set a new password</h2>
+      <p>Use at least 10 characters.</p>
+      <div class="form-grid">
+        <div class="form-row"><label for="rs-pass">New password</label><input id="rs-pass" type="password" autocomplete="new-password"></div>
+        <div class="form-row"><label for="rs-pass2">Repeat password</label><input id="rs-pass2" type="password" autocomplete="new-password"></div>
+        <div class="form-error" id="rs-error"></div>
+        <button class="btn btn-block" id="rs-btn">Save new password</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="admin-join-view" class="hidden">
+    <div class="admin-login">
+      <h2>Join Drayvenn Lab as a clinic</h2>
+      <p>Tell us about your clinic. Our team will contact you to set up your listing and login.</p>
+      <div class="form-grid" id="join-form">
+        <div class="form-row"><label for="jn-clinic">Clinic name</label><input id="jn-clinic" maxlength="100" autocomplete="organization"></div>
+        <div class="form-row"><label for="jn-contact">Contact person</label><input id="jn-contact" maxlength="80" autocomplete="name"></div>
+        <div class="form-row"><label for="jn-email">Email</label><input id="jn-email" type="email" maxlength="120" autocomplete="email"></div>
+        <div class="form-row"><label for="jn-phone">Phone</label><input id="jn-phone" type="tel" inputmode="tel" maxlength="20" autocomplete="tel" placeholder="10-digit mobile"></div>
+        <div class="form-row"><label for="jn-area">Area in Bengaluru</label><input id="jn-area" maxlength="80" placeholder="e.g. Marathahalli"></div>
+        <div class="form-row"><label for="jn-specs">Specialties (optional)</label><input id="jn-specs" maxlength="200" placeholder="e.g. General Medicine, Dental"></div>
+        <div class="form-row"><label for="jn-msg">Anything else? (optional)</label><textarea id="jn-msg" rows="3" maxlength="500"></textarea></div>
+        <input id="jn-web" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <div class="form-error" id="jn-error"></div>
+        <button class="btn btn-block" id="jn-btn">Send request</button>
+        <div class="adm-links"><a href="#" class="adm-back">Back to sign in</a></div>
+      </div>
+      <div class="adm-note hidden" id="jn-ok"></div>
     </div>
   </section>
 
@@ -60,6 +109,11 @@
         <button class="btn btn-ghost btn-small" id="dash-logout">Sign out</button>
       </div>
     </div>
+    <div class="adm-tabs hidden" id="adm-tabs">
+      <button type="button" class="adm-tab active" data-tab="bookings">Bookings</button>
+      <button type="button" class="adm-tab" data-tab="clinic">Clinic &amp; doctors</button>
+    </div>
+    <div id="tab-bookings">
     <div class="week-strip" id="week-strip"></div>
     <div class="day-nav">
       <button class="btn btn-ghost btn-small" id="day-prev">← Prev</button>
@@ -82,6 +136,8 @@
       <input type="text" id="admin-search-input" placeholder="Search patient, phone or ref...">
     </div>
     <div id="booking-host" class="booking-list"></div>
+    </div>
+    <div id="tab-clinic" class="hidden"></div>
   </section>
 
 </main>
@@ -94,6 +150,7 @@
 </footer>
 
 <div id="toast-host"></div>
-<script src="admin.js"></script>
+<script src="admin.js?v=138"></script>
+<script src="admin-portal.js?v=138"></script>
 </body>
 </html>
