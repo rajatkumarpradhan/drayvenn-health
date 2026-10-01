@@ -50,7 +50,7 @@ async function api(path, opts) {
   return data;
 }
 
-const ON_PORTAL = location.pathname.indexOf('/clinic-admin/dashboard') === 0;
+const ON_PORTAL = location.pathname.indexOf('/clinic-admin/platform') === 0;
 function toPortalLogin(expired) { location.replace('/clinic-admin/login' + (expired ? '?expired=1' : '')); }
 async function init() {
   $('#dash-date').value = todayISO();

@@ -52,6 +52,13 @@ export async function onRequestPost(context) {
   const own = await DB.prepare('SELECT id, name FROM doctors WHERE id = ? AND clinic_id = ?').bind(b.id, s.clinic_id).first();
   if (!own) return json({ error: 'Doctor not found' }, 404);
 
+  if (action === 'set_active') {
+    const on = b.active ? 1 : 0;
+    await DB.prepare('UPDATE doctors SET active = ? WHERE id = ?').bind(on, own.id).run();
+    const open = await DB.prepare("SELECT COUNT(*) AS n FROM bookings WHERE doctor_id = ? AND date >= ? AND status != 'cancelled'").bind(own.id, istToday()).first();
+    return json({ ok: true, active: on, upcoming_bookings: open.n });
+  }
+
   if (action === 'delete') {
     const open = await DB.prepare("SELECT COUNT(*) AS n FROM bookings WHERE doctor_id = ? AND date >= ? AND status != 'cancelled'").bind(own.id, istToday()).first();
     if (open.n > 0) return json({ error: `${own.name} has ${open.n} upcoming booking(s). Cancel or move them first.` }, 409);

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clinic Portal - Drayvenn Lab</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0f2a4d">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/clinic-admin.css?v=162">
+<link rel="stylesheet" href="/clinic-portal.css?v=162">
+<link rel="icon" type="image/png" href="/favicon-64.png">
+</head>
+<body class="cp-body">
+<div class="cp-app">
+  <aside class="cp-side" id="cp-side">
+    <div class="cp-brand"><img src="/brand/icon.png" alt="" class="cp-logo"><div class="cp-wm">Drayvenn <b>Lab</b><span>Clinic Portal</span></div></div>
+    <nav class="cp-nav" id="cp-nav" aria-label="Clinic portal"></nav>
+    <div class="cp-side-foot"><a href="/">Patient site</a></div>
+  </aside>
+  <div class="cp-col">
+    <header class="cp-top">
+      <div class="cp-top-l"><img id="cp-clogo" class="cp-clogo hidden" alt=""><div><div class="cp-cname" id="cp-cname">Loading...</div><div class="cp-role" id="cp-role"></div></div></div>
+      <button class="cp-out" id="cp-out" type="button">Sign out</button>
+    </header>
+    <main class="cp-main" id="cp-main"><div class="cp-loading">Loading...</div></main>
+  </div>
+</div>
+<nav class="cp-tabbar" id="cp-tabbar" aria-label="Clinic portal"></nav>
+<div id="cp-toast" class="cp-toast" role="status"></div>
+<div id="cp-modal" class="cp-modal hidden"></div>
+<script src="/clinic-portal.js?v=162"></script>
+</body>
+</html>

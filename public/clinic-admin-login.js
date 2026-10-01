@@ -14,7 +14,7 @@
   if (q.get('expired')) $('#ca-expired').classList.remove('hidden');
 
   /* already signed in on this browser tab: go straight to the dashboard */
-  if (sessionStorage.getItem('dh_admin_token') && !q.get('expired') && !resetToken) { location.replace('/clinic-admin/dashboard'); return; }
+  if (sessionStorage.getItem('dh_admin_token') && !q.get('expired') && !resetToken) { location.replace(sessionStorage.getItem('dh_admin_role') === 'platform' ? '/clinic-admin/platform' : '/clinic-admin/dashboard'); return; }
 
   $('#ca-toggle').onclick = () => {
     const p = $('#ca-pass'), show = p.type === 'password';
@@ -35,7 +35,7 @@
       sessionStorage.setItem('dh_admin_doctor', d.doctor_name || '');
       sessionStorage.setItem('dh_admin_clinic', d.clinic.name);
       btn.textContent = 'Opening dashboard...';
-      location.href = '/clinic-admin/dashboard';
+      location.href = d.role === 'platform' ? '/clinic-admin/platform' : '/clinic-admin/dashboard';
     } catch (ex) { err('#ca-error', ex.message); btn.disabled = false; btn.textContent = 'Sign in'; }
   };
 

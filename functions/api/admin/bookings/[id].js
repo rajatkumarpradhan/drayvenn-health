@@ -1,4 +1,4 @@
-import { json, badRequest, requireAdmin, generateSlots, istToday, nowIST } from '../../_lib.js';
+import { json, badRequest, requireAdmin, effectiveSlots, istToday, nowIST } from '../../_lib.js';
 
 export async function onRequestPost(context) {
   const { DB } = context.env;
@@ -23,7 +23,7 @@ export async function onRequestPost(context) {
     if (date < today) return badRequest('Cannot move a booking to a past date');
     const doctor = await DB.prepare('SELECT * FROM doctors WHERE id = ?').bind(booking.doctor_id).first();
     if (!doctor) return json({ error: 'Doctor not found' }, 404);
-    if (!generateSlots(doctor, date).includes(slot))
+    if (!(await effectiveSlots(DB, doctor, date)).includes(slot))
       return badRequest('That is not a valid slot for this doctor on that date');
     if (date === today) {
       const n = nowIST();

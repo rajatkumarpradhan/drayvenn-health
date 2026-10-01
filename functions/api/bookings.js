@@ -1,4 +1,4 @@
-import { json, badRequest, generateSlots, nowIST, istToday, addDays, makeRef, normalizePhone, purgeOldBookings } from './_lib.js';
+import { json, badRequest, generateSlots, nowIST, istToday, addDays, makeRef, normalizePhone, purgeOldBookings, effectiveSlots } from './_lib.js';
 import { getPatientSession } from './_auth.js';
 
 export async function onRequestPost(context) {
@@ -32,9 +32,9 @@ export async function onRequestPost(context) {
   const clinic = await DB.prepare('SELECT * FROM clinics WHERE id = ?').bind(clinic_id).first();
   if (!clinic) return json({ error: 'Clinic not found' }, 404);
   const doctor = await DB.prepare('SELECT * FROM doctors WHERE id = ? AND clinic_id = ?').bind(doctor_id, clinic_id).first();
-  if (!doctor) return json({ error: 'Doctor not found' }, 404);
+  if (!doctor || doctor.active === 0) return json({ error: 'Doctor not found' }, 404);
 
-  if (!generateSlots(doctor, date).includes(slot)) return badRequest('That slot is not available for this doctor');
+  if (!(await effectiveSlots(DB, doctor, date)).includes(slot)) return badRequest('That slot is not available for this doctor');
   if (date === today) {
     const n = nowIST();
     const cutoff = String(n.getUTCHours()).padStart(2, '0') + ':' + String(n.getUTCMinutes()).padStart(2, '0');

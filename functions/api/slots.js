@@ -1,4 +1,4 @@
-import { json, badRequest, generateSlots, nowIST, istToday, addDays } from './_lib.js';
+import { json, badRequest, effectiveSlots, nowIST, istToday, addDays } from './_lib.js';
 
 export async function onRequestGet(context) {
   const { DB } = context.env;
@@ -13,7 +13,7 @@ export async function onRequestGet(context) {
   const doctor = await DB.prepare('SELECT * FROM doctors WHERE id = ?').bind(doctorId).first();
   if (!doctor) return json({ error: 'Doctor not found' }, 404);
 
-  const all = generateSlots(doctor, date);
+  const all = await effectiveSlots(DB, doctor, date);
   const taken = await DB.prepare(
     "SELECT slot FROM bookings WHERE doctor_id = ? AND date = ? AND status != 'cancelled'"
   ).bind(doctorId, date).all();

@@ -116,13 +116,14 @@ export async function computeNextAvailable(DB, doctors) {
   }
   const n = nowIST();
   const cutoff = String(n.getUTCHours()).padStart(2, '0') + ':' + String(n.getUTCMinutes()).padStart(2, '0');
+  const ovr = await loadOverrideMap(DB, today, ids);
   const out = {};
   for (const doc of doctors) {
     const booked = new Set(takenMap[doc.id] || []);
     let next = null;
     for (let i = 0; i < 14 && !next; i++) {
       const date = addDays(today, i);
-      for (const slot of generateSlots(doc, date)) {
+      for (const slot of applyOverrides(generateSlots(doc, date), ovr[doc.id + '|' + date])) {
         if (i === 0 && slot <= cutoff) continue;
         if (!booked.has(date + '|' + slot)) {
           next = { date, time: slot, today: i === 0, tomorrow: i === 1 };
@@ -133,4 +134,31 @@ export async function computeNextAvailable(DB, doctors) {
     out[doc.id] = next;
   }
   return out;
+}
+
+/* Effective slots = schedule slots + clinic-added extra slots - clinic-blocked slots.
+   Disabled doctors have no slots. `overrides` may be a preloaded array of {slot, kind} for this doctor+date. */
+export async function effectiveSlots(DB, doctor, dateStr, overrides) {
+  if (doctor.active === 0) return [];
+  const base = generateSlots(doctor, dateStr);
+  const rows = overrides || (await DB.prepare('SELECT slot, kind FROM slot_overrides WHERE doctor_id = ? AND date = ?').bind(doctor.id, dateStr).all()).results;
+  if (!rows.length) return base;
+  const set = new Set(base);
+  for (const r of rows) { if (r.kind === 'extra') set.add(r.slot); else set.delete(r.slot); }
+  return [...set].sort();
+}
+
+export async function loadOverrideMap(DB, fromDate, doctorIds) {
+  const map = {};
+  let q = 'SELECT doctor_id, date, slot, kind FROM slot_overrides WHERE date >= ?', args = [fromDate];
+  if (doctorIds && doctorIds.length) { q += ' AND doctor_id IN (' + doctorIds.map(() => '?').join(',') + ')'; args = args.concat(doctorIds); }
+  const rows = await DB.prepare(q).bind(...args).all();
+  for (const r of rows.results) (map[r.doctor_id + '|' + r.date] = map[r.doctor_id + '|' + r.date] || []).push(r);
+  return map;
+}
+export function applyOverrides(base, rows) {
+  if (!rows || !rows.length) return base;
+  const set = new Set(base);
+  for (const r of rows) { if (r.kind === 'extra') set.add(r.slot); else set.delete(r.slot); }
+  return [...set].sort();
 }

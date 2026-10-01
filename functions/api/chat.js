@@ -12,7 +12,7 @@ const DAILY_LIMIT = 40;
 
 async function clinicContext(DB) {
   const clinics = await DB.prepare('SELECT * FROM clinics ORDER BY name').all();
-  const doctors = await DB.prepare('SELECT * FROM doctors').all();
+  const doctors = await DB.prepare('SELECT * FROM doctors WHERE active = 1').all();
   const byClinic = {};
   for (const d of doctors.results) (byClinic[d.clinic_id] = byClinic[d.clinic_id] || []).push(d);
   return clinics.results.map(c => {
@@ -131,7 +131,7 @@ export async function onRequestPost(context) {
 
   // live clinic data for both the LLM prompt and the fallback
   const clinics = await DB.prepare('SELECT * FROM clinics ORDER BY name').all();
-  const doctors = await DB.prepare('SELECT * FROM doctors').all();
+  const doctors = await DB.prepare('SELECT * FROM doctors WHERE active = 1').all();
   const doctorsByClinic = {};
   for (const d of doctors.results) (doctorsByClinic[d.clinic_id] = doctorsByClinic[d.clinic_id] || []).push(d);
 

@@ -1,4 +1,4 @@
-import { json, badRequest, generateSlots, istToday, nowIST } from '../../_lib.js';
+import { json, badRequest, effectiveSlots, istToday, nowIST } from '../../_lib.js';
 import { getPatientSession, withSessionMaintenance, unauthorized } from '../../_auth.js';
 
 /* POST /api/my/bookings/[ref] { action: 'cancel' | 'reschedule', date?, slot? }
@@ -42,7 +42,7 @@ export async function onRequestPost(context) {
     if (booking.date < today) return badRequest('Past appointments cannot be rescheduled');
     const doctor = await DB.prepare('SELECT * FROM doctors WHERE id = ?').bind(booking.doctor_id).first();
     if (!doctor) return json({ error: 'Doctor not found' }, 404);
-    if (!generateSlots(doctor, date).includes(slot))
+    if (!(await effectiveSlots(DB, doctor, date)).includes(slot))
       return badRequest('That is not a valid slot for this doctor on that date');
     if (date === today) {
       const n = nowIST();

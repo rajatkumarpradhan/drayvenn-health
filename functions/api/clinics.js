@@ -1,12 +1,12 @@
-import { json, generateSlots, nowIST, istToday, addDays, daysLabel, computeNextAvailable } from './_lib.js';
+import { json, generateSlots, loadOverrideMap, applyOverrides, nowIST, istToday, addDays, daysLabel, computeNextAvailable } from './_lib.js';
 
 export async function onRequestGet(context) {
   const { DB } = context.env;
   const clinics = await DB.prepare(
-    'SELECT id, name, area, address, phone, tagline, specialties, timings, emoji, cover_video FROM clinics ORDER BY name'
+    'SELECT id, name, area, address, phone, tagline, specialties, timings, emoji, cover_video, (logo IS NOT NULL) AS has_logo FROM clinics ORDER BY name'
   ).all();
   const doctors = await DB.prepare(
-    'SELECT id, clinic_id, name, specialty, qualification, experience_years, fee, days, sessions FROM doctors ORDER BY fee'
+    'SELECT id, clinic_id, name, specialty, qualification, experience_years, fee, days, sessions FROM doctors WHERE active = 1 ORDER BY fee'
   ).all();
 
   const today = istToday();
@@ -17,6 +17,7 @@ export async function onRequestGet(context) {
   for (const r of taken.results) {
     (takenMap[r.doctor_id] = takenMap[r.doctor_id] || []).push(r.date + '|' + r.slot);
   }
+  const ovr = await loadOverrideMap(DB, today);
   const n = nowIST();
   const cutoff = String(n.getUTCHours()).padStart(2, '0') + ':' + String(n.getUTCMinutes()).padStart(2, '0');
 
@@ -24,7 +25,7 @@ export async function onRequestGet(context) {
     const booked = new Set(takenMap[doc.id] || []);
     for (let i = 0; i < 14; i++) {
       const date = addDays(today, i);
-      for (const slot of generateSlots(doc, date)) {
+      for (const slot of applyOverrides(generateSlots(doc, date), ovr[doc.id + '|' + date])) {
         if (i === 0 && slot <= cutoff) continue;
         if (!booked.has(date + '|' + slot)) {
           return { date, time: slot, today: i === 0, tomorrow: i === 1 };
