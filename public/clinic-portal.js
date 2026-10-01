@@ -129,9 +129,8 @@
     const o = await api('/api/admin/overview'); ctx.today = o.today;
     pendingCount = o.pending_total; if (!knownPending) knownPending = new Set(o.recent_pending.map(x => x.id)); renderNav();
     const max = Math.max(1, ...o.days.map(d => d.n));
-    const hr = new Date(Date.now() + 330 * 60000).getUTCHours();
-    main.innerHTML = `<h1 class="cp-h1">${hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening'}</h1>
-      <p class="cp-sub">${esc(fmtDay(o.today))} &middot; here is how your clinic looks today.</p>
+        main.innerHTML = `<h1 class="cp-h1">Welcome, ${esc(o.clinic_name)}</h1>
+      <p class="cp-sub">${esc(fmtDay(o.today))} &middot; ${o.pending_total ? 'you have <b>' + o.pending_total + ' pending</b> and <b>' + (o.today_counts.total - o.today_counts.cancelled) + ' today</b>.' : 'nothing pending, <b>' + (o.today_counts.total - o.today_counts.cancelled) + ' today</b>.'}</p>
       <div class="cp-stats">
         <div class="cp-stat blue"><div class="n">${o.today_counts.total - o.today_counts.cancelled}</div><div class="l">Today's appointments</div></div>
         <div class="cp-stat warn"><div class="n">${o.pending_total}</div><div class="l">Pending confirmation</div></div>
