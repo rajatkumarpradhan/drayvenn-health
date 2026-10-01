@@ -14,7 +14,9 @@
   if (q.get('expired')) $('#ca-expired').classList.remove('hidden');
 
   /* already signed in on this browser tab: go straight to the dashboard */
-  if (sessionStorage.getItem('dh_admin_token') && !q.get('expired') && !resetToken) { location.replace(sessionStorage.getItem('dh_admin_role') === 'platform' ? '/clinic-admin/platform' : '/clinic-admin/dashboard'); return; }
+  if (!q.get('expired') && !resetToken) {
+    fetch('/api/admin/clinic').then(r => { if (r.ok) location.replace('/clinic-admin/dashboard'); else if (sessionStorage.getItem('dh_admin_role') === 'platform') fetch('/api/platform/requests').then(p => { if (p.ok) location.replace('/clinic-admin/platform'); }); }).catch(() => {});
+  }
 
   $('#ca-toggle').onclick = () => {
     const p = $('#ca-pass'), show = p.type === 'password';
@@ -30,7 +32,7 @@
     const btn = $('#ca-submit'); btn.disabled = true; btn.textContent = 'Signing in...';
     try {
       const d = await post('/api/admin/login', { email, password });
-      sessionStorage.setItem('dh_admin_token', d.token);
+      if (d.token) sessionStorage.setItem('dh_admin_token', d.token); else sessionStorage.removeItem('dh_admin_token'); /* clinic and doctor sessions live only in an HttpOnly cookie */
       sessionStorage.setItem('dh_admin_role', d.role || 'clinic');
       sessionStorage.setItem('dh_admin_doctor', d.doctor_name || '');
       sessionStorage.setItem('dh_admin_clinic', d.clinic.name);

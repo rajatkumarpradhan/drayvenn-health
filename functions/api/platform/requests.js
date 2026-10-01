@@ -1,12 +1,14 @@
-import { json, badRequest, hashPassword } from '../_lib.js';
+import { json, badRequest, hashPassword, adminTokenFrom, adminSessionByToken } from '../_lib.js';
 import { randomToken } from '../_auth.js';
 
 /* Drayvenn Lab team only: review clinic join requests. Platform sessions are stored with
    the sentinel clinic id '__platform__', so they can never reach clinic data endpoints. */
 async function requirePlatform(DB, request) {
-  const token = (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '').trim();
-  if (!token) return null;
-  return DB.prepare("SELECT token FROM admin_sessions WHERE token = ? AND clinic_id = '__platform__' AND expires_at > datetime('now')").bind(token).first();
+  const t = adminTokenFrom(request);
+  if (!t) return null;
+  if (t.cookie && request.method !== 'GET' && request.headers.get('X-DH-Admin') !== '1') return null;
+  const row = await adminSessionByToken(DB, t.token);
+  return row && row.clinic_id === '__platform__' ? row : null;
 }
 
 export async function onRequestGet(context) {

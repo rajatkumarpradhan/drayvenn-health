@@ -1,4 +1,4 @@
-import { json, badRequest, hashPassword, safeEqualHex } from '../_lib.js';
+import { json, badRequest, hashPassword, safeEqualHex, sha256Hex, adminCookie } from '../_lib.js';
 
 /* Clinic sign-in: per-clinic email + password (PBKDF2-SHA256, 100k).
    5 failed attempts locks the account for 15 minutes. Sessions last 12 hours. */
@@ -59,6 +59,9 @@ export async function onRequestPost(context) {
   const token = Array.from(buf, b => b.toString(16).padStart(2, '0')).join('');
   await DB.prepare(
     "INSERT INTO admin_sessions (token, clinic_id, doctor_id, expires_at) VALUES (?, ?, ?, datetime('now', '+12 hours'))"
-  ).bind(token, account.clinic_id, doctorId).run();
-  return json({ token, role: platform ? 'platform' : doctorId ? 'doctor' : 'clinic', doctor_name: account.doctor_name || null, clinic: { id: account.clinic_id, name: account.name } });
+  ).bind(await sha256Hex(token), account.clinic_id, doctorId).run();
+  const role = platform ? 'platform' : doctorId ? 'doctor' : 'clinic';
+  const res = json({ token: platform ? token : undefined, role, doctor_name: account.doctor_name || null, clinic: { id: account.clinic_id, name: account.name } });
+  res.headers.append('Set-Cookie', adminCookie(token, 12 * 3600));
+  return res;
 }

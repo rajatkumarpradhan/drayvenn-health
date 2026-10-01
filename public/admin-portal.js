@@ -214,7 +214,7 @@
   }
   window.portalPlatformShow = function () { showView('admin-platform-view'); pfLoad(); };
   $('#pf-refresh').onclick = pfLoad;
-  $('#pf-logout').onclick = () => { auth.token = null; sessionStorage.removeItem('dh_admin_token'); sessionStorage.removeItem('dh_admin_role'); sessionStorage.removeItem('dh_admin_clinic'); if (location.pathname.indexOf('/clinic-admin/') === 0) { location.href = '/clinic-admin/login'; return; } showView('admin-login-view'); };
+  $('#pf-logout').onclick = () => { fetch('/api/admin/logout', { method: 'POST', headers: { 'X-DH-Admin': '1' } }).catch(() => {}); auth.token = null; sessionStorage.removeItem('dh_admin_token'); sessionStorage.removeItem('dh_admin_role'); sessionStorage.removeItem('dh_admin_clinic'); if (location.pathname.indexOf('/clinic-admin/') === 0) { location.href = '/clinic-admin/login'; return; } showView('admin-login-view'); };
 
   if (auth.token && sessionStorage.getItem('dh_admin_role') === 'platform') window.portalPlatformShow();
   else if (resetToken) showView('admin-reset-view');

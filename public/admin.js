@@ -113,6 +113,7 @@ async function login() {
 }
 
 function logout(expired) {
+  fetch('/api/admin/logout', { method: 'POST', headers: { 'X-DH-Admin': '1' } }).catch(() => {});
   auth.token = null;
   auth.clinicName = null;
   sessionStorage.removeItem('dh_admin_token');

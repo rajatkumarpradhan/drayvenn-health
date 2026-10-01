@@ -2,9 +2,8 @@
   'use strict';
   const $ = s => document.querySelector(s);
   const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const token = sessionStorage.getItem('dh_admin_token');
   const role0 = sessionStorage.getItem('dh_admin_role') || 'clinic';
-  if (!token) { location.replace('/clinic-admin/login'); return; }
+  if (!sessionStorage.getItem('dh_admin_role')) { location.replace('/clinic-admin/login'); return; }
   if (role0 === 'platform') { location.replace('/clinic-admin/platform'); return; }
   const IS_DOC = role0 === 'doctor';
 
@@ -26,10 +25,10 @@
   function toast(msg, bad) { const t = $('#cp-toast'); t.textContent = msg; t.className = 'cp-toast show' + (bad ? ' err' : ''); clearTimeout(toast._t); toast._t = setTimeout(() => t.className = 'cp-toast', 3200); }
   async function api(path, opts) {
     opts = opts || {};
-    const headers = Object.assign({ Authorization: 'Bearer ' + token }, opts.body ? { 'Content-Type': 'application/json' } : {});
+    const headers = Object.assign({ 'X-DH-Admin': '1' }, opts.body ? { 'Content-Type': 'application/json' } : {});
     const res = await fetch(path, { method: opts.method || (opts.body ? 'POST' : 'GET'), headers, body: opts.body ? JSON.stringify(opts.body) : undefined });
     const data = await res.json().catch(() => ({}));
-    if (res.status === 401) { sessionStorage.removeItem('dh_admin_token'); location.replace('/clinic-admin/login?expired=1'); throw new Error('Session expired'); }
+    if (res.status === 401) { ['dh_admin_token', 'dh_admin_role', 'dh_admin_clinic', 'dh_admin_doctor'].forEach(k => sessionStorage.removeItem(k)); location.replace('/clinic-admin/login?expired=1'); throw new Error('Session expired'); }
     if (!res.ok) throw new Error(data.error || 'Something went wrong');
     return data;
   }
@@ -62,7 +61,8 @@
     history.pushState(null, '', a.getAttribute('href')); go();
   });
   window.addEventListener('popstate', go);
-  $('#cp-out').onclick = () => {
+  $('#cp-out').onclick = async () => {
+    try { await fetch('/api/admin/logout', { method: 'POST', headers: { 'X-DH-Admin': '1' } }); } catch (e) { /* cookie expires on its own */ }
     ['dh_admin_token', 'dh_admin_role', 'dh_admin_clinic', 'dh_admin_doctor'].forEach(k => sessionStorage.removeItem(k));
     location.href = '/clinic-admin/login';
   };

@@ -78,15 +78,39 @@ export function normalizePhone(p) {
   return digits.length === 12 && digits.startsWith('91') ? digits.slice(2) : digits;
 }
 
-export async function requireAdmin(DB, request) {
+/* ---- Clinic / team sessions ----
+   Session = random 192-bit token. The browser holds it in an HttpOnly, Secure, SameSite=Strict cookie
+   (JavaScript cannot read it). The database stores only its SHA-256 hash, so a leaked DB row cannot be
+   replayed. A Bearer header is still accepted for the team (platform) page. */
+export const ADMIN_COOKIE = 'dh_admin';
+export async function sha256Hex(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf), b => b.toString(16).padStart(2, '0')).join('');
+}
+export function adminCookie(token, maxAge) {
+  return `${ADMIN_COOKIE}=${token}; Path=/; Max-Age=${maxAge}; HttpOnly; Secure; SameSite=Strict`;
+}
+export function clearAdminCookie() { return adminCookie('', 0); }
+export function adminTokenFrom(request) {
   const auth = request.headers.get('Authorization') || '';
-  const token = auth.replace(/^Bearer\s+/i, '').trim();
-  if (!token) return null;
+  const bearer = auth.replace(/^Bearer\s+/i, '').trim();
+  if (bearer) return { token: bearer, cookie: false };
+  const m = (request.headers.get('Cookie') || '').match(new RegExp('(?:^|;\\s*)' + ADMIN_COOKIE + '=([0-9a-f]{48})'));
+  return m ? { token: m[1], cookie: true } : null;
+}
+export async function adminSessionByToken(DB, token) {
   return DB.prepare(
     `SELECT s.clinic_id, s.doctor_id, c.name AS clinic_name FROM admin_sessions s
      JOIN clinics c ON c.id = s.clinic_id
      WHERE s.token = ? AND s.expires_at > datetime('now')`
-  ).bind(token).first();
+  ).bind(await sha256Hex(token)).first();
+}
+export async function requireAdmin(DB, request) {
+  const t = adminTokenFrom(request);
+  if (!t) return null;
+  /* Cookie-authenticated writes must carry our custom header: cross-site forms cannot add it (CSRF defence in depth on top of SameSite=Strict). */
+  if (t.cookie && request.method !== 'GET' && request.method !== 'HEAD' && request.headers.get('X-DH-Admin') !== '1') return null;
+  return adminSessionByToken(DB, t.token);
 }
 
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
