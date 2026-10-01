@@ -130,12 +130,20 @@
     pendingCount = o.pending_total; if (!knownPending) knownPending = new Set(o.recent_pending.map(x => x.id)); renderNav();
     const max = Math.max(1, ...o.days.map(d => d.n));
         main.innerHTML = `<h1 class="cp-h1">Welcome, ${esc(o.clinic_name)}</h1>
-      <p class="cp-sub">${esc(fmtDay(o.today))} &middot; ${o.pending_total ? 'you have <b>' + o.pending_total + ' pending</b> and <b>' + (o.today_counts.total - o.today_counts.cancelled) + ' today</b>.' : 'nothing pending, <b>' + (o.today_counts.total - o.today_counts.cancelled) + ' today</b>.'}</p>
+      <p class="cp-sub">${esc(fmtDay(o.today))} &middot; ${o.pending_total ? '<b>' + o.pending_total + ' pending</b> and <b>' + o.today_counts.confirmed + ' confirmed today</b>.' : 'nothing pending, <b>' + o.today_counts.confirmed + ' confirmed today</b>.'}</p>
+      <a class="cp-hero${o.pending_total ? '' : ' calm'}" href="/clinic-admin/pending" data-r="pending">
+        <div><div class="l">Total pending</div><div class="big">${o.pending_total}</div><div class="s">${o.pending_total ? 'bookings waiting for you to confirm or reject' : 'You are all caught up'}</div></div>
+        <span class="cp-btn">${o.pending_total ? 'Review now' : 'Open'}</span></a>
       <div class="cp-stats">
-        <div class="cp-stat blue"><div class="n">${o.today_counts.total - o.today_counts.cancelled}</div><div class="l">Today's appointments</div></div>
-        <div class="cp-stat warn"><div class="n">${o.pending_total}</div><div class="l">Pending confirmation</div></div>
-        <div class="cp-stat ok"><div class="n">${o.confirmation_rate == null ? '-' : o.confirmation_rate + '%'}</div><div class="l">Confirmation rate (30 days)</div></div>
+        <div class="cp-stat ok"><div class="n">${o.today_counts.confirmed}</div><div class="l">Today's confirmed appointments</div></div>
+        <div class="cp-stat blue"><div class="n">${o.confirmation_rate == null ? '-' : o.confirmation_rate + '%'}</div><div class="l">Confirmation rate (30 days)</div></div>
         <div class="cp-stat"><div class="n">${o.upcoming7}</div><div class="l">Next 7 days</div></div>
+      </div>
+      <div class="cp-quick">
+        <a href="/clinic-admin/pending" data-r="pending">${ICON.pending}<span>Pending</span></a>
+        <a href="/clinic-admin/appointments" data-r="appointments">${ICON.appointments}<span>Appointments</span></a>
+        <a href="/clinic-admin/slots" data-r="slots">${ICON.slots}<span>Manage slots</span></a>
+        ${IS_DOC ? '' : `<a href="/clinic-admin/doctors" data-r="doctors">${ICON.doctors}<span>Doctors</span></a>`}
       </div>
       <div class="cp-card"><h3>Next 7 days<span style="font:600 12.5px Inter;color:var(--ca-mut)">${o.today_counts.confirmed} confirmed today</span></h3>
         <div class="cp-bars">${o.days.map((d, i) => `<div class="cp-bar${i === 0 ? ' today' : ''}"><b>${d.n}</b><i style="height:${Math.max(4, Math.round(d.n / max * 70))}px"></i><span>${i === 0 ? 'Today' : D(d.date).toLocaleDateString('en-IN', { weekday: 'short', timeZone: 'UTC' })}</span></div>`).join('')}</div></div>
