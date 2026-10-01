@@ -75,7 +75,7 @@
 .cp-days{display:flex;gap:6px;flex-wrap:wrap}
 .cp-days button{width:44px;height:40px;border-radius:10px;border:1.5px solid var(--ca-line);background:#fff;font:700 12.5px Inter,sans-serif;color:var(--ca-mut);cursor:pointer}
 .cp-days button.on{background:#1f5fbf;border-color:#1f5fbf;color:#fff}
-.cp-sess{display:grid;grid-template-columns:1fr auto 1fr auto;gap:8px;align-items:center;margin-bottom:8px}
+.cp-sess{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) 40px;gap:6px;align-items:center;margin-bottom:8px}.cp-sess .cp-in{padding:0 8px;font-size:14px}.cp-sess .cp-btn{padding:9px 0}
 .cp-err{display:none;margin:8px 0;padding:10px 12px;border-radius:10px;background:#fdecec;color:#a12020;font-size:13.5px;font-weight:500}
 .cp-modal{position:fixed;inset:0;z-index:100;background:rgba(15,23,42,.45);display:grid;place-items:center;padding:16px;overflow:auto}
 .cp-sheet{background:#fff;border-radius:20px;padding:22px;width:100%;max-width:520px;max-height:92dvh;overflow:auto;box-shadow:0 30px 80px rgba(0,0,0,.3)}
