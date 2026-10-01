@@ -287,7 +287,7 @@
     $('#st-file').onchange = async e => {
       const f = e.target.files[0]; if (!f) return;
       try {
-        const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('Could not read that image')); i.src = URL.createObjectURL(f); });
+        const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('Could not read that image')); const fr = new FileReader(); fr.onerror = () => rej(new Error('Could not read that image')); fr.onload = () => { i.src = fr.result; }; fr.readAsDataURL(f); });
         const cv = document.createElement('canvas'); cv.width = cv.height = 256; const g = cv.getContext('2d');
         const s = Math.min(img.width, img.height); g.fillStyle = '#fff'; g.fillRect(0, 0, 256, 256);
         g.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, 256, 256);
