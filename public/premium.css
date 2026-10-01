@@ -1,0 +1,48 @@
+/* Drayvenn Lab - premium layer: calm, private-clinic feel. Loaded after styles.css. */
+:root{
+  --bg:#F6F9FB; --ink:#16233B; --body:#5A6A80; --muted:#8A97A9;
+  --line:rgba(22,35,59,.06); --line-strong:rgba(22,35,59,.10);
+  --teal:#4DB1AA; --teal-soft:#E4F4F2; --teal-deep:#2E8C86;
+  --primary:#2F66D0; --primary-2:#2556B8; --primary-deep:#1C418F; --primary-soft:#E2EBFA;
+  --grad:linear-gradient(145deg,#4D82DA 0%,#2F66D0 55%,#2858B8 100%);
+  --hero-grad:linear-gradient(160deg,#5C8CE0 0%,#2F66D0 55%,#1C418F 100%);
+  --r-field:16px; --r-card:26px; --r-panel:28px;
+  --shadow-xs:0 1px 2px rgba(22,35,59,.04);
+  --shadow-sm:0 1px 2px rgba(22,35,59,.03),0 10px 30px rgba(22,35,59,.05);
+  --shadow:0 2px 6px rgba(22,35,59,.03),0 24px 60px rgba(22,35,59,.08);
+  --shadow-lg:0 4px 10px rgba(22,35,59,.04),0 32px 70px rgba(22,35,59,.11);
+  --shadow-teal:0 10px 26px rgba(47,102,208,.22),inset 0 1px 0 rgba(255,255,255,.35);
+}
+body{background:var(--bg);color:var(--body);letter-spacing:.005em;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.hero h1,.svc-title,.section-title{font-family:'Plus Jakarta Sans',Inter,system-ui,sans-serif;color:var(--ink)}
+.hero h1{font-weight:700;letter-spacing:-.035em;line-height:1.1}
+.hero h1 span{color:var(--primary);font-weight:700}
+.hero p{font-size:15.5px;line-height:1.65;color:var(--body);margin-top:14px}
+.hero{padding:34px 22px 40px;border-radius:0 0 40px 40px}
+.hero-ctas{gap:12px;margin-top:26px}
+/* cards */
+.clinic-card,.card,.panel,.bk-card,.stat-card,.svc-card,.doc-card{border:1px solid var(--line);box-shadow:var(--shadow-sm);border-radius:var(--r-card)}
+.clinic-card{padding-top:22px;padding-bottom:22px}
+.clinic-card:hover{box-shadow:var(--shadow);transform:translateY(-3px)}
+/* buttons */
+.btn{background:var(--grad);border:1px solid rgba(255,255,255,.22);border-radius:16px;font-weight:600;letter-spacing:.01em;padding:14px 22px;box-shadow:var(--shadow-teal);transition:transform .18s cubic-bezier(.2,0,0,1),box-shadow .18s,filter .18s}
+.btn:not(.btn-outline):hover{transform:translateY(-1px);box-shadow:0 14px 30px rgba(47,102,208,.26),inset 0 1px 0 rgba(255,255,255,.35)}
+.btn:active{transform:translateY(1px) scale(.975);box-shadow:0 3px 10px rgba(47,102,208,.22),inset 0 2px 4px rgba(16,40,100,.18);filter:brightness(.98)}
+.btn-outline{background:#fff;border:1px solid var(--line-strong);color:var(--ink);box-shadow:var(--shadow-xs)}
+.btn-outline:hover{border-color:rgba(47,102,208,.35);color:var(--primary);background:#fff}
+.btn-outline:active{background:var(--primary-soft)}
+.hero #cta-find{box-shadow:0 14px 30px rgba(47,102,208,.26)}
+.hero .btn-hero.btn-outline{background:rgba(255,255,255,.75);border:1px solid rgba(47,102,208,.25);color:var(--primary-deep)}
+/* soft teal accents */
+.sample-badge{background:var(--teal-soft);color:var(--teal-deep);border:1px solid rgba(77,177,170,.25)}
+.verified-badge{background:var(--teal-soft);color:var(--teal-deep)}
+.next-slot b,.fee{color:var(--teal-deep)}
+/* calmer services panel */
+.services-panel{background:var(--hero-grad);box-shadow:0 22px 50px rgba(47,102,208,.18);padding:34px 22px;margin:36px 0 10px;border-radius:34px}
+.svc-title{font-weight:700;letter-spacing:-.03em}
+/* spacing + inputs */
+#view-home section,.view>section{margin-top:8px}
+input,select,textarea{border-radius:var(--r-field)}
+input:focus,select:focus,textarea:focus{border-color:rgba(47,102,208,.45);box-shadow:0 0 0 4px rgba(47,102,208,.10);outline:none}
+.hero-search input,.admin-search input{box-shadow:var(--shadow-sm);border:1px solid var(--line)}
+.trust-chip,.hero-trust span{border:1px solid var(--line);box-shadow:var(--shadow-xs);color:var(--primary-deep);font-weight:600}

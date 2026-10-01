@@ -1,3 +1,4 @@
+function isSampleClinic(c){return /^\s*sample\b/i.test((c&&c.name)||"")}
 /* Splash: CSS animation self-dismisses; JS just removes the node. */
 setTimeout(() => { const sp = document.getElementById('splash'); if (sp) sp.remove(); }, 2000);
 
@@ -662,7 +663,7 @@ function clinicCardHTML(c, i) {
       <div class="clinic-tagline">${esc(c.tagline || '')}</div>
       <div class="spec-chips">${c.specialties.map(s => `<span class="spec-chip">${esc(s)}</span>`).join('')}</div>
       <div class="clinic-foot">
-        <span class="sample-badge">Sample clinic</span>
+        ${isSampleClinic(c) ? '<span class="sample-badge">Sample clinic</span>' : ''}
         <span class="fee">from ₹${c.min_fee}</span>
       </div>
       ${fmtNext(c.next_available) ? `<div class="next-slot">Next slot: <b>${fmtNext(c.next_available)}</b></div>` : ''}
@@ -736,7 +737,7 @@ function renderFeatured() {
     const spec0 = (c.specialties || [])[0] || '';
     return `<article class="feat-card reveal" data-id="${c.id}" role="button" tabindex="0" aria-label="View ${esc(c.name)}">
       <div class="feat-visual">${clinicMark(c, 'feat-mark')}
-        <span class="sample-tag feat-sample">Sample clinic</span>
+        ${isSampleClinic(c) ? '<span class="sample-tag feat-sample">Sample clinic</span>' : ''}
         <span class="feat-arrow">${uiIcon('arrow')}</span>
         <div class="feat-pill">
           <div class="feat-name">${esc(c.name)}</div>
@@ -908,8 +909,8 @@ function renderClinicDetail() {
     <div class="detail-head reveal">
       <div class="detail-head-main">
         <h1 class="detail-name">${esc(c.name)}</h1>
-        <div class="detail-addr">${PIN_SVG} ${esc(c.address)} <span class="sample-badge">Sample clinic</span></div>
-        <div class="detail-badges"><span class="verified-badge">${uiIcon('shield')} Verified clinic</span></div>
+        <div class="detail-addr">${PIN_SVG} ${esc(c.address)} ${isSampleClinic(c) ? '<span class="sample-badge">Sample clinic</span>' : ''}</div>
+        <div class="detail-badges">${isSampleClinic(c) ? '' : `<span class="verified-badge">${uiIcon('shield')} Verified clinic</span>`}</div>
       </div>
       <div class="detail-head-cta"><button type="button" class="btn" id="dt-book-top">Book Appointment</button><button type="button" class="btn btn-outline btn-save" id="dt-save">&#9825; Save</button></div>
     </div>
@@ -1051,8 +1052,8 @@ function initDetailMap(c) {
   detailMap = L.map('detail-map', { scrollWheelZoom: false, attributionControl: false, zoomControl: false }).setView(co, 15);
   L.control.zoom({ position: 'bottomright' }).addTo(detailMap);
   L.tileLayer('/api/tile?z={z}&x={x}&y={y}', { maxZoom: 18 }).addTo(detailMap);
-  L.circle(co, { radius: 400, color: '#1068FC', weight: 1.5, opacity: .5, fillColor: '#1068FC', fillOpacity: .07 }).addTo(detailMap);
-  L.circle(co, { radius: 170, color: '#1068FC', weight: 1, opacity: .35, fillColor: '#1068FC', fillOpacity: .10 }).addTo(detailMap);
+  L.circle(co, { radius: 400, color: '#2F66D0', weight: 1.5, opacity: .5, fillColor: '#2F66D0', fillOpacity: .07 }).addTo(detailMap);
+  L.circle(co, { radius: 170, color: '#2F66D0', weight: 1, opacity: .35, fillColor: '#2F66D0', fillOpacity: .10 }).addTo(detailMap);
   L.marker(co, {
     icon: L.divIcon({ className: 'dh-pin dh-pin-hero', html: '<span class="dh-pin-halo"></span><span class="dh-pin-mark">' + CLINIC_MARK_SVG + '</span>', iconSize: [52, 52], iconAnchor: [26, 49] })
   }).addTo(detailMap);
