@@ -238,7 +238,7 @@
     const docs = c.doctors;
     if (!docs.length) { main.innerHTML = '<div class="cp-empty"><b>No doctors yet</b>Add a doctor first, then manage their slots here.</div>'; return; }
     if (!slDoc || !docs.some(d => d.id === slDoc)) slDoc = docs[0].id;
-    main.innerHTML = `<h1 class="cp-h1">Slots</h1><p class="cp-sub">Tap an open slot to disable it, tap a disabled one to enable it again. Add extra times for any day in the next 14 days.</p>
+    main.innerHTML = `<h1 class="cp-h1">Slots</h1><p class="cp-sub">Tap a slot to disable, enable or delete it. Booked slots show the patient. Add extra times for any day in the next 14 days.</p>
       ${docs.length > 1 ? `<div class="cp-f"><select class="cp-sel" id="sl-doc">${docs.map(d => `<option value="${esc(d.id)}" ${d.id === slDoc ? 'selected' : ''}>${esc(d.name)} - ${esc(d.specialty)}${d.active ? '' : ' (hidden)'}</option>`).join('')}</select></div>` : `<p class="cp-sub" style="margin-top:-8px"><b>${esc(docs[0].name)}</b> &middot; ${esc(docs[0].specialty)}</p>`}
       <div id="sl-body"><div class="cp-loading">Loading slots...</div></div>`;
     const sel = $('#sl-doc'); if (sel) sel.onchange = () => { slDoc = sel.value; loadSlots(); };
@@ -255,12 +255,16 @@
         <div style="display:flex;gap:10px;align-items:center;margin-top:16px;flex-wrap:wrap"><select class="cp-sel" id="sl-new" style="max-width:170px">${timeOptions()}</select><button class="cp-btn" id="sl-add">+ Add slot</button></div></div>`;
       $('#sl-dp').onclick = e => { const b = e.target.closest('button[data-d]'); if (b) { slDate = b.dataset.d; loadSlots(); } };
       const grid = $('#sl-grid');
-      if (grid) grid.onclick = async e => {
+      if (grid) grid.onclick = e => {
         const b = e.target.closest('.cp-slot'); if (!b) return;
-        const st = b.dataset.st;
-        if (st === 'booked') { toast(b.dataset.pt + ' (' + b.dataset.ref + ') has this slot. Manage it in Appointments.'); return; }
-        try { await api('/api/admin/slots', { body: { doctor_id: slDoc, date: slDate, slot: b.dataset.t, action: st === 'open' ? 'block' : 'unblock' } });
-          toast(st === 'open' ? 'Slot disabled' : 'Slot enabled'); loadSlots(); } catch (er) { toast(er.message, true); }
+        const st = b.dataset.st, t = b.dataset.t, isExtra = b.classList.contains('extra');
+        const act = async (action, msg) => { try { await api('/api/admin/slots', { body: { doctor_id: slDoc, date: slDate, slot: t, action } }); closeModal(); toast(msg); loadSlots(); } catch (er) { toast(er.message, true); } };
+        const head = `<h3>${esc(fmtTime(t))} &middot; ${esc(dayLabel(slDate, s.today))}</h3>`;
+        if (st === 'booked') { modal(head + `<p class="cp-sub" style="margin-bottom:14px"><b>Booked</b> by ${esc(b.dataset.pt)} (${esc(b.dataset.ref)}). To free this slot, cancel the booking from Appointments first.</p><div class="cp-acts"><button class="cp-btn line" id="sm-x">Close</button><a class="cp-btn" href="/clinic-admin/appointments" data-r="appointments" style="text-decoration:none">Open appointments</a></div>`); }
+        else if (st === 'blocked') { modal(head + `<p class="cp-sub" style="margin-bottom:14px">This slot is disabled, so patients cannot book it.</p><div class="cp-acts"><button class="cp-btn line" id="sm-x">Close</button><button class="cp-btn ok" id="sm-en">Enable slot</button></div>`); $('#sm-en').onclick = () => act('unblock', 'Slot enabled'); }
+        else if (isExtra) { modal(head + `<p class="cp-sub" style="margin-bottom:14px">This is a slot you added. Delete it to remove it completely.</p><div class="cp-acts"><button class="cp-btn line" id="sm-x">Close</button><button class="cp-btn badf" id="sm-del">Delete slot</button></div>`); $('#sm-del').onclick = () => act('block', 'Slot deleted'); }
+        else { modal(head + `<p class="cp-sub" style="margin-bottom:14px">Open for patients. Disable it for this day only (you can enable it again). The regular weekly hours are changed under Doctors.</p><div class="cp-acts"><button class="cp-btn line" id="sm-x">Close</button><button class="cp-btn bad" id="sm-dis">Disable slot</button></div>`); $('#sm-dis').onclick = () => act('block', 'Slot disabled'); }
+        $('#sm-x').onclick = closeModal;
       };
       $('#sl-add').onclick = () => busy($('#sl-add'), 'Adding...', async () => {
         try { await api('/api/admin/slots', { body: { doctor_id: slDoc, date: slDate, slot: $('#sl-new').value, action: 'add' } }); toast('Slot added'); await loadSlots(); }
