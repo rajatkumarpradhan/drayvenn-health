@@ -52,6 +52,7 @@ async function api(path, opts) {
 
 async function init() {
   $('#dash-date').value = todayISO();
+  if (auth.token && sessionStorage.getItem('dh_admin_role') === 'platform') { window.portalPlatformShow(); return; }
   if (auth.token) {
     try {
       await loadBookings();
@@ -93,6 +94,7 @@ async function login() {
     sessionStorage.setItem('dh_admin_role', auth.role); sessionStorage.setItem('dh_admin_doctor', auth.doctorName);
     sessionStorage.setItem('dh_admin_token', data.token);
     sessionStorage.setItem('dh_admin_clinic', data.clinic.name);
+    if (data.role === 'platform') { auth.clinicName = 'Drayvenn Lab team'; window.portalPlatformShow(); toast('Signed in as Drayvenn Lab team', 'success'); return; }
     currentDate = todayISO();
     $('#dash-date').value = currentDate;
     await loadBookings();

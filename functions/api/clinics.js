@@ -64,5 +64,5 @@ export async function onRequestGet(context) {
       next_available: nexts[0] || null
     };
   });
-  return json({ clinics: out });
+  return json({ clinics: out.filter(c => c.doctors.length) });
 }

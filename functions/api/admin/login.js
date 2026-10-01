@@ -26,10 +26,15 @@ export async function onRequestPost(context) {
     ).bind(email).first();
     if (account) doctorId = account.doctor_id;
   }
+  let platform = false;
+  if (!account) {
+    account = await DB.prepare('SELECT email, salt, password_hash, fails, locked_until FROM platform_admins WHERE email = ?').bind(email).first();
+    if (account) { platform = true; account.clinic_id = '__platform__'; account.name = 'Drayvenn Lab team'; }
+  }
   if (!account) return json({ error: 'Wrong email or password' }, 401);
-  const failTable = doctorId ? 'doctor_admins' : 'clinic_admins';
-  const failKey = doctorId ? 'doctor_id' : 'clinic_id';
-  const failVal = doctorId || account.clinic_id;
+  const failTable = platform ? 'platform_admins' : doctorId ? 'doctor_admins' : 'clinic_admins';
+  const failKey = platform ? 'email' : doctorId ? 'doctor_id' : 'clinic_id';
+  const failVal = platform ? account.email : doctorId || account.clinic_id;
 
   if (account.locked_until && account.locked_until > new Date().toISOString()) {
     return json({ error: `Too many failed attempts. This account is locked until about ${account.locked_until.slice(11, 16)} UTC. Try again later.` }, 429);
@@ -55,5 +60,5 @@ export async function onRequestPost(context) {
   await DB.prepare(
     "INSERT INTO admin_sessions (token, clinic_id, doctor_id, expires_at) VALUES (?, ?, ?, datetime('now', '+12 hours'))"
   ).bind(token, account.clinic_id, doctorId).run();
-  return json({ token, role: doctorId ? 'doctor' : 'clinic', doctor_name: account.doctor_name || null, clinic: { id: account.clinic_id, name: account.name } });
+  return json({ token, role: platform ? 'platform' : doctorId ? 'doctor' : 'clinic', doctor_name: account.doctor_name || null, clinic: { id: account.clinic_id, name: account.name } });
 }

@@ -1,7 +1,7 @@
 /* Clinic portal extras: forgot/reset password, join-as-clinic request, clinic + doctor editor,
    doctor-level role. Loads after admin.js (uses its $, esc, api, auth, toast, fmtTime). */
 (function () {
-  const VIEWS = ['admin-login-view', 'admin-forgot-view', 'admin-reset-view', 'admin-join-view', 'admin-dash-view'];
+  const VIEWS = ['admin-platform-view', 'admin-login-view', 'admin-forgot-view', 'admin-reset-view', 'admin-join-view', 'admin-dash-view'];
   function showView(id) { VIEWS.forEach(v => { const el = document.getElementById(v); if (el) el.classList.toggle('hidden', v !== id); }); window.scrollTo(0, 0); }
   async function post(path, body) {
     const res = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -167,6 +167,54 @@
     try { await api('/api/admin/doctors', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', id: btn.dataset.del }) }); toast('Doctor removed', 'info'); loadClinic(); }
     catch (e) { toast(e.message, 'error'); btn.dataset.armed = ''; btn.textContent = 'Remove'; }
   }
+
+  /* Drayvenn Lab team: review clinic join requests */
+  const ST = { new: 'New', approved: 'Approved', rejected: 'Rejected', test: 'Test' };
+  async function pfApi(body) {
+    return api('/api/platform/requests', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  }
+  async function pfLoad() {
+    const host = $('#pf-list'); host.innerHTML = '<div class="loading">Loading...</div>';
+    try {
+      const d = await api('/api/platform/requests');
+      host.innerHTML = d.requests.length ? d.requests.map(pfCard).join('') : '<div class="adm-card"><p class="doc-meta">No join requests yet.</p></div>';
+      host.querySelectorAll('[data-pf]').forEach(b => b.onclick = () => pfAct(b.dataset.pf, b.dataset.id, b));
+    } catch (e) { host.innerHTML = `<div class="form-error" style="display:block">${esc(e.message)}</div>`; }
+  }
+  function pfCard(r) {
+    const open = r.status === 'new';
+    return `<div class="adm-card pf-card" id="pf-${r.id}"><div class="adm-card-head"><h3>${esc(r.clinic_name)}</h3><span class="pf-badge pf-${esc(r.status)}">${esc(ST[r.status] || r.status)}</span></div>
+      <div class="doc-meta">${esc(r.area)}${r.specialties ? ' · ' + esc(r.specialties) : ''}</div>
+      <div class="doc-meta">${esc(r.contact_name)} · <a href="tel:${esc(r.phone)}">${esc(r.phone)}</a> · ${esc(r.email)}</div>
+      ${r.message ? `<div class="doc-meta">"${esc(r.message)}"</div>` : ''}
+      <div class="doc-meta">Received ${esc(r.created_at)} UTC${r.clinic_id ? ' · clinic id ' + esc(r.clinic_id) : ''}</div>
+      ${open ? `<div class="pf-approve hidden" id="pf-ap-${r.id}"><div class="form-row"><label>Login email for the clinic</label><input id="pf-em-${r.id}" type="email" value="${esc(r.email)}"></div>
+        <label class="pf-check"><input type="checkbox" id="pf-sm-${r.id}" checked> Mark as SAMPLE clinic (demo phase)</label><div class="form-error" id="pf-er-${r.id}"></div>
+        <div class="doc-form-btns"><button class="btn btn-small" data-pf="confirm" data-id="${r.id}">Create clinic &amp; login</button><button class="btn btn-ghost btn-small" data-pf="cancel" data-id="${r.id}">Cancel</button></div></div>
+      <div class="doc-actions" id="pf-btns-${r.id}"><button class="btn btn-small" data-pf="approve" data-id="${r.id}">Approve</button><button class="btn btn-ghost btn-small" data-pf="test" data-id="${r.id}">Mark as test</button><button class="btn btn-ghost btn-small doc-del" data-pf="reject" data-id="${r.id}">Reject</button></div>` : ''}
+      <div id="pf-res-${r.id}"></div></div>`;
+  }
+  async function pfAct(action, id, btn) {
+    if (action === 'approve') { $('#pf-ap-' + id).classList.remove('hidden'); $('#pf-btns-' + id).classList.add('hidden'); return; }
+    if (action === 'cancel') { $('#pf-ap-' + id).classList.add('hidden'); $('#pf-btns-' + id).classList.remove('hidden'); return; }
+    if (action === 'reject' || action === 'test') {
+      if (btn.dataset.armed !== '1') { btn.dataset.armed = '1'; btn.dataset.orig = btn.textContent; btn.textContent = 'Tap again to confirm'; setTimeout(() => { btn.dataset.armed = ''; btn.textContent = btn.dataset.orig; }, 3500); return; }
+      try { await pfApi({ id, action }); toast(action === 'test' ? 'Marked as test' : 'Request rejected', 'info'); pfLoad(); } catch (e) { toast(e.message, 'error'); }
+      return;
+    }
+    if (action === 'confirm') {
+      btn.disabled = true; err('#pf-er-' + id);
+      try {
+        const d = await pfApi({ id, action: 'approve', login_email: $('#pf-em-' + id).value, sample: $('#pf-sm-' + id).checked });
+        $('#pf-ap-' + id).classList.add('hidden');
+        $('#pf-res-' + id).innerHTML = `<div class="adm-note"><b>Clinic created.</b> Share these once with the clinic (the password is not shown again):<br><br>Login page: <b>${esc(location.origin)}/admin</b><br>Email: <b>${esc(d.login_email)}</b><br>Password: <b>${esc(d.temp_password)}</b><br><br>The clinic should use "Forgot password?" to set its own password, then add its doctors in "Clinic &amp; doctors". The clinic appears on the site after its first doctor is added.</div>`;
+        toast('Clinic created', 'success');
+      } catch (e) { err('#pf-er-' + id, e.message); btn.disabled = false; }
+    }
+  }
+  window.portalPlatformShow = function () { showView('admin-platform-view'); pfLoad(); };
+  $('#pf-refresh').onclick = pfLoad;
+  $('#pf-logout').onclick = () => { auth.token = null; sessionStorage.removeItem('dh_admin_token'); sessionStorage.removeItem('dh_admin_role'); sessionStorage.removeItem('dh_admin_clinic'); showView('admin-login-view'); };
 
   if (resetToken) showView('admin-reset-view');
   else if (location.hash === '#join') showView('admin-join-view');
