@@ -920,12 +920,12 @@ function renderClinicDetail() {
       <div class="qs-item"><span class="qs-label">Next available</span><b>${next ? esc(next) : 'No slots in 14 days'}</b></div>
     </div>
     <div class="detail-tabs reveal" id="detail-tabs">
-      <button type="button" class="dtab active" data-dtab="about">About</button>
-      <button type="button" class="dtab" data-dtab="doctors">Doctors</button>
+      <button type="button" class="dtab active" data-dtab="doctors">Doctors</button>
       <button type="button" class="dtab" data-dtab="slots">Slots</button>
+      <button type="button" class="dtab" data-dtab="about">About</button>
       <button type="button" class="dtab" data-dtab="location">Location</button>
     </div>
-    <div class="dt-panel" id="dt-about">
+    <div class="dt-panel hidden" id="dt-about">
       <div class="info-card">
         <p class="dt-desc">${esc(c.tagline || '')}</p>
         <h3 class="dt-h">Specialties</h3>
@@ -936,7 +936,7 @@ function renderClinicDetail() {
         <div class="info-row"><span class="info-ico">${uiIcon('phone')}</span><span><a href="tel:${tel}">${esc(c.phone)}</a></span></div>
       </div>
     </div>
-    <div class="dt-panel hidden" id="dt-doctors"></div>
+    <div class="dt-panel" id="dt-doctors"></div>
     <div class="dt-panel hidden" id="dt-slots"></div>
     <div class="dt-panel hidden" id="dt-location">
       ${co ? `<div class="detail-map-card"><div id="detail-map"></div></div>` : ''}

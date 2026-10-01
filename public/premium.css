@@ -48,3 +48,7 @@ input:focus,select:focus,textarea:focus{border-color:rgba(47,102,208,.45);box-sh
 .trust-chip,.hero-trust span{border:1px solid var(--line);box-shadow:var(--shadow-xs);color:var(--primary-deep);font-weight:600}
 .btn-hero,.btn-block{border-radius:var(--r-pill)}
 .services-panel h2,.services-panel h3,.services-panel .svc-title,.services-panel .svc-card h3{color:#fff}
+.quick-strip{grid-template-columns:1fr 1fr!important;gap:10px}
+.quick-strip .qs-item:first-child{grid-column:1/-1}
+.qs-item{padding:14px 16px;border-radius:20px}
+.detail-tabs{position:sticky;top:calc(var(--topbar-h) + 12px);z-index:5;background:var(--bg);padding-top:6px}
