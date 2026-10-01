@@ -1482,3 +1482,4 @@ body.intro-open { overflow: hidden; }
 .doc-form .form-grid, .adm-card .form-grid { grid-template-columns: minmax(0, 1fr); }
 .sess-row input { flex: 1 1 0; width: 0; min-width: 0; }
 .form-row.two input { width: 100%; }
+.sess-row input { padding-left: 10px; padding-right: 6px; font-size: 14.5px; }
