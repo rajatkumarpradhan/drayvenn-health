@@ -60,3 +60,6 @@ input:focus,select:focus,textarea:focus{border-color:rgba(47,102,208,.45);box-sh
 .who-add{align-self:center;font-size:13px;color:#2F66D0;font-weight:600;text-decoration:none;padding:8px 4px}
 .login-modal{max-height:92dvh}
 .login-modal-note{font-size:13px;color:var(--muted);text-align:center;margin:2px 36px 10px;font-weight:600}
+.btn.bk-danger,.btn.btn-ghost.bk-danger{background:#fff;color:#c0392b;border:1.5px solid rgba(192,57,43,.35);box-shadow:none}
+.btn.btn-danger.btn-small{background:linear-gradient(135deg,#d64545,#c0392b);color:#fff;border:0}
+.rs-panel .date-row{margin:6px 0 10px}
