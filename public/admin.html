@@ -33,7 +33,7 @@
     <div class="admin-login">
       <img src="brand/icon.png" alt="Drayvenn Lab" style="height:72px;width:auto;margin:0 auto 10px;display:block;filter:drop-shadow(0 0 18px rgba(139,223,208,.45))"><div class="hero-wordmark" style="position:static;text-align:center;margin:0 0 16px">Drayvenn <b>Lab</b></div>
       <h2>Clinic sign in</h2>
-      <p>Manage appointments for your clinic.</p>
+      <p>Already a Drayvenn Lab clinic or doctor? Sign in with your login.</p>
       <div class="form-grid">
         <div class="form-row">
           <label for="adm-email">Clinic email</label>
@@ -48,8 +48,9 @@
         </div>
         <div class="form-error" id="adm-error"></div>
         <button class="btn btn-block" id="adm-login-btn">Open dashboard</button>
-        <div class="adm-links"><a href="#" id="adm-forgot-link">Forgot password?</a><span>·</span><a href="#" id="adm-join-link">Join as a clinic</a></div>
+        <div class="adm-links"><a href="#" id="adm-forgot-link">Forgot password?</a></div>
       </div>
+      <div class="adm-join-box"><span>New clinic, no login yet?</span><button type="button" class="btn btn-outline btn-small" id="adm-join-link">Request to join</button></div>
     </div>
   </section>
 
@@ -82,7 +83,8 @@
 
   <section id="admin-join-view" class="hidden">
     <div class="admin-login">
-      <h2>Join Drayvenn Lab as a clinic</h2>
+      <div class="adm-signin-box"><span>Already have a clinic login?</span><button type="button" class="btn btn-small adm-back">Sign in instead</button></div>
+      <h2>Request to join Drayvenn Lab</h2>
       <p>Tell us about your clinic. Our team will contact you to set up your listing and login.</p>
       <div class="form-grid" id="join-form">
         <div class="form-row"><label for="jn-clinic">Clinic name</label><input id="jn-clinic" maxlength="100" autocomplete="organization"></div>
@@ -150,7 +152,7 @@
 </footer>
 
 <div id="toast-host"></div>
-<script src="admin.js?v=141"></script>
-<script src="admin-portal.js?v=141"></script>
+<script src="admin.js?v=142"></script>
+<script src="admin-portal.js?v=142"></script>
 </body>
 </html>
