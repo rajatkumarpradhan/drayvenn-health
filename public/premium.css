@@ -76,3 +76,15 @@ input:focus,select:focus,textarea:focus{border-color:rgba(47,102,208,.45);box-sh
 .ds-slot:hover{background:#1f5fbf;color:#fff;border-color:#1f5fbf}
 .ds-note{font-size:13px;color:#7a8799}
 .doctor-card{flex-wrap:wrap}
+@media (max-width:640px){
+  .detail-cover{height:112px!important;border-radius:18px}
+  .detail-cover-mark{width:130px!important;height:130px!important;right:-14px!important;bottom:-24px!important}
+  .detail-head{margin-top:12px}
+  .detail-name{font-size:22px!important;line-height:1.2}
+  .detail-addr{font-size:13.5px!important;line-height:1.4}
+  .qs-item{padding:10px 14px!important;border-radius:14px!important}
+  .qs-item .qs-label{font-size:10.5px!important;margin-bottom:2px!important}
+  .qs-item b{font-size:14px!important}
+  .quick-strip{gap:8px!important;margin-top:12px!important}
+  .detail-tabs{margin-top:12px!important}
+}
