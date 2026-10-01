@@ -87,3 +87,4 @@ main.wrap { padding-top: 18px; padding-bottom: calc(40px + env(safe-area-inset-b
 }
 .stat-card .lbl { font-size: 10px; letter-spacing: .02em; }
 .stat-card { min-width: 0; overflow: hidden; }
+@media (max-width:420px){.stat-card .lbl{font-size:9px;letter-spacing:0}.stat-card{padding-left:6px;padding-right:6px}}
