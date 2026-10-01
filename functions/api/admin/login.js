@@ -40,8 +40,12 @@ export async function onRequestPost(context) {
     return json({ error: `Too many failed attempts. This account is locked until about ${account.locked_until.slice(11, 16)} UTC. Try again later.` }, 429);
   }
 
-  const hash = await hashPassword(password, account.salt);
-  if (!safeEqualHex(hash, account.password_hash)) {
+  /* Phone keyboards add a trailing space after autocomplete and swap '-' for an en/em dash. Accept those
+     look-alikes of the exact password; anything else still counts as a failed attempt. */
+  const variants = [...new Set([password, password.trim(), password.trim().replace(/[\u2010-\u2015\u2212]/g, '-')])];
+  let okPw = false;
+  for (const v of variants) { if (safeEqualHex(await hashPassword(v, account.salt), account.password_hash)) { okPw = true; break; } }
+  if (!okPw) {
     const fails = account.fails + 1;
     const locked = fails >= MAX_FAILS
       ? new Date(Date.now() + LOCK_MINUTES * 60000).toISOString()
