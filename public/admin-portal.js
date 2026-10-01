@@ -216,6 +216,7 @@
   $('#pf-refresh').onclick = pfLoad;
   $('#pf-logout').onclick = () => { auth.token = null; sessionStorage.removeItem('dh_admin_token'); sessionStorage.removeItem('dh_admin_role'); sessionStorage.removeItem('dh_admin_clinic'); showView('admin-login-view'); };
 
-  if (resetToken) showView('admin-reset-view');
+  if (auth.token && sessionStorage.getItem('dh_admin_role') === 'platform') window.portalPlatformShow();
+  else if (resetToken) showView('admin-reset-view');
   else if (location.hash === '#join') showView('admin-join-view');
 })();

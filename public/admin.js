@@ -52,7 +52,7 @@ async function api(path, opts) {
 
 async function init() {
   $('#dash-date').value = todayISO();
-  if (auth.token && sessionStorage.getItem('dh_admin_role') === 'platform') { window.portalPlatformShow(); return; }
+  if (auth.token && sessionStorage.getItem('dh_admin_role') === 'platform') { return; /* shown by admin-portal.js once loaded */ }
   if (auth.token) {
     try {
       await loadBookings();
