@@ -1474,3 +1474,7 @@ body.intro-open { overflow: hidden; }
 .day-chip input:checked + span { background: var(--primary); border-color: var(--primary); color: #fff; }
 .sess-row { display: flex; align-items: center; gap: 8px; }
 .sess-row input { flex: 1; min-width: 0; }
+.doc-form input, .doc-form textarea, .adm-card input { width: 100%; max-width: 100%; box-sizing: border-box; min-width: 0; }
+.doc-form .day-chip input { width: auto; }
+.sess-row input { width: auto; }
+.form-row.two > div { min-width: 0; }
