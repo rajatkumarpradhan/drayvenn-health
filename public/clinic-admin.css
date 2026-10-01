@@ -6,7 +6,7 @@
 .ca-brand:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(135deg,rgba(255,255,255,.035) 0 1px,transparent 1px 22px);pointer-events:none}
 .ca-brand>*{position:relative;z-index:1}
 .ca-brand-top{display:flex;align-items:center;gap:12px}
-.ca-logo{width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.1);padding:6px}
+.ca-logo{width:44px;height:44px;border-radius:12px;background:#fff;padding:6px}
 .ca-wordmark{font-family:'Plus Jakarta Sans',Inter,sans-serif;font-weight:700;font-size:20px;line-height:1.1}
 .ca-wordmark b{color:#7fe0d2}
 .ca-wordmark span{display:block;font:600 11px Inter,sans-serif;letter-spacing:.14em;text-transform:uppercase;opacity:.7;margin-top:4px}
