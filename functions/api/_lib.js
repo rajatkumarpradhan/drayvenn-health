@@ -101,7 +101,7 @@ export function adminTokenFrom(request) {
 export async function adminSessionByToken(DB, token) {
   return DB.prepare(
     `SELECT s.clinic_id, s.doctor_id, c.name AS clinic_name FROM admin_sessions s
-     JOIN clinics c ON c.id = s.clinic_id
+     LEFT JOIN clinics c ON c.id = s.clinic_id
      WHERE s.token = ? AND s.expires_at > datetime('now')`
   ).bind(await sha256Hex(token)).first();
 }
@@ -110,7 +110,9 @@ export async function requireAdmin(DB, request) {
   if (!t) return null;
   /* Cookie-authenticated writes must carry our custom header: cross-site forms cannot add it (CSRF defence in depth on top of SameSite=Strict). */
   if (t.cookie && request.method !== 'GET' && request.method !== 'HEAD' && request.headers.get('X-DH-Admin') !== '1') return null;
-  return adminSessionByToken(DB, t.token);
+  const row = await adminSessionByToken(DB, t.token);
+  /* team (platform) sessions use the sentinel clinic id and can never reach clinic data */
+  return row && row.clinic_id !== '__platform__' ? row : null;
 }
 
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
