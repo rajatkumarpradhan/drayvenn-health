@@ -964,7 +964,9 @@ function renderClinicDetail() {
         <button class="btn btn-small" data-doc="${esc(d.id)}">Book with this doctor</button>
         <button class="doc-more" data-docinfo="${esc(d.id)}">Details</button>
       </div>
+      <div class="doc-slots" data-ds="${esc(d.id)}"><div class="ds-h">Available slots</div><div class="ds-days"></div><div class="ds-grid"></div></div>
     </div>`).join('');
+  $('#dt-doctors').querySelectorAll('.doc-slots').forEach(el => initDocSlots(el, el.dataset.ds));
   $('#dt-doctors').querySelectorAll('button[data-doc]').forEach(b => { b.onclick = () => openBooking(b.dataset.doc); });
   $('#dt-doctors').querySelectorAll('button[data-docinfo]').forEach(b => { b.onclick = () => openDoctorModal(b.dataset.docinfo); });
   let mapInit = false, slotsInit = false;
@@ -981,6 +983,29 @@ function renderClinicDetail() {
   $('#sb-book').onclick = bookTop;
   watchReveals($('#clinic-detail'));
   watchReveals($('#dt-doctors'));
+}
+
+/* Inline availability under each doctor: next 7 days, live from /api/slots (D1) */
+function initDocSlots(el, docId) {
+  const now = new Date(Date.now() + 19800000);
+  const days = []; for (let i = 0; i < 7; i++) days.push(new Date(now.getTime() + i * 86400000).toISOString().slice(0, 10));
+  const dEl = el.querySelector('.ds-days'), gEl = el.querySelector('.ds-grid');
+  const cache = {};
+  const get = d => cache[d] || (cache[d] = api('/api/slots?doctor_id=' + encodeURIComponent(docId) + '&date=' + d).then(r => r.slots || []).catch(() => []));
+  dEl.innerHTML = days.map((d, i) => `<button type="button" class="ds-pill" data-d="${d}"><span>${i === 0 ? 'Today' : fmtDayPill(d).split(' ')[0]}</span><b>&middot;</b></button>`).join('');
+  const show = async d => {
+    dEl.querySelectorAll('.ds-pill').forEach(x => x.classList.toggle('on', x.dataset.d === d));
+    gEl.innerHTML = '<span class="ds-note">Loading&hellip;</span>';
+    const sl = (await get(d)).filter(x => x.available);
+    if (!sl.length) { gEl.innerHTML = '<span class="ds-note">No open slots this day</span>'; return; }
+    gEl.innerHTML = sl.map(x => `<button type="button" class="ds-slot" data-t="${x.time}">${fmtTime(x.time)}</button>`).join('');
+    gEl.querySelectorAll('.ds-slot').forEach(b => b.onclick = () => openBooking(docId, { date: d, slot: b.dataset.t }));
+  };
+  dEl.onclick = e => { const b = e.target.closest('.ds-pill'); if (b) show(b.dataset.d); };
+  Promise.all(days.map(d => get(d).then(sl => ({ d, n: sl.filter(x => x.available).length })))).then(res => {
+    res.forEach(r => { const b = dEl.querySelector(`[data-d="${r.d}"]`); b.querySelector('b').textContent = r.n ? r.n + ' slots' : 'none'; if (!r.n) b.classList.add('none'); });
+    const first = res.find(r => r.n); show(first ? first.d : days[0]);
+  });
 }
 
 async function renderSlotsTab(c) {
