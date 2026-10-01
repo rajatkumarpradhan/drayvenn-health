@@ -988,14 +988,16 @@ async function renderSlotsTab(c) {
   const days = [];
   const now = new Date(Date.now() + 19800000);
   for (let i = 0; i < 10; i++) days.push(new Date(now.getTime() + i * 86400000).toISOString().slice(0, 10));
+  const nexts = c.doctors.map(d => d.next_available && d.next_available.date).filter(Boolean).sort();
+  const firstDay = nexts.length && days.includes(nexts[0]) ? nexts[0] : days[0];
   host.innerHTML = `
     <div class="slot-doc-filter"><select id="slot-doc" class="fb-select" aria-label="Filter by doctor">
       <option value="all">All doctors</option>
       ${c.doctors.map(d => `<option value="${esc(d.id)}">${esc(d.name)} - ${esc(d.specialty)}</option>`).join('')}
     </select></div>
-    <div class="slot-dates" id="slot-dates">${days.map((d, i) => `<button type="button" class="date-pill${i === 0 ? ' active' : ''}" data-date="${d}">${fmtDayPill(d)}</button>`).join('')}</div>
+    <div class="slot-dates" id="slot-dates">${days.map((d, i) => `<button type="button" class="date-pill${d === firstDay ? ' active' : ''}" data-date="${d}">${fmtDayPill(d)}</button>`).join('')}</div>
     <div class="slot-grid" id="slot-grid">${LOADER('Finding open slots&hellip;', 'slots')}</div>`;
-  const st = { date: days[0], docId: 'all' };
+  const st = { date: firstDay, docId: 'all' };
   const load = async () => {
     const grid = $('#slot-grid');
     const oldBar = $('#slot-book-bar'); if (oldBar) oldBar.remove();
