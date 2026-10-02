@@ -1,4 +1,4 @@
-function isSampleClinic(c){return /^\s*sample\b/i.test((c&&c.name)||"")}
+function isSampleClinic(c){return !!(c&&(c.is_sample||/^\s*sample\b/i.test(c.name||"")))}
 /* Splash: CSS animation self-dismisses; JS just removes the node. */
 setTimeout(() => { const sp = document.getElementById('splash'); if (sp) sp.remove(); }, 2000);
 
@@ -1649,7 +1649,7 @@ function renderManageBooking(b) {
       ${b.status === 'cancelled' ? `<div style="margin-top:10px;font-size:13px;color:var(--red);font-weight:600">This booking was cancelled. Call the clinic at ${esc(b.clinic_phone)} for help.</div>` : ''}
       <div class="bk-actions">
         ${b.status !== 'cancelled' ? '<button class="btn btn-outline btn-small" id="bk-cal">Add to Google Calendar</button>' : ''}
-        ${upcoming ? '<button class="btn btn-danger btn-small" id="bk-cancel">Cancel booking</button>' : ''}
+        ${upcoming && b.status === 'pending' ? '<button class="btn btn-danger btn-small" id="bk-cancel">Cancel booking</button>' : ''}
       </div>
     </div>`;
   const calBtn = $('#bk-cal');
@@ -2053,7 +2053,8 @@ function renderLogin(host) {
       <div class="dev-code hidden" id="login-devcode"></div>
       <div class="form-error" id="otp-error"></div>
       <button class="btn btn-block" id="login-verify">Verify</button>
-      <button class="btn btn-block btn-ghost" id="login-back">Change number</button>
+      <button class="btn btn-block btn-ghost" id="login-resend" type="button" disabled>Resend code</button>
+      <button class="btn btn-block btn-ghost" id="login-back" type="button">Change number</button>
     </div>
     <div class="privacy-line" style="margin-top:14px">Codes expire in 10 minutes. We only use your number to sign you in and confirm bookings.</div>`;
   const paint = () => {
@@ -2072,10 +2073,18 @@ function renderLogin(host) {
   $('#auth-t-up').onclick = () => { state.authMode = 'signup'; paint(); };
   paint();
   $('#login-phone').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10); });
-  $('#login-otp').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6); });
-  $('#login-send').onclick = requestOtp;
+  $('#login-otp').addEventListener('input', e => {
+    e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6);
+    $('#otp-error').style.display = 'none';
+    if (e.target.value.length === 6 && !$('#login-verify').disabled) verifyOtp();
+  });
+  $('#login-phone').addEventListener('input', () => { $('#login-error').style.display = 'none'; });
+  $('#login-phone').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); requestOtp(); } });
+  $('#login-otp').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); verifyOtp(); } });
+  $('#login-send').onclick = () => requestOtp();
   $('#login-verify').onclick = verifyOtp;
-  $('#login-back').onclick = () => { $('#login-otp-step').classList.add('hidden'); $('#login-phone-step').classList.remove('hidden'); };
+  $('#login-resend').onclick = () => requestOtp(true);
+  $('#login-back').onclick = () => { clearInterval(state.otpTimer); $('#otp-error').style.display = 'none'; $('#login-otp').value = ''; $('#login-otp-step').classList.add('hidden'); $('#login-phone-step').classList.remove('hidden'); $('#login-phone').focus({ preventScroll: true }); };
   bindGoogleStart(host);
 }
 
@@ -2095,14 +2104,26 @@ function bindGoogleStart(root) {
   });
 }
 
-async function requestOtp() {
-  const err = $('#login-error');
+function startOtpTimer(sec) {
+  clearInterval(state.otpTimer);
+  const b = $('#login-resend'); if (!b) return;
+  let left = sec; b.disabled = true; b.textContent = 'Resend code in ' + left + 's';
+  state.otpTimer = setInterval(() => {
+    const bb = $('#login-resend'); if (!bb) { clearInterval(state.otpTimer); return; }
+    left--; if (left <= 0) { clearInterval(state.otpTimer); bb.disabled = false; bb.textContent = 'Resend code'; } else bb.textContent = 'Resend code in ' + left + 's';
+  }, 1000);
+}
+
+async function requestOtp(isResend) {
+  const err = isResend === true ? $('#otp-error') : $('#login-error');
   err.style.display = 'none';
+  if ($('#login-send').disabled) return;
   const phone = $('#login-phone').value.trim();
   if (state.authMode === 'signup' && ($('#login-name').value.trim().length < 2)) { err.textContent = 'Enter your full name.'; err.style.display = 'block'; return; }
   if (!/^[6-9]\d{9}$/.test(phone)) { err.textContent = 'Enter a valid 10-digit mobile number.'; err.style.display = 'block'; return; }
   const btn = $('#login-send');
   btn.disabled = true; btn.textContent = 'Sending code...';
+  if (isResend === true) { $('#login-resend').disabled = true; $('#login-resend').textContent = 'Sending...'; }
   try {
     const data = await api('/api/auth/otp/request', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone }) });
     $('#login-sent-to').textContent = '+91 ' + phone.slice(0, 5) + ' ' + phone.slice(5);
@@ -2118,8 +2139,11 @@ async function requestOtp() {
     $('#login-phone-step').classList.add('hidden');
     $('#login-otp-step').classList.remove('hidden');
     $('#login-otp').focus({ preventScroll: true });
+    startOtpTimer(30);
+    if (isResend === true) toast('New code sent', 'info');
   } catch (e) {
     err.textContent = e.message; err.style.display = 'block';
+    if (isResend === true) startOtpTimer(10);
   }
   btn.disabled = false; btn.textContent = 'Send OTP';
 }
@@ -2142,6 +2166,7 @@ async function verifyOtp() {
     renderAccount();
   } catch (e) {
     err.textContent = e.message; err.style.display = 'block';
+    const oi = $('#login-otp'); if (oi) { oi.value = ''; oi.focus({ preventScroll: true }); }
   }
   btn.disabled = false; btn.textContent = state.authMode === 'signup' ? 'Verify & create account' : 'Verify & sign in';
 }
@@ -2220,7 +2245,8 @@ function renderMbList() {
         <button type="button" class="btn btn-small btn-outline" data-act="details">View Details</button>
         ${upcoming
           ? `<button type="button" class="btn btn-small btn-outline" data-act="reschedule" data-doctor="${esc(b.doctor_id)}">Reschedule</button>
-             <button type="button" class="btn btn-small btn-ghost bk-danger" data-act="cancel">Cancel</button>`
+             ${b.status === 'pending' ? '<button type="button" class="btn btn-small btn-ghost bk-danger" data-act="cancel">Cancel booking</button>'
+               : (b.clinic_phone ? `<a class="btn btn-small btn-ghost" href="tel:${esc(b.clinic_phone)}">Call clinic to cancel</a>` : '')}`
           : `<button type="button" class="btn btn-small btn-outline" data-act="again">Book Again</button>`}
       </div>
       <div class="rs-panel hidden"></div>
@@ -2273,7 +2299,7 @@ function openBookingModal(b) {
         <button type="button" class="btn btn-small btn-whatsapp" id="bm-share">Share on WhatsApp</button>
         <a class="btn btn-small btn-outline" target="_blank" rel="noopener" href="${dirUrl}">Get Directions</a>
         ${upcoming ? `<button type="button" class="btn btn-small btn-outline" id="bm-resched">Reschedule</button>
-        <button type="button" class="btn btn-small btn-ghost bk-danger" id="bm-cancel">Cancel booking</button>` : ''}
+        ${b.status === 'pending' ? '<button type="button" class="btn btn-small btn-ghost bk-danger" id="bm-cancel">Cancel booking</button>' : (b.clinic_phone ? `<a class="btn btn-small btn-ghost" href="tel:${esc(b.clinic_phone)}">Call clinic to cancel</a>` : '')}` : ''}
       </div>
     </div>`;
   document.body.appendChild(ov);

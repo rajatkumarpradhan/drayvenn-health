@@ -1,4 +1,4 @@
-import { json } from '../_lib.js';
+import { pubName, json } from '../_lib.js';
 import { getPatientSession, withSessionMaintenance, unauthorized } from '../_auth.js';
 
 /* GET /api/my/bookings - booking history for the signed-in patient.
@@ -15,6 +15,6 @@ export async function onRequestGet(context) {
   const rows = p.phone
     ? await DB.prepare(cols + ` WHERE b.patient_id = ? OR b.phone = ? ORDER BY b.date DESC, b.slot DESC LIMIT 50`).bind(p.id, p.phone).all()
     : await DB.prepare(cols + ` WHERE b.patient_id = ? ORDER BY b.date DESC, b.slot DESC LIMIT 50`).bind(p.id).all();
-  const res = json({ bookings: rows.results });
+  const res = json({ bookings: rows.results.map(r => ({ ...r, clinic_name: pubName(r.clinic_name) })) });
   return withSessionMaintenance(DB, state, context.request, res);
 }

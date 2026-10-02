@@ -27,6 +27,7 @@ export async function onRequestPost(context) {
   if (action === 'cancel') {
     if (booking.status === 'cancelled') return badRequest('That booking is already cancelled');
     if (booking.date < istToday()) return badRequest('Past appointments cannot be cancelled');
+    if (booking.status !== 'pending') return badRequest('The clinic has already confirmed this booking. Please call the clinic to cancel it.');
     await DB.prepare("UPDATE bookings SET status = 'cancelled' WHERE id = ?").bind(booking.id).run();
     const res = json({ ok: true, ref, status: 'cancelled' });
     return withSessionMaintenance(DB, state, context.request, res);

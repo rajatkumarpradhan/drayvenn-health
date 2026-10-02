@@ -1,3 +1,7 @@
+/* Patient-facing clinic name: the internal "SAMPLE - " tag is dropped (the app shows a Sample clinic badge instead). */
+export function pubName(n) { return String(n || '').replace(/^\s*SAMPLE\s*[-\u2013\u2014]\s*/i, ''); }
+export function isSampleName(n) { return /^\s*SAMPLE\b/i.test(String(n || '')); }
+
 export function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,

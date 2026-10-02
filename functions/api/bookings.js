@@ -1,4 +1,4 @@
-import { json, badRequest, generateSlots, nowIST, istToday, addDays, makeRef, normalizePhone, purgeOldBookings, effectiveSlots } from './_lib.js';
+import { pubName, json, badRequest, generateSlots, nowIST, istToday, addDays, makeRef, normalizePhone, purgeOldBookings, effectiveSlots } from './_lib.js';
 import { getPatientSession } from './_auth.js';
 
 export async function onRequestPost(context) {
@@ -65,7 +65,7 @@ export async function onRequestPost(context) {
   return json({
     booking: {
       ref, status: 'pending',
-      clinic_name: clinic.name, clinic_area: clinic.area, clinic_address: clinic.address, clinic_phone: clinic.phone,
+      clinic_name: pubName(clinic.name), clinic_area: clinic.area, clinic_address: clinic.address, clinic_phone: clinic.phone,
       doctor_name: doctor.name, specialty: doctor.specialty, fee: doctor.fee,
       patient_name: name, phone: ph, age, date, slot
     }

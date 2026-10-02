@@ -1,4 +1,4 @@
-import { json, daysLabel, computeNextAvailable } from '../_lib.js';
+import { pubName, isSampleName, json, daysLabel, computeNextAvailable } from '../_lib.js';
 
 export async function onRequestGet(context) {
   const { DB } = context.env;
@@ -19,5 +19,5 @@ export async function onRequestGet(context) {
   });
   const clinicNext = pubs.map(d => d.next_available).filter(Boolean)
     .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))[0] || null;
-  return json({ clinic: { ...clinic, specialties: JSON.parse(clinic.specialties), doctors: pubs, min_fee: Math.min(...pubs.map(d => d.fee)), next_available: clinicNext } });
+  return json({ clinic: { ...clinic, name: pubName(clinic.name), is_sample: isSampleName(clinic.name), specialties: JSON.parse(clinic.specialties), doctors: pubs, min_fee: Math.min(...pubs.map(d => d.fee)), next_available: clinicNext } });
 }

@@ -1,4 +1,4 @@
-import { json, badRequest, normalizePhone, istToday } from '../_lib.js';
+import { pubName, json, badRequest, normalizePhone, istToday } from '../_lib.js';
 
 /* Failed-lookup guard: 8 failed ref+phone attempts per 10 min per IP -> 15 min block.
    Refs are short, so this is the brute-force bar for the demo. */
@@ -52,7 +52,7 @@ export async function onRequestGet(context) {
     return json({ error: 'No booking found for that reference and mobile number' }, 404);
   }
   await guardReset(DB, ip);
-  return json({ booking: b });
+  return json({ booking: { ...b, clinic_name: pubName(b.clinic_name) } });
 }
 
 export async function onRequestPost(context) {
@@ -72,6 +72,7 @@ export async function onRequestPost(context) {
   }
   if (b.status === 'cancelled') return badRequest('This booking is already cancelled');
   if (b.date < istToday()) return badRequest('Past bookings cannot be cancelled');
+  if (b.status !== 'pending') return badRequest('The clinic has already confirmed this booking. Please call the clinic to cancel it.');
   await guardReset(DB, ip);
   await DB.prepare("UPDATE bookings SET status = 'cancelled' WHERE id = ?").bind(b.id).run();
   return json({ ok: true, ref, status: 'cancelled' });

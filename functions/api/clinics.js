@@ -1,4 +1,4 @@
-import { json, generateSlots, loadOverrideMap, applyOverrides, nowIST, istToday, addDays, daysLabel, computeNextAvailable } from './_lib.js';
+import { pubName, isSampleName, json, generateSlots, loadOverrideMap, applyOverrides, nowIST, istToday, addDays, daysLabel, computeNextAvailable } from './_lib.js';
 
 export async function onRequestGet(context) {
   const { DB } = context.env;
@@ -59,6 +59,8 @@ export async function onRequestGet(context) {
       .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
     return {
       ...c,
+      name: pubName(c.name),
+      is_sample: isSampleName(c.name),
       specialties: JSON.parse(c.specialties),
       doctors: docs,
       min_fee: Math.min(...docs.map(d => d.fee)),
