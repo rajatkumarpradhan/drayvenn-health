@@ -23,3 +23,7 @@
   Cache-Control: no-cache, must-revalidate
 /*.png
   Cache-Control: no-cache, must-revalidate
+/owner.html
+  Cache-Control: no-store
+/owner.js
+  Cache-Control: no-store

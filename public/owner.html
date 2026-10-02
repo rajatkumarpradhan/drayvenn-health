@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Owner - Drayvenn Lab</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0f2a4d">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/owner.css?v=202">
+<link rel="icon" type="image/png" href="/favicon-64.png">
+</head>
+<body>
+<header class="ow-top">
+  <div class="ow-brand"><img src="/brand/icon.png" alt="" width="34" height="34"><div>Drayvenn <b>Lab</b><span>Owner</span></div></div>
+  <div class="ow-who hidden" id="who"><span id="who-email"></span><button class="ow-link" id="logout" type="button">Sign out</button></div>
+</header>
+<main class="ow-main">
+  <div class="ow-card hidden" id="v-loading"><p class="ow-sub">Loading...</p></div>
+
+  <section class="ow-card hidden" id="v-off">
+    <h1>Owner sign-in is not set up</h1>
+    <p class="ow-sub">Ask your developer for the one-time setup link.</p>
+  </section>
+
+  <section class="ow-card hidden" id="v-setup">
+    <div class="ow-eyebrow">One-time setup</div>
+    <h1>Create your owner login</h1>
+    <p class="ow-sub">Choose the email and a strong password. This link works only once.</p>
+    <form id="f-setup" novalidate autocomplete="on">
+      <label for="s-email">Owner email</label>
+      <input id="s-email" type="email" autocomplete="username" autocapitalize="none" spellcheck="false">
+      <label for="s-pass">Password (12+ characters)</label>
+      <div class="ow-pw"><input id="s-pass" type="password" autocomplete="new-password" autocapitalize="none" spellcheck="false"><button type="button" class="ow-link" data-toggle="s-pass">Show</button></div>
+      <label for="s-pass2">Repeat password</label>
+      <input id="s-pass2" type="password" autocomplete="new-password" autocapitalize="none" spellcheck="false">
+      <div class="ow-err" id="s-err" role="alert"></div>
+      <button class="ow-btn" type="submit">Create owner login</button>
+    </form>
+  </section>
+
+  <section class="ow-card hidden" id="v-login">
+    <div class="ow-eyebrow">Owner only</div>
+    <h1>Owner sign-in</h1>
+    <p class="ow-sub">This area is separate from the clinic login.</p>
+    <div class="ow-notice hidden" id="l-note">Your session ended. Please sign in again.</div>
+    <form id="f-login" novalidate>
+      <label for="l-email">Email</label>
+      <input id="l-email" type="email" autocomplete="username" autocapitalize="none" spellcheck="false">
+      <label for="l-pass">Password</label>
+      <div class="ow-pw"><input id="l-pass" type="password" autocomplete="current-password" autocapitalize="none" spellcheck="false"><button type="button" class="ow-link" data-toggle="l-pass">Show</button></div>
+      <div class="ow-err" id="l-err" role="alert"></div>
+      <button class="ow-btn" type="submit">Sign in</button>
+    </form>
+  </section>
+
+  <section class="ow-wide hidden" id="v-home">
+    <div class="ow-row">
+      <div><h1>Clinics</h1><p class="ow-sub" id="h-count"></p></div>
+      <button class="ow-btn ow-btn-sm" id="b-new" type="button">+ Add clinic</button>
+    </div>
+    <div class="ow-list" id="h-list"></div>
+  </section>
+
+  <section class="ow-wide hidden" id="v-form">
+    <button class="ow-link ow-back" id="b-back" type="button">&larr; Back to clinics</button>
+    <h1>Add a new clinic</h1>
+    <p class="ow-sub">The clinic goes live for patients as soon as you save.</p>
+    <form id="f-clinic" novalidate autocomplete="off">
+      <div class="ow-sec">
+        <h2>1. Clinic</h2>
+        <label for="c-name">Clinic name</label><input id="c-name" maxlength="80">
+        <div class="ow-grid">
+          <div><label for="c-area">Area</label><input id="c-area" maxlength="60" placeholder="e.g. Marathahalli"></div>
+          <div><label for="c-phone">Clinic phone</label><input id="c-phone" inputmode="tel" maxlength="20" placeholder="98765 43210"></div>
+        </div>
+        <label for="c-addr">Address</label><textarea id="c-addr" rows="2" maxlength="200"></textarea>
+        <details class="ow-more"><summary>Optional: specialties and timings</summary>
+          <label for="c-spec">Specialties (comma separated)</label><input id="c-spec" maxlength="200" placeholder="Taken from the doctors if left empty">
+          <label for="c-time">Timings text</label><input id="c-time" maxlength="120" placeholder="Built from the doctors' schedule if left empty">
+        </details>
+        <label class="ow-check"><input type="checkbox" id="c-sample"> Mark as a SAMPLE clinic (shows the Sample clinic badge, name gets a SAMPLE prefix)</label>
+      </div>
+      <div class="ow-sec">
+        <h2>2. Clinic admin login</h2>
+        <p class="ow-hint">The clinic uses this to sign in at /clinic-admin/login.</p>
+        <label for="a-email">Admin email</label><input id="a-email" type="email" autocapitalize="none" spellcheck="false" maxlength="120">
+        <label for="a-pass">Admin password (12+ characters)</label>
+        <div class="ow-pw"><input id="a-pass" type="text" autocapitalize="none" spellcheck="false" autocomplete="off" maxlength="128"><button type="button" class="ow-link" id="b-gen">Generate</button></div>
+      </div>
+      <div class="ow-sec" id="doc-0"></div>
+      <div class="ow-sec hidden" id="doc-1"></div>
+      <button class="ow-ghost" id="b-adddoc" type="button">+ Add a second doctor</button>
+      <div class="ow-err" id="f-err" role="alert"></div>
+      <button class="ow-btn" id="b-save" type="submit">Create clinic</button>
+    </form>
+  </section>
+
+  <section class="ow-wide hidden" id="v-done">
+    <div class="ow-ok">
+      <h1>Clinic created</h1>
+      <p class="ow-sub" id="d-sum"></p>
+      <div class="ow-cred">
+        <div><span>Clinic login page</span><b id="d-url"></b></div>
+        <div><span>Email</span><b id="d-email"></b></div>
+        <div><span>Password</span><b id="d-pass"></b></div>
+      </div>
+      <div class="ow-actions"><button class="ow-btn ow-btn-sm" id="b-copy" type="button">Copy login details</button><button class="ow-ghost" id="b-more" type="button">Add another clinic</button><button class="ow-ghost" id="b-list" type="button">Back to clinics</button></div>
+      <p class="ow-hint">The password is shown only now. It is stored hashed and cannot be shown again. Send it to the clinic privately.</p>
+    </div>
+  </section>
+  <div class="ow-toast hidden" id="toast" role="status"></div>
+</main>
+<script src="/owner.js?v=202"></script>
+</body>
+</html>
