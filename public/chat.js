@@ -170,12 +170,12 @@
   const HI_WORDS = /\b(hai|hain|hu|hun|mujhe|mujhko|mera|meri|mere|ko|ka|ki|ke|kya|kaise|kaun|kab|kitna|nahi|nahin|nhi|bukhar|dard|chahiye|karna|karni|karo|batao|bataiye|dikhao|aap|kal|aaj|bacche|bachcha|dant|daant|khansi|sardi|kamar|ghutna|baal|khujli|sugar|pet|sar|sir|rahe|raha|rahi|se|mein|me|par|pe|liye|wala|wali|abhi|kar|karun|karu|karni|hindi|sakta|sakte|paisa|paise|kitne)\b/i;
   const isHi = t => (t.match(new RegExp(HI_WORDS.source, 'gi')) || []).length >= 2;
   const SPECS = [
-    { spec: 'Paediatrics', re: /(child|children|kid|baby|infant|toddler|newborn|bacch|bache|bachh|shishu|vaccin|tika|teeka|immuni)/ },
+    { spec: 'Paediatrics', re: /(paediatric|pediatric|child|children|kid|baby|infant|toddler|newborn|bacch|bache|bachh|shishu|vaccin|tika|teeka|immuni)/ },
     { spec: 'Dental', re: /(tooth|teeth|dant|daant|gum|cavity|toothache|dentist|jaw|wisdom|root canal|braces|filling|dental)/ },
-    { spec: 'Dermatology', re: /(skin|rash|acne|pimple|itch|khujli|daane|daana|allerg|eczema|fungal|ringworm|dandruff|pigment|dark spot|hair|baal|jhad)/ },
-    { spec: 'Orthopaedics', re: /(joint|knee|ghutn|back pain|kamar|backache|neck pain|gardan|shoulder|kandha|sprain|fracture|bone|haddi|ligament|sports|injur|chot|muscle pain|arthritis|heel|ankle|physio)/ },
+    { spec: 'Dermatology', re: /(dermat|skin|rash|acne|pimple|itch|khujli|daane|daana|allerg|eczema|fungal|ringworm|dandruff|pigment|dark spot|hair|baal|jhad)/ },
+    { spec: 'Orthopaedics', re: /(orthop|joint|knee|ghutn|back pain|kamar|backache|neck pain|gardan|shoulder|kandha|sprain|fracture|bone|haddi|ligament|sports|injur|chot|muscle pain|arthritis|heel|ankle|physio)/ },
     { spec: 'Diabetology', re: /(sugar|diabet|madhumeh|thyroid|insulin|hba1c)/ },
-    { spec: 'General Medicine', re: /(fever|bukhar|cold|cough|khansi|khasi|sardi|zukam|flu|viral|throat|gala|sore|headache|sir dard|sar dard|migraine|body pain|badan|weakness|kamzori|thakan|fatigue|vomit|ulti|nausea|diarrh|loose motion|dast|stomach|pet dard|pet mein|acidity|gas|infection|bp|blood pressure|dizz|chakkar|check ?up|checkup)/ }
+    { spec: 'General Medicine', re: /(general med|general phys|physician|fever|bukhar|cold|cough|khansi|khasi|sardi|zukam|flu|viral|throat|gala|sore|headache|sir dard|sar dard|migraine|body pain|badan|weakness|kamzori|thakan|fatigue|vomit|ulti|nausea|diarrh|loose motion|dast|stomach|pet dard|pet mein|acidity|gas|infection|bp|blood pressure|dizz|chakkar|check ?up|checkup)/ }
   ];
   const SPEC_NOTE = {
     'General Medicine': ['a General Physician', 'General Physician'],
@@ -205,7 +205,7 @@
 
   function localReply(raw) {
     const t = ' ' + raw.toLowerCase().replace(/[^a-z0-9\u0900-\u097f\s.?]/g, ' ').replace(/\s+/g, ' ') + ' ';
-    const hi = isHi(t) ? 1 : 0;
+    const hi = (isHi(t) || mem.hi) ? 1 : 0;
     const L = k => T[k][hi];
     const has = re => re.test(t);
     if (has(EMERG)) return { text: L('emerg') + '\n[[go:clinics|Find a clinic]]', urgent: true };
@@ -239,12 +239,16 @@
     }, 350);
   }
 
+  /* ---------- conversation memory (specialty, area, clinic, language only; never refs or mobiles) ---------- */
+  const mem = Object.assign({ spec: null, area: null, clinicId: null, lastShown: [], hi: 0 }, (() => { try { return JSON.parse(sessionStorage.getItem('dh_mem') || '{}'); } catch (e) { return {}; } })());
+  const saveMem = () => { try { sessionStorage.setItem('dh_mem', JSON.stringify({ spec: mem.spec, area: mem.area, clinicId: mem.clinicId, lastShown: mem.lastShown, hi: mem.hi })); } catch (e) {} };
+  const PRON = /\b(that|this|its|their|wahan|wahi|wo|woh|ye|yeh|uski|uska|iski|iska|usme|isme|us clinic|is clinic|that clinic|this clinic)\b/;
   /* ---------- context awareness: reads page state from the app, never patient details ---------- */
   const trail = { clinicId: null, doctorId: null };
   function hookTrail() {
     try {
       const oc = window.openClinic, ob = window.openBooking;
-      if (typeof oc === 'function' && !oc._dh) { window.openClinic = function (id) { trail.clinicId = id; return oc.apply(this, arguments); }; window.openClinic._dh = 1; }
+      if (typeof oc === 'function' && !oc._dh) { window.openClinic = function (id) { trail.clinicId = id; mem.clinicId = id; saveMem(); return oc.apply(this, arguments); }; window.openClinic._dh = 1; }
       if (typeof ob === 'function' && !ob._dh) { window.openBooking = function (id) { trail.doctorId = id; return ob.apply(this, arguments); }; window.openBooking._dh = 1; }
     } catch (e) {}
   }
@@ -320,12 +324,13 @@
 
   let lastSpec = null;
   async function smartReplyBase(raw) {
-    const c = ctx();
+    let c = ctx();
     const t = ' ' + raw.toLowerCase().replace(/[^a-z0-9\u0900-\u097f\s.?]/g, ' ').replace(/\s+/g, ' ') + ' ';
-    const hi = isHi(t) ? 1 : 0;
+    const hi = (isHi(t) || mem.hi) ? 1 : 0;
     const has = re => re.test(t);
     const st = c.st;
     if (has(EMERG)) return localReply(raw);
+    if (!c.here && mem.clinicId && has(PRON) && st.clinics) { const fc = st.clinics.find(x => x.id === mem.clinicId); if (fc) c = Object.assign({}, c, { clinic: fc, here: true }); }
     // slot availability
     if (has(/(nahi mil|nhi mil|not (showing|available|finding|able)|no slots?|slots? (nahi|nhi|available|dikha|show|khali|full|kab|list)|show (me )?(the )?(open |available )?slots|available slots|open slots|next available|earliest|jaldi|kab milega|slots? (are )?(full|booked)|fully booked|time nahi)/)) {
       const target = c.wiz && c.doctor ? [c.doctor] : (c.clinic ? (c.clinic.doctors || []) : []);
@@ -383,19 +388,28 @@
     const found = SPECS.filter(s => s.re.test(t)).slice(0, 2);
     if (found.length && !has(/(cancel|track|status|otp|sign ?in|login|pay|payment)/)) {
       lastSpec = found[0].spec;
+      mem.spec = found[0].spec;
       const names = found.map(s => SPEC_NOTE[s.spec][hi]);
-      const intro = hi ? `Aapki baat se lagta hai ki ${names.join(' ya ')} se milna theek rahega.` : `From what you describe, ${names.join(' or ')} would be a good place to start.`;
+      const ar = mem.area;
+      const intro = hi ? `Aapki baat se lagta hai ki ${names.join(' ya ')} se milna theek rahega.` : `${pick(['From what you describe,', 'Thanks for sharing that,'])} ${names.join(' or ')} would be a good place to start.`;
       let body = '';
+      let shown = [];
       for (const s of found) {
-        const list = specClinics(s.spec);
-        if (!list.length) continue;
-        const loc = st.geo ? (hi ? 'Aapke paas ke' : 'Closest to you') : (hi ? 'Sabse jaldi slot wale' : 'Earliest availability');
-        body += `\n\n${loc} (${s.spec}):\n\n` + clinicLines(list, s.spec, hi);
+        const all = specClinics(s.spec);
+        if (!all.length) continue;
+        const inA = ar ? all.filter(x => (x.area || '').toLowerCase() === ar.toLowerCase()) : [];
+        const list = inA.length ? inA : all;
+        const loc = inA.length ? (hi ? `${ar} mein` : `In ${ar}`) : st.geo ? (hi ? 'Aapke paas ke' : 'Closest to you') : (hi ? 'Sabse jaldi slot wale' : 'Earliest availability');
+        body += `\n\n${loc} (${s.spec}):\n\n` + clinicLines(list.slice(0, ar ? 3 : 2), s.spec, hi);
+        if (!shown.length) shown = list.slice(0, ar ? 3 : 2).map(x => x.id);
       }
+      mem.lastShown = shown; saveMem();
       const here = c.clinic && c.here && found.some(s => specClinics(s.spec).some(x => x.id === c.clinic.id));
       const hereNote = here ? '\n\n' + (hi ? `Aap jo clinic dekh rahe hain (${c.clinic.name}) wo bhi is ke liye theek hai.` : `The clinic you are viewing (${c.clinic.name}) also fits this.`) : '';
-      const locBtn = st.geo ? '' : '\n[[loc]]';
-      return { text: `${intro}${body}${hereNote}${locBtn}\n_${DISCLAIM[hi]} Agar takleef badhe ya serious lage to turant 108/112 par call kijiye._`, symptom: true };
+      const ask = ar ? '' : '\n\n' + (hi ? 'Kis area mein chahiye? Bataiye, main wahin ke clinics dikha dunga.' : 'Which area suits you? Tell me and I will narrow it down.');
+      const locBtn = st.geo || ar ? '' : '\n[[loc]]';
+      const chips = ar ? [{ label: 'How do I book?', q: 'How do I book an appointment?' }, { label: 'Fees / payment', q: 'How do I pay?' }, { label: 'Another symptom', q: 'I have another problem' }] : [...areas().slice(0, 4).map(x => ({ label: x, q: x })), { label: 'Any area', q: 'Any area' }];
+      return { text: `${intro}${body}${hereNote}${ask}${locBtn}\n_${DISCLAIM[hi]} Agar takleef badhe ya serious lage to turant 108/112 par call kijiye._`, symptom: true, chips };
     }
     return localReply(raw);
   }
@@ -447,8 +461,8 @@
   async function smartReply(raw) {
     const c = ctx();
     const t = ' ' + raw.toLowerCase().replace(/[^a-z0-9\u0900-\u097f\s.?]/g, ' ').replace(/\s+/g, ' ') + ' ';
-    const hi = isHi(t) ? 1 : (window._dhHi ? 1 : 0);
-    if (isHi(t)) window._dhHi = 1;
+    if (isHi(t)) mem.hi = 1; else if (t.trim().split(' ').length >= 4) mem.hi = 0;
+    const hi = mem.hi ? 1 : 0;
     const has = re => re.test(t);
     if (has(EMERG)) { flow = null; sflow = null; return smartReplyBase(raw); }
     const ref = getRef(raw), phone = getPhone(raw);
@@ -464,39 +478,70 @@
     if (has(/(where|kahan).*(reference|ref)|reference (kahan|where)/)) return { text: hi ? 'Reference booking confirm hone ke baad screen par dikhta hai (DH-XXXXXXXXXX) aur aapki My Bookings list mein bhi hota hai.' : 'Your reference (DH-XXXXXXXXXX) is shown right after you book and is also listed in My Bookings.', keep: sflow ? true : false };
     // booking assistant
     const specNow = () => { const f = SPECS.find(s => s.re.test(t)); if (f) return f.spec; const n = SPEC_NAMES.find(x => t.includes(' ' + x.toLowerCase() + ' ')); return n || null; };
-    const areaNow = () => { if (has(/(any|anywhere|kahin bhi|koi bhi|all areas|kisi bhi)/)) return 'Any'; return areas().find(a => t.includes(a.toLowerCase())) || null; };
-    const askSpec = () => ({ text: hi ? 'Zaroor, sahi clinic dhoondhne mein madad karta hun. Kis tarah ke doctor chahiye?' : 'Happy to help you find the right clinic. What kind of doctor do you need?', keep: true, chips: [...SPEC_NAMES.map(x => ({ label: x, q: x })), { label: 'Not sure', q: 'Not sure' }] });
+    const areaNow = () => { if (has(/(any area|anywhere|kahin bhi|koi bhi area|all areas|kisi bhi)/) || /^ *any *$/.test(t)) return 'Any'; return areas().find(a => t.includes(a.toLowerCase())) || null; };
+    const askSpec = () => ({ text: flow && flow.area && flow.area !== 'Any' ? (hi ? `${flow.area}, theek hai. Kis tarah ke doctor chahiye?` : `${flow.area}, got it. What kind of doctor do you need?`) : (hi ? 'Zaroor, sahi clinic dhoondhne mein madad karta hun. Kis tarah ke doctor chahiye?' : 'Happy to help you find the right clinic. What kind of doctor do you need?'), keep: true, chips: [...SPEC_NAMES.map(x => ({ label: x, q: x })), { label: 'Not sure', q: 'Not sure' }] });
     const askArea = () => ({ text: hi ? `${flow.spec} theek hai. Kis area mein chahiye?` : `${flow.spec}, got it. Which area works for you?`, keep: true, chips: [...areas().map(x => ({ label: x, q: x })), { label: 'Any area', q: 'Any area' }] });
+    const words = t.trim().split(' ').length;
+    const sp0 = specNow(), ar0 = areaNow();
+    if (/^ *(reset|start over|new chat|naya chat|fresh start)/.test(t)) { mem.spec = mem.area = mem.clinicId = null; mem.lastShown = []; flow = null; sflow = null; saveMem(); return { text: hi ? 'Theek hai, naye sire se shuru karte hain. Kaise madad karun?' : 'Fresh start. How can I help?', chips: DEFAULT_CHIPS }; }
+    if (ar0 && ar0 !== 'Any') mem.area = ar0;
+    if (sp0) mem.spec = sp0;
+    saveMem();
+    if (!c.wiz) {
+      const ord = has(/(pehla|pehle wala|first( one)?|1st)/) ? 0 : has(/(dusra|doosra|second( one)?|2nd)/) ? 1 : has(/(teesra|third( one)?|3rd)/) ? 2 : -1;
+      if (ord >= 0 && words <= 7 && mem.lastShown[ord]) {
+        const cl = ((S() || {}).clinics || []).find(x => x.id === mem.lastShown[ord]);
+        if (cl) { mem.clinicId = cl.id; saveMem(); return { text: (hi ? `${cl.name} ke baare mein:` : `${pick(['Great choice.', 'Sure.'])} About ${cl.name}:`) + '\n\n' + clinicLines([cl], mem.spec || '', hi) + '\n' + (hi ? `Timings: ${cl.timings}` : `Timings: ${cl.timings}`), chips: [{ label: 'Open slots', q: 'Show available slots' }, { label: 'Doctors and fees', q: 'Doctors and fees' }, { label: 'Another area', q: 'Another area' }] }; }
+      }
+      if (mem.lastShown.length && has(/(earliest|jaldi|sabse pehle)/) && words <= 8) {
+        const cls = mem.lastShown.map(id => ((S() || {}).clinics || []).find(x => x.id === id)).filter(Boolean).sort((a, b) => nextKey(earliest(a)) < nextKey(earliest(b)) ? -1 : 1);
+        if (cls.length) { const cl = cls[0]; mem.clinicId = cl.id; saveMem(); return { text: (hi ? `Sabse jaldi slot: ${cl.name}, ${nextTxt(earliest(cl))}.` : `Earliest of those is ${cl.name}, ${nextTxt(earliest(cl))}.`) + '\n' + clinicLines([cl], mem.spec || '', hi) }; }
+      }
+      if (/^ *another area *$/.test(t) && mem.spec) { flow = { spec: mem.spec, area: null }; mem.area = null; saveMem(); return askArea(); }
+      if (mem.spec && !flow) {
+        const affirm = /^ *(haan|han|ha|yes|yeah|yep|ok|okay|sure|theek hai|thik hai|dikhao|show me|show|please|ji|haan ji|ji haan|haan dikhao|yes please)[ .?]*$/.test(t);
+        if (affirm) return showClinics(mem.spec, mem.area, hi);
+        if (ar0 && !sp0 && words <= 8 && !has(/(slot|fee|timing|doctor|cancel|status|pay)/)) return showClinics(mem.spec, ar0 === 'Any' ? 'Any' : ar0, hi);
+      }
+      if (!mem.spec && ar0 && ar0 !== 'Any' && !sp0 && !flow && words <= 4) { flow = { spec: null, area: ar0 }; return askSpec(); }
+    }
     if (flow) {
       if (has(/(not sure|pata nahi|don.?t know|nahi pata|confused)/)) { flow = null; return { text: hi ? 'Koi baat nahi. Bataiye kya takleef hai (jaise bukhar, dant dard, kamar dard), main sahi doctor suggest karunga.' : 'No problem. Tell me what you are feeling (for example fever, tooth pain, back pain) and I will suggest the right doctor.', chips: [{ label: 'Fever or cold', q: 'I have fever and cold' }, { label: 'Tooth pain', q: 'tooth pain' }, { label: 'Skin issue', q: 'skin rash' }, { label: 'Back or joint pain', q: 'back pain' }] }; }
-      const sp = specNow(), ar = areaNow();
+      const sp = sp0, ar = ar0;
       if (sp) flow.spec = sp;
       if (ar) flow.area = ar;
       if (sp || ar) {
         if (!flow.spec) return askSpec();
         if (!flow.area) return askArea();
         const { spec, area } = flow; flow = null;
-        const all = specClinics(spec);
-        const inArea = area === 'Any' ? all : all.filter(x => (x.area || '').toLowerCase() === area.toLowerCase());
-        const list = inArea.length ? inArea : all;
-        if (!list.length) return { text: hi ? 'Abhi is specialty ka clinic nahi mila. Aap clinics list dekh sakte hain.' : 'I could not find a clinic for that specialty yet. You can browse the full list.', chips: DEFAULT_CHIPS };
-        const lead = inArea.length ? (hi ? `${spec} ke liye ${area === 'Any' ? 'ye clinics' : area + ' mein ye clinics'}:` : `Here are ${spec} clinics${area === 'Any' ? '' : ' in ' + area}:`) : (hi ? `${area} mein ${spec} ka clinic nahi mila, par paas ke ye hain:` : `No ${spec} clinic in ${area} yet, but these are close options:`);
-        return { text: lead + '\n\n' + clinicLines(list, spec, hi) + '\n\n' + (hi ? 'Book dabaiye, time chuniye, naam aur mobile dalkar OTP verify karke confirm kijiye. Bas.' : 'Tap Book, pick a time, enter the name and mobile, verify the OTP and confirm. That is it.'), chips: [{ label: 'Another area', q: 'Find me a clinic' }, { label: 'How booking works', q: 'How do I book an appointment?' }] };
+        return showClinics(spec, area, hi);
       }
       flow = null;
     }
     const startAssist = has(/(find (me )?(a )?(clinic|doctor)|clinic (chahiye|dhoondh|suggest)|doctor (chahiye|dhoondh|suggest)|suggest (a )?(clinic|doctor)|i want to book|book (an )?appointment|appointment (book|chahiye|lena)|doctor dikhao|book karna|booking karni)/) && !has(/(how|kaise|steps?|process|guide)/) && !c.wiz && !(c.clinic && c.here);
     if (startAssist) {
-      const sp = specNow(), ar = areaNow();
-      flow = { spec: sp || null, area: ar || null };
+      flow = { spec: sp0 || mem.spec || null, area: ar0 || mem.area || null };
       if (!flow.spec) return askSpec();
       if (!flow.area) return askArea();
+      { const { spec, area } = flow; flow = null; return showClinics(spec, area, hi); }
     }
     sflow = null;
     const r = await smartReplyBase(raw);
     if (r && r.symptom && !has(/(severe|bahut (zyada|tez)|unbearable|worst|teen din|3 days|since (days|many)|week|hafte|not (improving|getting better)|badh raha)/)) r.text = r.text.replace(/\n_/, '\n' + pick(CLOSER[hi ? 'hi' : 'en']) + '\n_');
     if (r && r.symptom && has(/(severe|bahut (zyada|tez)|unbearable|worst|teen din|3 days|week|hafte|not (improving|getting better)|badh raha)/)) r.text = r.text.replace(/\n_/, '\n' + (hi ? 'Takleef tez ya lambi chal rahi hai, isliye sabse jaldi wala slot book kijiye, intezaar mat kijiye.' : 'Since this is severe or has lasted, please book the earliest slot rather than waiting.') + '\n_');
     return r;
+  }
+
+  function showClinics(spec, area, hi, how) {
+    const all = specClinics(spec);
+    const any = !area || area === 'Any';
+    const inArea = any ? all : all.filter(x => (x.area || '').toLowerCase() === area.toLowerCase());
+    const list = inArea.length ? inArea : all;
+    mem.spec = spec; mem.area = any ? null : area;
+    if (!list.length) return { text: hi ? 'Abhi is specialty ka clinic nahi mila. Aap clinics list dekh sakte hain.' : 'I could not find a clinic for that specialty yet. You can browse the full list.', chips: DEFAULT_CHIPS };
+    mem.lastShown = list.slice(0, 3).map(x => x.id); mem.clinicId = list.length === 1 ? list[0].id : mem.clinicId; saveMem();
+    const lead = inArea.length ? (hi ? `${any ? spec + ' ke liye ye clinics' : area + ' mein ' + spec + ' ke clinics'}:` : `${pick(['Here are', 'Sure, here are'])} the ${spec} clinics${any ? '' : ' in ' + area}:`) : (hi ? `${area} mein ${spec} ka clinic nahi mila, par ye paas ke options hain:` : `No ${spec} clinic in ${area} yet, but these are close options:`);
+    return { text: lead + '\n\n' + clinicLines(list, spec, hi) + '\n\n' + (hi ? 'Book dabaiye, time chuniye, naam aur mobile dalkar OTP verify karke confirm kijiye.' : 'Tap Book, pick a time, enter the name and mobile, verify the OTP and confirm.'), chips: [{ label: 'Another area', q: 'Another area' }, { label: 'Earliest slot', q: 'Which one has the earliest slot?' }, { label: 'How booking works', q: 'How do I book an appointment?' }] };
   }
 
   function useLocation() {
