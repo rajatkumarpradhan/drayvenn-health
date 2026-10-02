@@ -2255,7 +2255,7 @@ function renderMbList() {
         ${upcoming
           ? `<button type="button" class="btn btn-small btn-outline" data-act="reschedule" data-doctor="${esc(b.doctor_id)}">Reschedule</button>
              ${b.status === 'pending' ? '<button type="button" class="btn btn-small btn-ghost bk-danger" data-act="cancel">Cancel booking</button>'
-               : (b.clinic_phone ? `<a class="btn btn-small btn-ghost" href="tel:${esc(b.clinic_phone)}">Call clinic to cancel</a>` : '')}`
+               : (b.clinic_phone ? `<a class="btn btn-small btn-outline" href="tel:${esc(b.clinic_phone)}">Call clinic to cancel</a>` : '')}`
           : `<button type="button" class="btn btn-small btn-outline" data-act="again">Book Again</button>`}
       </div>
       <div class="rs-panel hidden"></div>
@@ -2308,7 +2308,7 @@ function openBookingModal(b) {
         <button type="button" class="btn btn-small btn-whatsapp" id="bm-share">Share on WhatsApp</button>
         <a class="btn btn-small btn-outline" target="_blank" rel="noopener" href="${dirUrl}">Get Directions</a>
         ${upcoming ? `<button type="button" class="btn btn-small btn-outline" id="bm-resched">Reschedule</button>
-        ${b.status === 'pending' ? '<button type="button" class="btn btn-small btn-ghost bk-danger" id="bm-cancel">Cancel booking</button>' : (b.clinic_phone ? `<a class="btn btn-small btn-ghost" href="tel:${esc(b.clinic_phone)}">Call clinic to cancel</a>` : '')}` : ''}
+        ${b.status === 'pending' ? '<button type="button" class="btn btn-small btn-ghost bk-danger" id="bm-cancel">Cancel booking</button>' : (b.clinic_phone ? `<a class="btn btn-small btn-outline" href="tel:${esc(b.clinic_phone)}">Call clinic to cancel</a>` : '')}` : ''}
       </div>
     </div>`;
   document.body.appendChild(ov);
