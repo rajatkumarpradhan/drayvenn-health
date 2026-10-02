@@ -53,3 +53,4 @@ input[type=checkbox]{width:18px;height:18px;flex:0 0 18px;accent-color:var(--blu
 .ow-actions{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 8px}
 .ow-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:11px 18px;border-radius:12px;font-size:14px;z-index:9}
 @media(max-width:560px){.ow-card,.ow-wide{padding:22px 16px;border-radius:16px}.ow-grid,.ow-sess{grid-template-columns:1fr}.ow-card{margin-top:2vh}.ow-main{padding:14px 10px 60px}.ow-btn-sm{padding:0 14px}}
+@media(max-width:560px){.ow-who span{display:none}.ow-brand{white-space:nowrap}}
