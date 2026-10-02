@@ -123,3 +123,4 @@ input:focus,select:focus,textarea:focus{border-color:rgba(47,102,208,.45);box-sh
 .es-premium .empty-title{font-size:18px}
 .es-premium .empty-sub{max-width:320px;margin-left:auto;margin-right:auto}
 .es-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:6px}
+.clinic-grid>.empty-state,#doctor-browse-list>.empty-state{grid-column:1/-1}
