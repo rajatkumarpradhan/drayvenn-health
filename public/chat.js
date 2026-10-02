@@ -48,6 +48,7 @@
         if (window.openClinicFromChat) window.openClinicFromChat(b.dataset.clinic);
       };
     });
+    container.querySelectorAll('button[data-trk]').forEach(b => { b.onclick = openTrackPrefilled; });
     container.querySelectorAll('button[data-loc]').forEach(b => { b.onclick = useLocation; });
     container.querySelectorAll('button[data-bookc]').forEach(b => { b.onclick = () => bookFromChat(b.dataset.bookc, b.dataset.bookd); });
     container.querySelectorAll('button[data-spec]').forEach(b => { b.onclick = () => runSpec(b.dataset.spec); });
@@ -67,6 +68,8 @@
     text = text.replace(/\[\[spec:([A-Za-z ]+)\]\]/g, (m, sp) => ph(`<button class="chat-action spec" data-spec="${esc(sp)}">Find ${esc(sp)} clinics</button>`));
     text = text.replace(/\[\[loc\]\]/g, () => ph('<button class="chat-action" data-loc="1">Use my location</button>'));
     text = text.replace(/\[\[book:([a-z0-9-]+):([a-z0-9-]+)\|([^\]]+)\]\]/g, (m, cid, did, l) => ph(`<button class="chat-action spec" data-bookc="${esc(cid)}" data-bookd="${esc(did)}">${esc(l)}</button>`));
+    text = text.replace(/\[\[trk\|([^\]]+)\]\]/g, (m, l) => ph(`<button class="chat-action" data-trk="1">${esc(l)}</button>`));
+    text = text.replace(/\[\[tel:([0-9+]+)\|([^\]]+)\]\]/g, (m, n, l) => ph(`<a class="chat-action" href="tel:${esc(n)}">${esc(l)}</a>`));
     text = text.replace(/\[\[go:([a-z]+)\|([^\]]+)\]\]/g, (m, v, l) => ph(`<button class="chat-action" data-goto="${esc(v)}">${esc(l)} \u2192</button>`));
     text = text.replace(/\[\[[^\]]*\]\]/g, '').replace(/\[\[[^\]]*$/, '');
     text = text.replace(/[ \t]+\n/g, '\n').trim();
@@ -79,12 +82,12 @@
   function addMsg(role, content, save = true) {
     const el = document.createElement('div');
     el.className = 'chat-msg ' + role;
-    el.innerHTML = role === 'bot' ? renderText(content) : esc(content);
+    el.innerHTML = role === 'bot' ? renderText(content) : esc(maskPhone(content));
     msgsEl.appendChild(el);
     linkifyActions(el);
     scrollDown();
     if (save) {
-      history.push({ role: role === 'bot' ? 'assistant' : 'user', content });
+      history.push({ role: role === 'bot' ? 'assistant' : 'user', content: role === 'bot' ? content : maskHist(content) });
       while (history.length > 20) history.shift();
       sessionStorage.setItem('dh_chat', JSON.stringify(history));
     }
@@ -182,7 +185,7 @@
     'Orthopaedics': ['an Orthopaedic doctor (bones and joints)', 'Haddi aur jodon ke doctor (Orthopaedic)'],
     'Diabetology': ['a Diabetologist', 'Sugar ke doctor (Diabetologist)']
   };
-  const EMERG = /(chest pain|seene (me|mein)|heart attack|dil ka daura|can.?t breathe|cannot breathe|breathless|breathing (problem|trouble|difficult)|saans (nahi|nhi|phool|lene)|unconscious|behosh|faint|seizure|fits|daura|stroke|lakwa|heavy bleeding|bahut khoon|khoon (nahi ruk|beh)|poison|overdose|suicid|marna chahta|marna chahti|accident)/;
+  const EMERG = /(chest pain|seene (me|mein)|heart attack|dil ka daura|can.?t breathe|cannot breathe|breathless|breathing (problem|trouble|difficult)|saans (nahi|nhi|phool|lene)|unconscious|behosh|faint|seizure|fits|daura|stroke|lakwa|heavy bleeding|bahut khoon|khoon (nahi ruk|beh)|poison|overdose|suicid|marna chahta|marna chahti|accident|vomiting blood|blood in vomit|khoon ki ulti|slurred|face droop|paralys|throat closing|swelling of (the )?(face|throat)|seene (me|mein) (bhaari|dabav)|baby not (breathing|responding))/;
   const DISCLAIM = ['I can only guide you to the right kind of doctor. This is not a diagnosis or medical advice.', 'Main sirf sahi doctor tak pahunchne mein madad karta hun. Ye diagnosis ya medical salah nahi hai.'];
 
   const T = {
@@ -316,13 +319,13 @@
   const timesTxt = ts => ts.slice(0, 4).map(fmtTime).join(', ') + (ts.length > 4 ? ` +${ts.length - 4} more` : '');
 
   let lastSpec = null;
-  async function smartReply(raw) {
+  async function smartReplyBase(raw) {
     const c = ctx();
     const t = ' ' + raw.toLowerCase().replace(/[^a-z0-9\u0900-\u097f\s.?]/g, ' ').replace(/\s+/g, ' ') + ' ';
     const hi = isHi(t) ? 1 : 0;
     const has = re => re.test(t);
     const st = c.st;
-    if (has(EMERG)) return null;
+    if (has(EMERG)) return localReply(raw);
     // slot availability
     if (has(/(nahi mil|nhi mil|not (showing|available|finding|able)|no slots?|slots? (nahi|nhi|available|dikha|show|khali|full|kab|list)|show (me )?(the )?(open |available )?slots|available slots|open slots|next available|earliest|jaldi|kab milega|slots? (are )?(full|booked)|fully booked|time nahi)/)) {
       const target = c.wiz && c.doctor ? [c.doctor] : (c.clinic ? (c.clinic.doctors || []) : []);
@@ -397,6 +400,105 @@
     return localReply(raw);
   }
 
+  /* ---------- step 3: booking assistant + status helper (reference AND mobile required) ---------- */
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  const CLOSER = { en: ['Take care.', 'Hope you feel better soon.', 'Feel better soon.'], hi: ['Apna khayal rakhiye.', 'Jaldi theek ho jayein.'] };
+  const SPEC_NAMES = ['General Medicine', 'Paediatrics', 'Dental', 'Dermatology', 'Orthopaedics', 'Diabetology'];
+  let flow = null;            // booking assistant: { spec, area }
+  let sflow = null;           // status helper: { ref, await }
+  let creds = null;           // in memory only, cleared after use
+  const maskPhone = s => String(s).replace(/(^|\D)([6-9]\d)\d{5}(\d{3})(?!\d)/g, '$1$2•••••$3');
+  const maskHist = s => maskPhone(s).replace(/\bDH[-\s][A-Z0-9]{5,12}\b/gi, 'DH-••••');
+  const getRef = s => { const m = String(s).match(/\bDH[-\s]([A-Z0-9]{5,12})\b/i); return m ? 'DH-' + m[1].toUpperCase() : null; };
+  const getPhone = s => { const m = String(s).replace(/[\s-]/g, '').match(/(?:^|\D)(?:\+?91)?([6-9]\d{9})(?!\d)/); return m ? m[1] : null; };
+  const areas = () => { const st = S(); return [...new Set(((st && st.clinics) || []).map(c => c.area).filter(Boolean))]; };
+
+  async function statusLookup(ref, phone, hi) {
+    sflow = null;
+    let b;
+    try {
+      const r = await api(`/api/bookings/${encodeURIComponent(ref)}?phone=${encodeURIComponent(phone)}`);
+      b = r.booking;
+    } catch (e) {
+      if (e && e.status === 404) return { text: hi ? 'Is reference aur mobile number se koi booking nahi mili. Dono dobara check kijiye (reference DH-XXXXXXXXXX jaisa hota hai, mobile wahi jo booking mein diya tha).' : 'I could not find a booking with that reference and mobile number. Please check both. The reference looks like DH-XXXXXXXXXX and the mobile is the one used while booking.', keep: true, chips: [{ label: 'Try again', q: 'Check my booking status' }, { label: 'Open Track Booking', goto: 'track' }] };
+      return { text: hi ? 'Abhi status check nahi ho paya. Thodi der baad try kijiye ya Track Booking use kijiye.' : 'I could not check that right now. Please try again in a moment or use Track Booking.', keep: true, chips: [{ label: 'Open Track Booking', goto: 'track' }] };
+    }
+    creds = { ref, phone, t: Date.now() };
+    let ds = b.status; try { ds = dispStatus(b) || b.status; } catch (e) {}
+    const label = { pending: 'Pending', confirmed: 'Confirmed', cancelled: 'Cancelled', completed: 'Completed', expired: 'Expired' }[ds] || ds;
+    const upcoming = b.status !== 'cancelled' && b.date >= toISODate(new Date());
+    let head = `**${ref}** is **${label}**.\n${b.doctor_name}, ${b.clinic_name} (${b.clinic_area})\n${fmtDateShort(b.date)}, ${fmtTime(b.slot)}`;
+    let tail = '';
+    if (b.status === 'pending' && upcoming) tail = hi ? '\nClinic abhi confirm karega. Chahein to yahin se cancel ya reschedule kar sakte hain.\n[[trk|Cancel in Track Booking]][[go:mybookings|Reschedule]]' : '\nThe clinic will confirm it soon. You can cancel or reschedule if your plans changed.\n[[trk|Cancel in Track Booking]][[go:mybookings|Reschedule]]';
+    else if (b.status === 'confirmed' && upcoming) tail = (hi ? '\nBooking confirm hai. Cancel ya time badalne ke liye clinic ko call kijiye.' : '\nIt is confirmed. To cancel or change the time, please call the clinic.') + (b.clinic_phone ? `\n[[tel:${b.clinic_phone}|Call clinic]]` : '') + '[[go:mybookings|Reschedule]]';
+    else if (b.status === 'cancelled') tail = (hi ? '\nYe booking cancel ho chuki hai. Nayi booking karein?' : '\nThis booking is cancelled. Want to book again?') + '\n[[go:clinics|Find a clinic]]';
+    else tail = (hi ? '\nYe visit ho chuki hai ya time nikal gaya. Dobara book karein?' : '\nThis visit is in the past. Want to book again?') + '\n[[go:clinics|Find a clinic]]';
+    return { text: head + tail, status: true, save: false, chips: [{ label: 'Another booking', q: 'Check another booking' }, { label: 'Thanks', q: 'thanks' }] };
+  }
+
+  function openTrackPrefilled() {
+    if (!creds) { toggle(false); if (window.showFromChat) window.showFromChat('track'); return; }
+    const { ref, phone } = creds; creds = null;
+    toggle(false);
+    show('track');
+    try { $('#bk-ref').value = ref; $('#bk-phone').value = phone; lookupBooking(); } catch (e) {}
+  }
+
+  async function smartReply(raw) {
+    const c = ctx();
+    const t = ' ' + raw.toLowerCase().replace(/[^a-z0-9\u0900-\u097f\s.?]/g, ' ').replace(/\s+/g, ' ') + ' ';
+    const hi = isHi(t) ? 1 : (window._dhHi ? 1 : 0);
+    if (isHi(t)) window._dhHi = 1;
+    const has = re => re.test(t);
+    if (has(EMERG)) { flow = null; sflow = null; return smartReplyBase(raw); }
+    const ref = getRef(raw), phone = getPhone(raw);
+    // status helper
+    if (ref && phone) return statusLookup(ref, phone, hi);
+    if (ref && !phone) { sflow = { ref, await: 'mobile' }; return { text: hi ? `Dhanyavaad. Aapki privacy ke liye mujhe booking wala 10 digit mobile number bhi chahiye. Dono match hone par hi details dikhata hun.` : `Thanks. For your privacy I also need the 10 digit mobile number used for this booking. I only show details when both match.`, keep: true }; }
+    if (sflow && sflow.await === 'mobile' && phone) return statusLookup(sflow.ref, phone, hi);
+    if (phone && !ref && sflow && sflow.await === 'ref') { sflow.phone = phone; return { text: hi ? 'Ab booking reference batayein (DH-XXXXXXXXXX jaisa).' : 'Now type the booking reference (looks like DH-XXXXXXXXXX).', keep: true }; }
+    if (has(/(status|check (my|the|another) booking|another booking|meri booking|my booking|booking (ka )?(status|check)|confirm hua|confirmed (hai|ho)|track my)/) && !has(/(how|kaise)/)) {
+      sflow = { await: 'ref' };
+      return { text: hi ? 'Zaroor. Apna booking reference (DH-XXXXXXXXXX) aur booking wala mobile number bhejiye. Dono match honge tabhi details dikhaunga.' : 'Sure. Send me your booking reference (DH-XXXXXXXXXX) and the mobile number used for it. I only show details when both match.', keep: true, chips: [{ label: 'Open Track Booking', goto: 'track' }, { label: 'Where is my reference?', q: 'Where do I find my booking reference?' }] };
+    }
+    if (has(/(where|kahan).*(reference|ref)|reference (kahan|where)/)) return { text: hi ? 'Reference booking confirm hone ke baad screen par dikhta hai (DH-XXXXXXXXXX) aur aapki My Bookings list mein bhi hota hai.' : 'Your reference (DH-XXXXXXXXXX) is shown right after you book and is also listed in My Bookings.', keep: sflow ? true : false };
+    // booking assistant
+    const specNow = () => { const f = SPECS.find(s => s.re.test(t)); if (f) return f.spec; const n = SPEC_NAMES.find(x => t.includes(' ' + x.toLowerCase() + ' ')); return n || null; };
+    const areaNow = () => { if (has(/(any|anywhere|kahin bhi|koi bhi|all areas|kisi bhi)/)) return 'Any'; return areas().find(a => t.includes(a.toLowerCase())) || null; };
+    const askSpec = () => ({ text: hi ? 'Zaroor, sahi clinic dhoondhne mein madad karta hun. Kis tarah ke doctor chahiye?' : 'Happy to help you find the right clinic. What kind of doctor do you need?', keep: true, chips: [...SPEC_NAMES.map(x => ({ label: x, q: x })), { label: 'Not sure', q: 'Not sure' }] });
+    const askArea = () => ({ text: hi ? `${flow.spec} theek hai. Kis area mein chahiye?` : `${flow.spec}, got it. Which area works for you?`, keep: true, chips: [...areas().map(x => ({ label: x, q: x })), { label: 'Any area', q: 'Any area' }] });
+    if (flow) {
+      if (has(/(not sure|pata nahi|don.?t know|nahi pata|confused)/)) { flow = null; return { text: hi ? 'Koi baat nahi. Bataiye kya takleef hai (jaise bukhar, dant dard, kamar dard), main sahi doctor suggest karunga.' : 'No problem. Tell me what you are feeling (for example fever, tooth pain, back pain) and I will suggest the right doctor.', chips: [{ label: 'Fever or cold', q: 'I have fever and cold' }, { label: 'Tooth pain', q: 'tooth pain' }, { label: 'Skin issue', q: 'skin rash' }, { label: 'Back or joint pain', q: 'back pain' }] }; }
+      const sp = specNow(), ar = areaNow();
+      if (sp) flow.spec = sp;
+      if (ar) flow.area = ar;
+      if (sp || ar) {
+        if (!flow.spec) return askSpec();
+        if (!flow.area) return askArea();
+        const { spec, area } = flow; flow = null;
+        const all = specClinics(spec);
+        const inArea = area === 'Any' ? all : all.filter(x => (x.area || '').toLowerCase() === area.toLowerCase());
+        const list = inArea.length ? inArea : all;
+        if (!list.length) return { text: hi ? 'Abhi is specialty ka clinic nahi mila. Aap clinics list dekh sakte hain.' : 'I could not find a clinic for that specialty yet. You can browse the full list.', chips: DEFAULT_CHIPS };
+        const lead = inArea.length ? (hi ? `${spec} ke liye ${area === 'Any' ? 'ye clinics' : area + ' mein ye clinics'}:` : `Here are ${spec} clinics${area === 'Any' ? '' : ' in ' + area}:`) : (hi ? `${area} mein ${spec} ka clinic nahi mila, par paas ke ye hain:` : `No ${spec} clinic in ${area} yet, but these are close options:`);
+        return { text: lead + '\n\n' + clinicLines(list, spec, hi) + '\n\n' + (hi ? 'Book dabaiye, time chuniye, naam aur mobile dalkar OTP verify karke confirm kijiye. Bas.' : 'Tap Book, pick a time, enter the name and mobile, verify the OTP and confirm. That is it.'), chips: [{ label: 'Another area', q: 'Find me a clinic' }, { label: 'How booking works', q: 'How do I book an appointment?' }] };
+      }
+      flow = null;
+    }
+    const startAssist = has(/(find (me )?(a )?(clinic|doctor)|clinic (chahiye|dhoondh|suggest)|doctor (chahiye|dhoondh|suggest)|suggest (a )?(clinic|doctor)|i want to book|book (an )?appointment|appointment (book|chahiye|lena)|doctor dikhao|book karna|booking karni)/) && !has(/(how|kaise|steps?|process|guide)/) && !c.wiz && !(c.clinic && c.here);
+    if (startAssist) {
+      const sp = specNow(), ar = areaNow();
+      flow = { spec: sp || null, area: ar || null };
+      if (!flow.spec) return askSpec();
+      if (!flow.area) return askArea();
+    }
+    sflow = null;
+    const r = await smartReplyBase(raw);
+    if (r && r.symptom && !has(/(severe|bahut (zyada|tez)|unbearable|worst|teen din|3 days|since (days|many)|week|hafte|not (improving|getting better)|badh raha)/)) r.text = r.text.replace(/\n_/, '\n' + pick(CLOSER[hi ? 'hi' : 'en']) + '\n_');
+    if (r && r.symptom && has(/(severe|bahut (zyada|tez)|unbearable|worst|teen din|3 days|week|hafte|not (improving|getting better)|badh raha)/)) r.text = r.text.replace(/\n_/, '\n' + (hi ? 'Takleef tez ya lambi chal rahi hai, isliye sabse jaldi wala slot book kijiye, intezaar mat kijiye.' : 'Since this is severe or has lasted, please book the earliest slot rather than waiting.') + '\n_');
+    return r;
+  }
+
   function useLocation() {
     if (!navigator.geolocation) { addMsg('bot', 'Your browser does not allow location. You can still pick a clinic from the list.'); return; }
     navigator.geolocation.getCurrentPosition(p => {
@@ -426,10 +528,15 @@
     if (lr) {
       await new Promise(r => setTimeout(r, 450 + Math.min(500, lr.text.length * 2)));
       typing(false);
-      addMsg('bot', lr.text);
+      addMsg('bot', lr.text, lr.save !== false);
       afterReply(lr);
       busy = false; $('#chat-send').disabled = false; $('#chat-input').focus();
       return;
+    }
+    if (getPhone(text) || getRef(text) || sflow || flow) {
+      typing(false);
+      addMsg('bot', 'I can only check bookings with the reference and mobile number together. You can also use Track Booking.\n[[go:track|Open Track Booking]]', false);
+      busy = false; $('#chat-send').disabled = false; return;
     }
     try {
       let ok = false;
@@ -455,7 +562,7 @@
   }
 
   function afterReply(lr) {
-    setChips(lr && lr.symptom ? [
+    setChips(lr && lr.chips ? lr.chips : lr && lr.symptom ? [
       { label: 'How do I book?', q: 'How do I book an appointment?' },
       { label: 'Fees / payment', q: 'How do I pay?' },
       { label: 'Another symptom', q: 'I have another problem' }
@@ -493,10 +600,11 @@
   for (const m of history) addMsg(m.role === 'assistant' ? 'bot' : 'user', m.content, false);
   const DEFAULT_CHIPS = [
     { label: 'I have symptoms', q: 'I have a health problem' },
+    { label: 'Find me a clinic', q: 'Find me a clinic' },
+    { label: 'Check booking status', q: 'Check my booking status' },
     { label: 'How to book', q: 'How do I book an appointment?' },
     { label: 'Payment', q: 'How do I pay?' },
     { label: 'Cancel booking', q: 'How do I cancel my booking?' },
-    { label: 'Track booking', goto: 'track' },
     { label: 'Hindi mein batao', q: 'Mujhe booking kaise karni hai?' }
   ];
   setChips(DEFAULT_CHIPS);
