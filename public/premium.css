@@ -182,3 +182,4 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:rgba(47,102,20
   .clinic-card:hover{transform:translateY(-4px)}
 }
 .detail-cover-emoji:empty{display:none}
+@media(max-width:900px){.sticky-book{background:rgba(255,255,255,.94)!important;border:1px solid rgba(22,35,59,.08)!important;box-shadow:0 10px 28px rgba(22,35,59,.14)!important}}
