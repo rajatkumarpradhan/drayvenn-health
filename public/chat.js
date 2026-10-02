@@ -68,6 +68,7 @@
     text = text.replace(/\[\[loc\]\]/g, () => ph('<button class="chat-action" data-loc="1">Use my location</button>'));
     text = text.replace(/\[\[book:([a-z0-9-]+):([a-z0-9-]+)\|([^\]]+)\]\]/g, (m, cid, did, l) => ph(`<button class="chat-action spec" data-bookc="${esc(cid)}" data-bookd="${esc(did)}">${esc(l)}</button>`));
     text = text.replace(/\[\[go:([a-z]+)\|([^\]]+)\]\]/g, (m, v, l) => ph(`<button class="chat-action" data-goto="${esc(v)}">${esc(l)} \u2192</button>`));
+    text = text.replace(/\[\[[^\]]*\]\]/g, '').replace(/\[\[[^\]]*$/, '');
     text = text.replace(/[ \t]+\n/g, '\n').trim();
     let html = esc(text).replace(/\n/g, '<br>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/(^|<br>)_([^<]+)_(?=<br>|$)/g, '$1<span class="chat-note">$2</span>');
     html = html.replace(/(?:\u0001\d+\u0001)+/g, m => '<div class="chat-acts">' + m.replace(/\u0001(\d+)\u0001/g, (x, n) => btns[+n]) + '</div>');
@@ -147,7 +148,7 @@
           const j = JSON.parse(payload);
           if (j.response) {
             full += j.response;
-            el.textContent = full;
+            el.textContent = full.replace(/\[\[[^\]]*\]\]/g, '').replace(/\[\[[^\]]*$/, '').replace(/\[$/, '');
             scrollDown();
           }
         } catch (e) { /* partial chunk */ }
