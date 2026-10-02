@@ -28,7 +28,7 @@
       <div id="chat-msgs"></div>
       <div id="chat-chips"></div>
       <form id="chat-form">
-        <input id="chat-input" placeholder="Describe symptoms or ask in Hindi / English" autocomplete="off" maxlength="500">
+        <input id="chat-input" placeholder="Symptoms ya sawaal likhein..." autocomplete="off" maxlength="500">
         <button type="submit" id="chat-send" aria-label="Send">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M3.4 20.4l17.4-7.5c.8-.35.8-1.45 0-1.8L3.4 3.6c-.66-.29-1.39.2-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .72.73 1.2 1.39.91z"/></svg>
         </button>
