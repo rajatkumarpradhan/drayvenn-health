@@ -335,14 +335,19 @@ function renderAccountPage() {
     <div class="acctp-expand hidden" id="acp-family-panel">
       <p class="dash-sub" style="margin:2px 0 10px">Add your family once - book appointments for them from your account.</p>
       <div id="family-list">${LOADER('Loading&hellip;', 'rows')}</div>
-      <form class="fam-form" id="family-form">
+      <button type="button" class="btn btn-small btn-outline fam-add-btn" id="fam-add-btn">+ Add family member</button>
+      <form class="fam-form hidden" id="family-form">
+        <div class="fam-form-title" id="fam-form-title">Add family member</div>
+        <input type="hidden" id="fam-id">
+        <label class="fam-lbl" for="fam-name">Full name</label>
         <input id="fam-name" placeholder="Full name" maxlength="60" autocomplete="off">
-        <input id="fam-age" placeholder="Age" inputmode="numeric" maxlength="3">
-        <select id="fam-gender"><option value="">Gender</option><option>Female</option><option>Male</option><option>Other</option></select>
-        <select id="fam-relation"><option value="">Relation</option><option>Spouse</option><option>Child</option><option>Parent</option><option>Sibling</option><option>Other</option></select>
-        <button class="btn btn-small" type="submit">Add member</button>
+        <label class="fam-lbl" for="fam-relation">Relation</label>
+        <select id="fam-relation"><option value="">Relation</option><option>Father</option><option>Mother</option><option>Husband</option><option>Wife</option><option>Son</option><option>Daughter</option><option>Brother</option><option>Sister</option><option>Grandparent</option><option>Other</option></select>
+        <div class="fam-2"><div><label class="fam-lbl" for="fam-age">Age <span>(optional)</span></label><input id="fam-age" placeholder="Age" inputmode="numeric" maxlength="3"></div>
+        <div><label class="fam-lbl" for="fam-gender">Gender <span>(optional)</span></label><select id="fam-gender"><option value="">Select</option><option>Female</option><option>Male</option><option>Other</option></select></div></div>
+        <div class="form-error" id="fam-error"></div>
+        <div class="fam-actions"><button class="btn btn-small" type="submit" id="fam-save">Save member</button><button class="btn btn-small btn-outline" type="button" id="fam-cancel">Cancel</button></div>
       </form>
-      <div class="form-error" id="fam-error"></div>
     </div>
     <div class="acctp-group">Bookings</div>
     <div class="acctp-list">
@@ -1385,6 +1390,14 @@ function wizDetailsHTML() {
     <div class="wiz-step-sub">For ${esc(b.doctor.name)} · ${esc(fmtDateShort(b.date))} · ${fmtTime(b.slot)}</div>
     <div class="form-grid">
       <div class="form-row" id="wz-who-row"><label>Who is this appointment for?</label><div class="who-chips" id="wz-who"><span class="dash-note">Loading...</span></div></div>
+      <div class="wz-addfam hidden" id="wz-addfam">
+        <div class="fam-form-title">Add family member</div>
+        <input id="wzf-name" placeholder="Full name" maxlength="60" autocomplete="off">
+        <select id="wzf-rel"><option value="">Relation</option><option>Father</option><option>Mother</option><option>Husband</option><option>Wife</option><option>Son</option><option>Daughter</option><option>Brother</option><option>Sister</option><option>Grandparent</option><option>Other</option></select>
+        <div class="fam-2"><input id="wzf-age" placeholder="Age (optional)" inputmode="numeric" maxlength="3"><select id="wzf-gender"><option value="">Gender (optional)</option><option>Female</option><option>Male</option><option>Other</option></select></div>
+        <div class="form-error" id="wzf-err"></div>
+        <div class="fam-actions"><button type="button" class="btn btn-small" id="wzf-save">Save and select</button><button type="button" class="btn btn-small btn-outline" id="wzf-cancel">Cancel</button></div>
+      </div>
       ${state.bookingFor ? `<div class="for-member">Booking for <b>${esc(state.bookingFor.name)}</b>${state.bookingFor.relation ? ' (' + esc(state.bookingFor.relation) + ')' : ''} · from your account. <button type="button" class="linklike" id="wz-for-clear">Book for myself instead</button></div>` : ''}
       <div class="form-row"><label for="wz-name">Full Name</label><input id="wz-name" placeholder="Full name" maxlength="60" autocomplete="name" value="${v('pname')}"></div>
       <div class="form-row"><label for="wz-phone">Mobile Number</label>
@@ -1427,7 +1440,26 @@ async function wizLoadWho() {
     };
   });
   const add = $('#wz-who-add');
-  if (add) add.onclick = e => { e.preventDefault(); toast('Add family members from Profile > Family Members, then come back to book.', 'info'); };
+  if (add) add.onclick = e => { e.preventDefault(); $('#wz-addfam').classList.remove('hidden'); add.classList.add('hidden'); $('#wzf-name').focus({ preventScroll: true }); };
+  const fc2 = $('#wzf-cancel'); if (fc2) fc2.onclick = () => { $('#wz-addfam').classList.add('hidden'); if (add) add.classList.remove('hidden'); };
+  const fs = $('#wzf-save'); if (fs) fs.onclick = async () => {
+    const er = $('#wzf-err'); er.style.display = 'none';
+    const name = $('#wzf-name').value.trim();
+    if (name.length < 2) { er.textContent = 'Enter the family member name.'; er.style.display = 'block'; return; }
+    if (!$('#wzf-rel').value) { er.textContent = 'Choose the relation.'; er.style.display = 'block'; return; }
+    fs.disabled = true;
+    try {
+      const r = await api('/api/my/family', { method: 'POST', body: { action: 'add', name, age: $('#wzf-age').value, gender: $('#wzf-gender').value, relation: $('#wzf-rel').value } });
+      state.familyMembers = r.members || [];
+      const m = state.familyMembers.find(x => x.name === name && x.relation === $('#wzf-rel').value) || state.familyMembers[state.familyMembers.length - 1];
+      state.bookingFor = { id: m.id, name: m.name, age: m.age, gender: m.gender, relation: m.relation };
+      $('#wz-name').value = m.name; $('#wz-age').value = m.age != null ? m.age : ''; $('#wz-gender').value = m.gender || '';
+      $('#wz-addfam').classList.add('hidden');
+      await wizLoadWho();
+      toast(m.name + ' added', 'info');
+    } catch (e) { er.textContent = e.message; er.style.display = 'block'; }
+    fs.disabled = false;
+  };
 }
 function wireWizDetails() {
   wizLoadWho();
@@ -1505,7 +1537,8 @@ async function submitBooking() {
         doctor_id: b.doctor.id,
         patient_name: b.pname,
         phone: b.pphone, age: b.page, gender: b.pgender || null, concern: b.pconcern,
-        date: b.date, slot: b.slot, consent: true
+        date: b.date, slot: b.slot, consent: true,
+        family_member_id: state.bookingFor && state.bookingFor.id ? state.bookingFor.id : undefined
       })
     });
     state.lastBooking = booking;
@@ -1980,50 +2013,82 @@ async function loadFamily() {
     renderFamilyList(members);
   } catch (e) { host.innerHTML = '<div class="loading">Could not load family members.</div>'; }
 }
+function famFormOpen(m) {
+  const f = $('#family-form'); if (!f) return;
+  f.classList.remove('hidden'); $('#fam-add-btn').classList.add('hidden');
+  $('#fam-form-title').textContent = m ? 'Edit family member' : 'Add family member';
+  $('#fam-save').textContent = m ? 'Save changes' : 'Save member';
+  $('#fam-id').value = m ? m.id : '';
+  $('#fam-name').value = m ? m.name : ''; $('#fam-relation').value = m && m.relation ? m.relation : '';
+  $('#fam-age').value = m && m.age != null ? m.age : ''; $('#fam-gender').value = m && m.gender ? m.gender : '';
+  $('#fam-error').style.display = 'none';
+  f.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); $('#fam-name').focus({ preventScroll: true });
+}
+function famFormClose() {
+  const f = $('#family-form'); if (!f) return;
+  f.classList.add('hidden'); f.reset(); $('#fam-id').value = ''; $('#fam-add-btn').classList.remove('hidden');
+}
 function renderFamilyList(members) {
   const host = $('#family-list'); if (!host) return;
-  if (!members.length) { host.innerHTML = '<p class="dash-note">No family members added yet.</p>'; return; }
+  if (!members.length) { host.innerHTML = '<div class="fam-empty">No family members yet. Add one to book for them.</div>'; return; }
   host.innerHTML = members.map(m => `
-    <div class="fam-row">
-      <div>
+    <div class="fam-row" data-id="${m.id}">
+      <div class="fam-av">${esc((m.name || '?').trim().charAt(0).toUpperCase())}</div>
+      <div class="fam-info">
         <div class="bk-clinic">${esc(m.name)}</div>
-        <div class="bk-doc">${[m.relation, m.age != null ? m.age + ' yrs' : '', m.gender].filter(Boolean).map(x => esc(String(x))).join(' · ')}</div>
-      </div>
-      <div class="bk-actions">
-        <button type="button" class="btn btn-small btn-outline" data-bookfor="${m.id}">Book appointment</button>
-        <button type="button" class="btn btn-small btn-ghost" data-famdel="${m.id}">Remove</button>
+        <div class="bk-doc">${[m.relation, m.age != null ? m.age + ' yrs' : '', m.gender].filter(Boolean).map(x => esc(String(x))).join(' \u00B7 ')}</div>
+        <div class="fam-btns">
+          <button type="button" class="btn btn-small" data-bookfor="${m.id}">Book appointment</button>
+          <button type="button" class="btn btn-small btn-outline" data-famedit="${m.id}">Edit</button>
+          <button type="button" class="btn btn-small btn-outline fam-del" data-famdel="${m.id}">Delete</button>
+        </div>
+        <div class="fam-confirm hidden"><span>Delete ${esc(m.name)}?</span><button type="button" class="btn btn-small btn-danger" data-famyes="${m.id}">Yes, delete</button><button type="button" class="btn btn-small btn-outline" data-famno="1">Keep</button></div>
       </div>
     </div>`).join('');
   host.querySelectorAll('[data-bookfor]').forEach(btn => btn.onclick = () => {
     const m = (state.familyMembers || []).find(x => String(x.id) === btn.dataset.bookfor);
     if (!m) return;
-    state.bookingFor = { name: m.name, age: m.age, gender: m.gender, relation: m.relation };
+    state.bookingFor = { id: m.id, name: m.name, age: m.age, gender: m.gender, relation: m.relation };
     show('home');
     toast('Booking for ' + m.name + ' - pick a clinic', 'info');
   });
-  host.querySelectorAll('[data-famdel]').forEach(btn => btn.onclick = async () => {
-    if (!confirm('Remove this family member?')) return;
+  host.querySelectorAll('[data-famedit]').forEach(btn => btn.onclick = () => {
+    const m = (state.familyMembers || []).find(x => String(x.id) === btn.dataset.famedit); if (m) famFormOpen(m);
+  });
+  host.querySelectorAll('[data-famdel]').forEach(btn => btn.onclick = () => {
+    host.querySelectorAll('.fam-confirm').forEach(x => x.classList.add('hidden'));
+    btn.closest('.fam-info').querySelector('.fam-confirm').classList.remove('hidden');
+  });
+  host.querySelectorAll('[data-famno]').forEach(btn => btn.onclick = () => btn.closest('.fam-confirm').classList.add('hidden'));
+  host.querySelectorAll('[data-famyes]').forEach(btn => btn.onclick = async () => {
+    btn.disabled = true;
     try {
-      await api('/api/my/family', { method: 'POST', body: { action: 'remove', id: btn.dataset.famdel } });
-      toast('Removed', 'info');
+      await api('/api/my/family', { method: 'POST', body: { action: 'remove', id: btn.dataset.famyes } });
+      toast('Family member deleted', 'info');
       loadFamily();
-    } catch (e) { toast(e.message, 'error'); }
+    } catch (e) { toast(e.message, 'error'); btn.disabled = false; }
   });
 }
 function wireFamilyForm() {
   const form = $('#family-form'); if (!form) return;
   $('#fam-age').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 3); });
+  $('#fam-add-btn').onclick = () => famFormOpen(null);
+  $('#fam-cancel').onclick = famFormClose;
   form.onsubmit = async ev => {
     ev.preventDefault();
     const err = $('#fam-error'); err.style.display = 'none';
     const name = $('#fam-name').value.trim();
     if (name.length < 2) { err.textContent = 'Enter the family member name.'; err.style.display = 'block'; return; }
+    if (!$('#fam-relation').value) { err.textContent = 'Choose the relation.'; err.style.display = 'block'; return; }
+    const id = $('#fam-id').value;
+    const sb = $('#fam-save'); sb.disabled = true;
     try {
-      await api('/api/my/family', { method: 'POST', body: { action: 'add', name, age: $('#fam-age').value, gender: $('#fam-gender').value, relation: $('#fam-relation').value } });
-      form.reset();
-      toast(name + ' added', 'info');
+      await api('/api/my/family', { method: 'POST', body: { action: id ? 'edit' : 'add', id, name, age: $('#fam-age').value, gender: $('#fam-gender').value, relation: $('#fam-relation').value } });
+      famFormClose();
+      toast(id ? 'Changes saved' : name + ' added', 'info');
       loadFamily();
     } catch (e) { err.textContent = e.message; err.style.display = 'block'; }
+    sb.disabled = false;
   };
 }
 
@@ -2197,6 +2262,10 @@ function dispStatus(b) {
   if (b.date < today) return b.status === 'confirmed' ? 'completed' : 'expired';
   return b.status;
 }
+function bkForHTML(b) {
+  if (b.for_member_id || b.for_relation) return '<span class="for-pill fam">For ' + esc(b.patient_name) + (b.for_relation ? ' \u00B7 ' + esc(b.for_relation) : '') + '</span>';
+  return '<span class="for-pill">For Self</span>';
+}
 const MB_STATUS = { pending: 'Pending confirmation', confirmed: 'Confirmed', cancelled: 'Cancelled', completed: 'Completed', expired: 'Not confirmed (past)' };
 
 async function loadMyBookings() {
@@ -2247,6 +2316,7 @@ function renderMbList() {
         <span class="bk-badge bdg-${esc(dispStatus(b))}">${esc(MB_STATUS[dispStatus(b)] || b.status)}</span>
       </div>
       <div class="bk-clinic">${esc(b.clinic_name)}</div>
+      <div class="bk-for">${bkForHTML(b)}</div>
       <div class="bk-doc">${esc(b.doctor_name)}${b.specialty ? ' · ' + esc(b.specialty) : ''}</div>
       <div class="bk-meta">${fmtDate(b.date)} · ${fmtTime(b.slot)}${b.fee ? ' · \u20B9' + b.fee : ''}</div>
       ${b.clinic_address ? `<div class="bk-addr">${esc(b.clinic_address)}</div>` : ''}
@@ -2296,7 +2366,7 @@ function openBookingModal(b) {
       <div class="bmodal-body">
         <div class="brow"><span>Booking ID</span><b>${esc(b.ref)}</b></div>
         <div class="brow"><span>Doctor</span><b>${esc(b.doctor_name)}${b.specialty ? ' · ' + esc(b.specialty) : ''}</b></div>
-        <div class="brow"><span>Patient</span><b>${esc(b.patient_name)}${b.age != null && b.age !== '' ? ', ' + esc(String(b.age)) : ''}${b.gender ? ' · ' + esc(b.gender) : ''}</b></div>
+        <div class="brow"><span>Booked for</span><b>${b.for_member_id || b.for_relation ? '' : 'Self \u00B7 '}${esc(b.patient_name)}${b.for_relation ? ' (' + esc(b.for_relation) + ')' : ''}${b.age != null && b.age !== '' ? ', ' + esc(String(b.age)) : ''}${b.gender ? ' · ' + esc(b.gender) : ''}</b></div>
         <div class="brow"><span>Date &amp; time</span><b>${fmtDate(b.date)} · ${fmtTime(b.slot)}</b></div>
         ${b.concern ? `<div class="brow"><span>Symptoms</span><b>${esc(b.concern)}</b></div>` : ''}
         ${b.clinic_address ? `<div class="brow"><span>Address</span><b>${esc(b.clinic_address)}</b></div>` : ''}

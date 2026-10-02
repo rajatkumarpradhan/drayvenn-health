@@ -52,11 +52,18 @@ export async function onRequestPost(context) {
     ref = makeRef();
   }
 
+  /* Booking for a family member: the member must belong to this signed-in patient. */
+  let forMemberId = null, forRelation = null;
+  if (body.family_member_id) {
+    const fm = await DB.prepare('SELECT id, relation FROM family_members WHERE id = ? AND patient_id = ?').bind(parseInt(body.family_member_id, 10) || 0, patientId).first();
+    if (!fm) return badRequest('That family member was not found on your account');
+    forMemberId = fm.id; forRelation = fm.relation || null;
+  }
   try {
   await DB.prepare(
-    `INSERT INTO bookings (ref, clinic_id, clinic_name, doctor_id, doctor_name, patient_name, phone, age, gender, concern, date, slot, status, consent_at, patient_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), ?)`
-  ).bind(ref, clinic_id, clinic.name, doctor_id, doctor.name, name, ph, age, gender, concern || null, date, slot, patientId).run();
+    `INSERT INTO bookings (ref, clinic_id, clinic_name, doctor_id, doctor_name, patient_name, phone, age, gender, concern, date, slot, status, consent_at, patient_id, for_member_id, for_relation)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), ?, ?, ?)`
+  ).bind(ref, clinic_id, clinic.name, doctor_id, doctor.name, name, ph, age, gender, concern || null, date, slot, patientId, forMemberId, forRelation).run();
   } catch (e) {
     if (/UNIQUE/i.test(String(e))) return json({ error: 'That slot was just taken - please pick another' }, 409);
     throw e;

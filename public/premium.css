@@ -97,3 +97,22 @@ input:focus,select:focus,textarea:focus{border-color:rgba(47,102,208,.45);box-sh
   .sticky-book{padding:6px 6px 6px 16px!important;bottom:calc(92px + env(safe-area-inset-bottom))!important}
   main.wrap{padding-bottom:calc(190px + env(safe-area-inset-bottom,0px))!important}
 }
+/* family members */
+.fam-add-btn{margin-top:12px;width:100%;border-style:dashed}
+.fam-empty{padding:18px;border:1.5px dashed rgba(47,102,208,.25);border-radius:16px;text-align:center;color:var(--muted);font-size:13.5px}
+.fam-row{display:flex!important;align-items:flex-start;gap:12px;padding:14px!important;border-radius:18px!important;background:#fff;box-shadow:0 6px 18px rgba(30,60,130,.07);margin-bottom:10px}
+.fam-av{flex:0 0 42px;height:42px;border-radius:50%;display:grid;place-items:center;font-weight:700;color:#fff;background:linear-gradient(135deg,#2F66D0,#2bb3a8)}
+.fam-info{flex:1;min-width:0}
+.fam-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.fam-del{color:#b42318;border-color:rgba(180,35,24,.3)}
+.fam-confirm{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px;padding:10px 12px;border-radius:12px;background:#fff4f2;font-size:13px;color:#7a271a}
+.fam-confirm.hidden{display:none}
+.fam-form,.wz-addfam{display:grid!important;grid-template-columns:1fr!important;gap:8px;margin-top:14px;padding:16px;border-radius:18px;background:rgba(47,102,208,.05);border:1px solid rgba(47,102,208,.15)}
+.fam-form.hidden,.wz-addfam.hidden{display:none!important}
+.fam-form input,.fam-form select,.wz-addfam input,.wz-addfam select{width:100%;padding:12px 14px;border:1px solid rgba(47,102,208,.2);border-radius:12px;font-size:15px;background:#fff}
+.fam-form-title{font-weight:700;color:#1d3f8f;font-size:15px}
+.fam-lbl{font-size:12.5px;font-weight:600;color:var(--muted);margin-top:4px}.fam-lbl span{font-weight:400}
+.fam-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fam-actions{display:flex;gap:8px;margin-top:6px}
+.for-pill{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:rgba(47,102,208,.09);color:#1d3f8f;margin:2px 0 6px}
+.for-pill.fam{background:rgba(43,179,168,.14);color:#0f6b63}
