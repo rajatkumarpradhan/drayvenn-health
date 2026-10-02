@@ -2050,6 +2050,7 @@ function renderLogin(host) {
     </div>
     <div class="form-grid hidden signin-otp" id="login-otp-step">
       <div class="form-row"><label for="login-otp">Code sent to <b id="login-sent-to"></b></label><input id="login-otp" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;" inputmode="numeric" maxlength="6" autocomplete="one-time-code" style="letter-spacing:6px;text-align:center;font-size:18px"></div>
+      <div class="form-row hidden" id="login-name2-row"><label for="login-name2">Your full name</label><input id="login-name2" maxlength="60" autocomplete="name" placeholder="To create your account"></div>
       <div class="dev-code hidden" id="login-devcode"></div>
       <div class="form-error" id="otp-error"></div>
       <button class="btn btn-block" id="login-verify">Verify</button>
@@ -2057,7 +2058,7 @@ function renderLogin(host) {
       <button class="btn btn-block btn-ghost" id="login-back" type="button">Change number</button>
     </div>
     <div class="privacy-line" style="margin-top:14px">Codes expire in 10 minutes. We only use your number to sign you in and confirm bookings.</div>`;
-  const paint = () => {
+  const paint = paintAuthTabs = () => {
     const up = state.authMode === 'signup';
     const on = 'background:#fff;color:#1d3f8f;box-shadow:0 2px 8px rgba(30,60,130,.14)', off = 'background:transparent;color:var(--muted)';
     const base = 'border:0;border-radius:11px;padding:10px 0;font-weight:700;font-size:14px;cursor:pointer;';
@@ -2104,6 +2105,7 @@ function bindGoogleStart(root) {
   });
 }
 
+let paintAuthTabs = null;
 function startOtpTimer(sec) {
   clearInterval(state.otpTimer);
   const b = $('#login-resend'); if (!b) return;
@@ -2157,7 +2159,7 @@ async function verifyOtp() {
   const btn = $('#login-verify');
   btn.disabled = true; btn.textContent = 'Verifying...';
   try {
-    const { patient, created } = await api('/api/auth/otp/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone, code, mode: state.authMode, name: ($('#login-name') || {}).value || '' }) });
+    const { patient, created } = await api('/api/auth/otp/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone, code, mode: state.authMode, name: (($('#login-name2') || {}).value || ($('#login-name') || {}).value || '') }) });
     state.patient = patient;
     renderAcctMenu();
     toast(created ? 'Account created. Welcome, ' + ((patient.name || '').split(' ')[0] || 'there') : 'Signed in', 'info');
@@ -2166,7 +2168,13 @@ async function verifyOtp() {
     renderAccount();
   } catch (e) {
     err.textContent = e.message; err.style.display = 'block';
-    const oi = $('#login-otp'); if (oi) { oi.value = ''; oi.focus({ preventScroll: true }); }
+    const oi = $('#login-otp');
+    if (/name/i.test(e.message) && /create/i.test(e.message)) {
+      state.authMode = 'signup'; paintAuthTabs && paintAuthTabs();
+      $('#login-name2-row').classList.remove('hidden');
+      if (!$('#login-name2').value) $('#login-name2').value = ($('#login-name') || {}).value || '';
+      $('#login-name2').focus({ preventScroll: true });
+    } else if (oi) { oi.value = ''; oi.focus({ preventScroll: true }); }
   }
   btn.disabled = false; btn.textContent = state.authMode === 'signup' ? 'Verify & create account' : 'Verify & sign in';
 }

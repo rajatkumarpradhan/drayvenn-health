@@ -54,12 +54,13 @@ export async function onRequestPost(context) {
     return INVALID();
   }
 
-  await DB.prepare('UPDATE otp_codes SET consumed = 1 WHERE id = ?').bind(otp.id).run();
+  const burn = () => DB.prepare('UPDATE otp_codes SET consumed = 1 WHERE id = ?').bind(otp.id).run();
 
   // Find-or-create the patient. Email OTP links to a Google-created account
   // when the verified email matches its google_email (both proofs verify ownership).
   let patient;
   if (channel === 'email') {
+    await burn();
     patient = await DB.prepare('SELECT * FROM patients WHERE email = ?').bind(identifier).first();
     if (!patient) {
       patient = await DB.prepare('SELECT * FROM patients WHERE google_email = ?').bind(identifier).first();
@@ -79,13 +80,15 @@ export async function onRequestPost(context) {
     const fullName = String(body.name || '').trim().replace(/\s+/g, ' ').slice(0, 60);
     if (!patient) {
       if (mode !== 'signup') {
-        return json({ error: 'No account found for this number. Please sign up first.', code: 'no_account' }, 404);
+        return json({ error: 'No account for this number yet. Enter your name to create one.', code: 'no_account' }, 404);
       }
-      if (fullName.length < 2) return badRequest('Enter your full name to create the account');
+      if (fullName.length < 2) return json({ error: 'Enter your full name to create the account', code: 'need_name' }, 400);
+      await burn();
       const id = 'pt_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
       await DB.prepare('INSERT INTO patients (id, phone, name) VALUES (?, ?, ?)').bind(id, identifier, fullName).run();
       patient = { id, phone: identifier, name: fullName, age: null, google_sub: null, google_email: null, email: null, _created: true };
     }
+    await burn();
     await DB.prepare('UPDATE bookings SET patient_id = ? WHERE phone = ? AND patient_id IS NULL').bind(patient.id, identifier).run();
   }
 
