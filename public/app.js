@@ -2001,6 +2001,328 @@ function renderSaved() {
   const host = $('#saved-list'); if (!host) return;
   const list = getSavedClinics();
   if (!list.length) {
+    host.innerHTML = `<div class="empty-state">
+      ${CAL_ICON}
+      <div class="empty-title">No saved clinics yet</div>
+      <div class="empty-sub">Tap Save on any clinic page and it shows up here.</div>
+      <button type="button" class="btn btn-outline btn-small" id="sv-browse">Browse clinics</button>
+    </div>`;
+    const bb = $('#sv-browse'); if (bb) bb.onclick = () => show('home');
+    return;
+  }
+  host.innerHTML = list.map(c => `
+    <div class="saved-row">
+      <div>
+        <div class="bk-clinic">${esc(c.name)}</div>
+        <div class="bk-doc">${[c.area, c.min_fee ? 'from \u20B9' + c.min_fee : ''].filter(Boolean).map(x => esc(String(x))).join(' · ')}</div>
+      </div>
+      <div class="bk-actions">
+        <button type="button" class="btn btn-small" data-open="${esc(String(c.id))}">View &amp; Book</button>
+        <button type="button" class="btn btn-small btn-ghost" data-unsave="${esc(String(c.id))}">Remove</button>
+      </div>
+    </div>`).join('');
+  host.querySelectorAll('[data-open]').forEach(btn => btn.onclick = () => openClinic(btn.dataset.open));
+  host.querySelectorAll('[data-unsave]').forEach(btn => btn.onclick = () => {
+    toggleSaveClinic({ id: btn.dataset.unsave });
+    renderSaved();
+  });
+}
+
+/* Family members. */
+async function loadFamily() {
+  const host = $('#family-list'); if (!host) return;
+  if (!state.patient) { host.innerHTML = ''; return; }
+  try {
+    const { members } = await api('/api/my/family');
+    state.familyMembers = members;
+    renderFamilyList(members);
+  } catch (e) { host.innerHTML = '<div class="loading">Could not load family members.</div>'; }
+}
+function famFormOpen(m) {
+  const f = $('#family-form'); if (!f) return;
+  f.classList.remove('hidden'); $('#fam-add-btn').classList.add('hidden');
+  $('#fam-form-title').textContent = m ? 'Edit family member' : 'Add family member';
+  $('#fam-save').textContent = m ? 'Save changes' : 'Save member';
+  $('#fam-id').value = m ? m.id : '';
+  $('#fam-name').value = m ? m.name : ''; $('#fam-relation').value = m && m.relation ? m.relation : '';
+  $('#fam-age').value = m && m.age != null ? m.age : ''; $('#fam-gender').value = m && m.gender ? m.gender : '';
+  $('#fam-error').style.display = 'none';
+  f.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); $('#fam-name').focus({ preventScroll: true });
+}
+function famFormClose() {
+  const f = $('#family-form'); if (!f) return;
+  f.classList.add('hidden'); f.reset(); $('#fam-id').value = ''; $('#fam-add-btn').classList.remove('hidden');
+}
+function renderFamilyList(members) {
+  const host = $('#family-list'); if (!host) return;
+  if (!members.length) { host.innerHTML = '<div class="fam-empty">No family members yet. Add one to book for them.</div>'; return; }
+  host.innerHTML = members.map(m => `
+    <div class="fam-row" data-id="${m.id}">
+      <div class="fam-av">${esc((m.name || '?').trim().charAt(0).toUpperCase())}</div>
+      <div class="fam-info">
+        <div class="bk-clinic">${esc(m.name)}</div>
+        <div class="bk-doc">${[m.relation, m.age != null ? m.age + ' yrs' : '', m.gender].filter(Boolean).map(x => esc(String(x))).join(' \u00B7 ')}</div>
+        <div class="fam-btns">
+          <button type="button" class="btn btn-small" data-bookfor="${m.id}">Book appointment</button>
+          <button type="button" class="btn btn-small btn-outline" data-famedit="${m.id}">Edit</button>
+          <button type="button" class="btn btn-small btn-outline fam-del" data-famdel="${m.id}">Delete</button>
+        </div>
+        <div class="fam-confirm hidden"><span>Delete ${esc(m.name)}?</span><button type="button" class="btn btn-small btn-danger" data-famyes="${m.id}">Yes, delete</button><button type="button" class="btn btn-small btn-outline" data-famno="1">Keep</button></div>
+      </div>
+    </div>`).join('');
+  host.querySelectorAll('[data-bookfor]').forEach(btn => btn.onclick = () => {
+    const m = (state.familyMembers || []).find(x => String(x.id) === btn.dataset.bookfor);
+    if (!m) return;
+    state.bookingFor = { id: m.id, name: m.name, age: m.age, gender: m.gender, relation: m.relation };
+    show('home');
+    toast('Booking for ' + m.name + ' - pick a clinic', 'info');
+  });
+  host.querySelectorAll('[data-famedit]').forEach(btn => btn.onclick = () => {
+    const m = (state.familyMembers || []).find(x => String(x.id) === btn.dataset.famedit); if (m) famFormOpen(m);
+  });
+  host.querySelectorAll('[data-famdel]').forEach(btn => btn.onclick = () => {
+    host.querySelectorAll('.fam-confirm').forEach(x => x.classList.add('hidden'));
+    btn.closest('.fam-info').querySelector('.fam-confirm').classList.remove('hidden');
+  });
+  host.querySelectorAll('[data-famno]').forEach(btn => btn.onclick = () => btn.closest('.fam-confirm').classList.add('hidden'));
+  host.querySelectorAll('[data-famyes]').forEach(btn => btn.onclick = async () => {
+    btn.disabled = true;
+    try {
+      await api('/api/my/family', { method: 'POST', body: { action: 'remove', id: btn.dataset.famyes } });
+      toast('Family member deleted', 'info');
+      loadFamily();
+    } catch (e) { toast(e.message, 'error'); btn.disabled = false; }
+  });
+}
+function wireFamilyForm() {
+  const form = $('#family-form'); if (!form) return;
+  $('#fam-age').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 3); });
+  $('#fam-add-btn').onclick = () => famFormOpen(null);
+  $('#fam-cancel').onclick = famFormClose;
+  form.onsubmit = async ev => {
+    ev.preventDefault();
+    const err = $('#fam-error'); err.style.display = 'none';
+    const name = $('#fam-name').value.trim();
+    if (name.length < 2) { err.textContent = 'Enter the family member name.'; err.style.display = 'block'; return; }
+    if (!$('#fam-relation').value) { err.textContent = 'Choose the relation.'; err.style.display = 'block'; return; }
+    const id = $('#fam-id').value;
+    const sb = $('#fam-save'); sb.disabled = true;
+    try {
+      await api('/api/my/family', { method: 'POST', body: { action: id ? 'edit' : 'add', id, name, age: $('#fam-age').value, gender: $('#fam-gender').value, relation: $('#fam-relation').value } });
+      famFormClose();
+      toast(id ? 'Changes saved' : name + ' added', 'info');
+      loadFamily();
+    } catch (e) { err.textContent = e.message; err.style.display = 'block'; }
+    sb.disabled = false;
+  };
+}
+
+function renderLogin(host) {
+  state.authMode = state.authMode || 'signin';
+  host.innerHTML = `
+    <div class="signin-head">
+      <h2 class="signin-title">Welcome to Drayvenn Lab</h2>
+      <p style="color:var(--muted);font-size:13.5px;margin:4px 0 14px">Sign in with a code on your mobile, or continue with Google. No passwords.</p>
+    </div>
+    <div class="auth-seg" role="tablist" style="display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:14px;background:rgba(47,102,208,.08);margin-bottom:14px">
+      <button type="button" role="tab" id="auth-t-in" class="auth-seg-btn">Sign in</button>
+      <button type="button" role="tab" id="auth-t-up" class="auth-seg-btn">Sign up</button>
+    </div>
+    <a class="btn btn-block btn-glass google-start" href="/api/auth/google/start" style="display:block;text-align:center">Continue with Google</a>
+    <div style="display:flex;align-items:center;gap:10px;margin:16px 0;color:var(--muted);font-size:12px"><span style="flex:1;height:1px;background:var(--line,rgba(190,220,215,.4))"></span>or use your mobile number<span style="flex:1;height:1px;background:var(--line,rgba(190,220,215,.4))"></span></div>
+    <div class="form-grid" id="login-phone-step">
+      <div class="form-row" id="login-name-row"><label for="login-name">Full name</label><input id="login-name" maxlength="60" autocomplete="name" placeholder="As on your ID"></div>
+      <div class="form-row"><label for="login-phone">Mobile number</label>
+        <div class="phone-wrap"><span class="phone-prefix">+91</span><input id="login-phone" type="tel" placeholder="98765 43210" inputmode="numeric" maxlength="10" autocomplete="tel-national"></div>
+      </div>
+      <div class="form-error" id="login-error"></div>
+      <button class="btn btn-block" id="login-send">Send OTP</button>
+    </div>
+    <div class="form-grid hidden signin-otp" id="login-otp-step">
+      <div class="form-row"><label for="login-otp">Code sent to <b id="login-sent-to"></b></label><input id="login-otp" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;" inputmode="numeric" maxlength="6" autocomplete="one-time-code" style="letter-spacing:6px;text-align:center;font-size:18px"></div>
+      <div class="form-row hidden" id="login-name2-row"><label for="login-name2">Your full name</label><input id="login-name2" maxlength="60" autocomplete="name" placeholder="To create your account"></div>
+      <div class="dev-code hidden" id="login-devcode"></div>
+      <div class="form-error" id="otp-error"></div>
+      <button class="btn btn-block" id="login-verify">Verify</button>
+      <button class="btn btn-block btn-outline" id="login-resend" type="button" disabled>Resend code</button>
+      <button class="btn btn-block btn-outline" id="login-back" type="button">Change number</button>
+    </div>
+    <div class="privacy-line" style="margin-top:14px">Codes expire in 10 minutes. We only use your number to sign you in and confirm bookings.</div>`;
+  const paint = paintAuthTabs = () => {
+    const up = state.authMode === 'signup';
+    const on = 'background:#fff;color:#1d3f8f;box-shadow:0 2px 8px rgba(30,60,130,.14)', off = 'background:transparent;color:var(--muted)';
+    const base = 'border:0;border-radius:11px;padding:10px 0;font-weight:700;font-size:14px;cursor:pointer;';
+    $('#auth-t-in').style.cssText = base + (up ? off : on);
+    $('#auth-t-up').style.cssText = base + (up ? on : off);
+    $('#auth-t-in').setAttribute('aria-selected', String(!up)); $('#auth-t-up').setAttribute('aria-selected', String(up));
+    $('#login-name-row').classList.toggle('hidden', !up);
+    $('#login-send').textContent = 'Send OTP';
+    $('#login-verify').textContent = up ? 'Verify & create account' : 'Verify & sign in';
+    $('#login-error').style.display = 'none';
+  };
+  $('#auth-t-in').onclick = () => { state.authMode = 'signin'; paint(); };
+  $('#auth-t-up').onclick = () => { state.authMode = 'signup'; paint(); };
+  paint();
+  $('#login-phone').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10); });
+  $('#login-otp').addEventListener('input', e => {
+    e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6);
+    $('#otp-error').style.display = 'none';
+    if (e.target.value.length === 6 && !$('#login-verify').disabled) verifyOtp();
+  });
+  $('#login-phone').addEventListener('input', () => { $('#login-error').style.display = 'none'; });
+  $('#login-phone').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); requestOtp(); } });
+  $('#login-otp').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); verifyOtp(); } });
+  $('#login-name2').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); verifyOtp(); } });
+  $('#login-send').onclick = () => requestOtp();
+  $('#login-verify').onclick = verifyOtp;
+  $('#login-resend').onclick = () => requestOtp(true);
+  $('#login-back').onclick = () => { clearInterval(state.otpTimer); $('#otp-error').style.display = 'none'; $('#login-otp').value = ''; $('#login-otp-step').classList.add('hidden'); $('#login-phone-step').classList.remove('hidden'); $('#login-phone').focus({ preventScroll: true }); };
+  bindGoogleStart(host);
+}
+
+/* Follows /api/auth/google/start in JS so the clean "switching on" message
+   shows as a toast instead of a raw JSON page when Google is not configured. */
+function bindGoogleStart(root) {
+  (root || document).querySelectorAll('.google-start').forEach(a => {
+    a.onclick = async e => {
+      e.preventDefault();
+      try {
+        const res = await fetch(a.href, { redirect: 'manual' });
+        if (res.type === 'opaqueredirect' || (res.status >= 300 && res.status < 400)) { location.href = a.href; return; }
+        const data = await res.json().catch(() => ({}));
+        toast(data.message || data.error || 'Google sign-in is unavailable right now', 'info');
+      } catch { location.href = a.href; }
+    };
+  });
+}
+
+let paintAuthTabs = null;
+function startOtpTimer(sec) {
+  clearInterval(state.otpTimer);
+  const b = $('#login-resend'); if (!b) return;
+  let left = sec; b.disabled = true; b.textContent = 'Resend code in ' + left + 's';
+  state.otpTimer = setInterval(() => {
+    const bb = $('#login-resend'); if (!bb) { clearInterval(state.otpTimer); return; }
+    left--; if (left <= 0) { clearInterval(state.otpTimer); bb.disabled = false; bb.textContent = 'Resend code'; } else bb.textContent = 'Resend code in ' + left + 's';
+  }, 1000);
+}
+
+async function requestOtp(isResend) {
+  const err = isResend === true ? $('#otp-error') : $('#login-error');
+  err.style.display = 'none';
+  if ($('#login-send').disabled) return;
+  const phone = $('#login-phone').value.trim();
+  if (state.authMode === 'signup' && ($('#login-name').value.trim().length < 2)) { err.textContent = 'Enter your full name.'; err.style.display = 'block'; return; }
+  if (!/^[6-9]\d{9}$/.test(phone)) { err.textContent = 'Enter a valid 10-digit mobile number.'; err.style.display = 'block'; return; }
+  const btn = $('#login-send');
+  btn.disabled = true; btn.textContent = 'Sending code...';
+  if (isResend === true) { $('#login-resend').disabled = true; $('#login-resend').textContent = 'Sending...'; }
+  try {
+    const data = await api('/api/auth/otp/request', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone }) });
+    $('#login-sent-to').textContent = '+91 ' + phone.slice(0, 5) + ' ' + phone.slice(5);
+    const dev = $('#login-devcode');
+    if (data && data.dev && data.devCode) {
+      dev.innerHTML = '<b>Preview test number</b> - real SMS is not live yet, so the code is shown here. Code: <b>' + esc(data.devCode) + '</b>';
+      dev.classList.remove('hidden');
+      $('#login-otp').value = data.devCode;
+    } else {
+      dev.classList.add('hidden');
+      $('#login-otp').value = '';
+    }
+    $('#login-phone-step').classList.add('hidden');
+    $('#login-otp-step').classList.remove('hidden');
+    $('#login-otp').focus({ preventScroll: true });
+    startOtpTimer(30);
+    if (isResend === true) toast('New code sent', 'info');
+  } catch (e) {
+    err.textContent = e.message; err.style.display = 'block';
+    if (isResend === true) startOtpTimer(10);
+  }
+  btn.disabled = false; btn.textContent = 'Send OTP';
+}
+
+async function verifyOtp() {
+  const err = $('#otp-error');
+  err.style.display = 'none';
+  const phone = $('#login-phone').value.trim();
+  const code = $('#login-otp').value.trim();
+  if (!/^\d{6}$/.test(code)) { err.textContent = 'Enter the 6-digit code.'; err.style.display = 'block'; return; }
+  const btn = $('#login-verify');
+  btn.disabled = true; btn.textContent = 'Verifying...';
+  try {
+    const { patient, created } = await api('/api/auth/otp/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone, code, mode: state.authMode, name: (($('#login-name2') || {}).value || ($('#login-name') || {}).value || '') }) });
+    state.patient = patient;
+    renderAcctMenu();
+    toast(created ? 'Account created. Welcome, ' + ((patient.name || '').split(' ')[0] || 'there') : 'Signed in', 'info');
+    if (state.afterLogin) { const fn = state.afterLogin; state.afterLogin = null; closeLoginModal(); fn(); return; }
+    show('mybookings');
+    renderAccount();
+  } catch (e) {
+    err.textContent = e.message; err.style.display = 'block';
+    const oi = $('#login-otp');
+    if (/name/i.test(e.message) && /create/i.test(e.message)) {
+      state.authMode = 'signup'; paintAuthTabs && paintAuthTabs();
+      $('#login-name2-row').classList.remove('hidden');
+      if (!$('#login-name2').value) $('#login-name2').value = ($('#login-name') || {}).value || '';
+      $('#login-name2').focus({ preventScroll: true });
+    } else if (oi) { oi.value = ''; oi.focus({ preventScroll: true }); }
+  }
+  btn.disabled = false; btn.textContent = state.authMode === 'signup' ? 'Verify & create account' : 'Verify & sign in';
+}
+
+async function logout() {
+  try { await api('/api/auth/logout', { method: 'POST' }); } catch {}
+  state.patient = null;
+  state.myBookings = [];
+  state.familyMembers = [];
+  state.bookingFor = null;
+  toast('Signed out', 'info');
+  renderAccount();
+  renderAcctMenu();
+}
+
+function dispStatus(b) {
+  const today = new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10);
+  if (b.status === 'cancelled') return 'cancelled';
+  if (b.date < today) return b.status === 'confirmed' ? 'completed' : 'expired';
+  return b.status;
+}
+function bkForHTML(b) {
+  if (b.for_member_id || b.for_relation) return '<span class="for-pill fam">For ' + esc(b.patient_name) + (b.for_relation ? ' \u00B7 ' + esc(b.for_relation) : '') + '</span>';
+  return '<span class="for-pill">For Self</span>';
+}
+const MB_STATUS = { pending: 'Pending confirmation', confirmed: 'Confirmed', cancelled: 'Cancelled', completed: 'Completed', expired: 'Not confirmed (past)' };
+
+async function loadMyBookings() {
+  const host = $('#my-bookings');
+  if (!host) return;
+  try {
+    const { bookings } = await api('/api/my/bookings');
+    state.myBookings = bookings;
+    renderMbList();
+  } catch (e) {
+    host.innerHTML = '<div class="loading">Could not load bookings. <a href="#" id="my-retry">Retry</a></div>';
+    const r = $('#my-retry'); if (r) r.onclick = ev => { ev.preventDefault(); loadMyBookings(); };
+  }
+}
+
+function renderMbList() {
+  const host = $('#my-bookings'); if (!host) return;
+  const all = state.myBookings || [];
+  const today = new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10);
+  const tab = state.mbTab || 'upcoming';
+  let rows = all.filter(b => {
+    if (tab === 'cancelled') return b.status === 'cancelled';
+    if (tab === 'past') return b.status !== 'cancelled' && b.date < today;
+    return b.status !== 'cancelled' && b.date >= today;
+  });
+  rows = rows.slice().sort((a, c) => tab === 'upcoming'
+    ? (a.date + a.slot).localeCompare(c.date + c.slot)
+    : (c.date + c.slot).localeCompare(a.date + a.slot));
+  if (!rows.length) {
+    const msg = tab === 'upcoming' ? ['No upcoming appointments', 'Book a visit and it shows up here.']
+      : tab === 'past' ? ['No past appointments', 'Your completed and older visits will show here.']
+      : ['No cancelled bookings', 'Bookings you cancel will show here.'];
     const none = !(state.myBookings || []).length;
     host.innerHTML = emptyHTML(CAL_ICON, tab === 'upcoming' ? (none ? 'No appointments yet' : 'No upcoming appointments') : msg[0],
       tab === 'upcoming' ? (none ? 'Find a clinic near you and book a doctor in under a minute. Your bookings will live here with their status.' : 'Book your next visit and it will show up here.') : msg[1],
