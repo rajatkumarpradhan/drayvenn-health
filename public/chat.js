@@ -22,9 +22,11 @@
           <div class="chat-head-name">Drayvenn Assistant</div>
           <div class="chat-head-sub"><span class="chat-dot"></span>Here to help · 24x7</div>
         </div>
+        <button id="chat-clear" aria-label="Clear chat" title="Clear chat"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5"/></svg></button>
         <button id="chat-close" aria-label="Close chat">✕</button>
       </div>
       <div class="chat-disclaimer">Guidance only · not medical advice. Emergency: call 108 / 112</div>
+      <div id="chat-confirm" class="chat-confirm hidden"><span>Clear this conversation?</span><button id="chat-clear-yes">Clear</button><button id="chat-clear-no">Keep</button></div>
       <div id="chat-ctx" class="chat-ctx"><i></i><span>Home</span></div>
       <div id="chat-msgs"></div>
       <div id="chat-chips"></div>
@@ -69,6 +71,7 @@
     text = text.replace(/\[\[loc\]\]/g, () => ph('<button class="chat-action" data-loc="1">Use my location</button>'));
     text = text.replace(/\[\[book:([a-z0-9-]+):([a-z0-9-]+)\|([^\]]+)\]\]/g, (m, cid, did, l) => ph(`<button class="chat-action spec" data-bookc="${esc(cid)}" data-bookd="${esc(did)}">${esc(l)}</button>`));
     text = text.replace(/\[\[trk\|([^\]]+)\]\]/g, (m, l) => ph(`<button class="chat-action" data-trk="1">${esc(l)}</button>`));
+    text = text.replace(/\[\[ext:((?:https:\/\/wa\.me\/|mailto:)[^|\]]+)\|([^\]]+)\]\]/g, (m, u, l) => ph(`<a class="chat-action" href="${esc(u)}" target="_blank" rel="noopener">${esc(l)}</a>`));
     text = text.replace(/\[\[tel:([0-9+]+)\|([^\]]+)\]\]/g, (m, n, l) => ph(`<a class="chat-action" href="tel:${esc(n)}">${esc(l)}</a>`));
     text = text.replace(/\[\[go:([a-z]+)\|([^\]]+)\]\]/g, (m, v, l) => ph(`<button class="chat-action" data-goto="${esc(v)}">${esc(l)} \u2192</button>`));
     text = text.replace(/\[\[[^\]]*\]\]/g, '').replace(/\[\[[^\]]*$/, '');
@@ -86,11 +89,13 @@
     msgsEl.appendChild(el);
     linkifyActions(el);
     scrollDown();
+    const _el = el;
     if (save) {
       history.push({ role: role === 'bot' ? 'assistant' : 'user', content: role === 'bot' ? content : maskHist(content) });
       while (history.length > 20) history.shift();
       sessionStorage.setItem('dh_chat', JSON.stringify(history));
     }
+    return _el;
   }
 
   function setChips(list) {
@@ -199,7 +204,9 @@
     otp: ['To see all your bookings in one place, tap Profile and sign in with your mobile number. We send a one-time code (OTP) to verify it. Your details are used only for your booking.', 'Saari bookings ek jagah dekhne ke liye Profile mein mobile number se sign in kijiye. Verify karne ke liye OTP aata hai. Aapki details sirf booking ke liye use hoti hain.'],
     family: ['You can book for a family member. In the booking steps, add them as a family member (name and relation) and keep your own mobile number. Each booking gets its own reference.', 'Parivar ke kisi member ke liye bhi book kar sakte hain. Booking mein unhe family member ke roop mein jodein (naam aur rishta), mobile number apna rakhein. Har booking ka alag reference milta hai.'],
     time: ['Each clinic page shows its timings, doctors and live open slots. Tap Find a Clinic and open any clinic to see today\'s availability.', 'Har clinic page par timings, doctors aur live slots dikhte hain. Find a Clinic dabake koi bhi clinic kholiye.'],
-    emerg: ['This sounds urgent. Please call 108 or 112 now, or go to the nearest emergency room. Do not wait for an appointment. Once things are stable, I can help you book a follow-up.', 'Ye zaroori lag raha hai. Abhi 108 ya 112 par call kijiye ya nazdiki emergency mein jaiye. Appointment ka intezaar mat kijiye. Halat sambhalne ke baad main follow-up booking mein madad karunga.'],
+    emerg: ['**Please go to the nearest hospital now.**\nThis could be an emergency. Call 108 or 112 right away, or ask someone to take you to the nearest emergency room. Do not wait for an appointment. I cannot assess this safely, only a doctor can.', '**Kripya abhi nazdiki hospital jaiye.**\nYe emergency ho sakti hai. Turant 108 ya 112 par call kijiye ya kisi ko saath lekar nazdiki emergency mein jaiye. Appointment ka intezaar mat kijiye. Main isse safely assess nahi kar sakta, sirf doctor kar sakta hai.'],
+    support: ['You can reach the Drayvenn Lab team here. WhatsApp is the fastest. For anything detailed, email us and a real person will reply.\nPhone: +91 77355 21019\nEmail: hello@drayvennlab.in', 'Drayvenn Lab team se yahan baat kar sakte hain. WhatsApp sabse tez hai. Detail ke liye email kijiye, asli insaan jawab dega.\nPhone: +91 77355 21019\nEmail: hello@drayvennlab.in'],
+    advice: ['I cannot advise on medicines, doses, treatment or what condition this might be. Only a doctor can do that safely. What I can do is point you to the right specialty and help you book.', 'Main dawai, dose, ilaaj ya bimari ke bare mein salah nahi de sakta. Ye sirf doctor safely bata sakta hai. Main sahi specialty batakar booking mein madad kar sakta hun.'],
     ask: ['Could you tell me a little more? For example, what you are feeling and for how long, or who the patient is (you, a child, a parent).', 'Thoda aur bataiye? Jaise kya takleef hai aur kab se, ya patient kaun hai (aap, bachcha, mata-pita).']
   };
 
@@ -208,7 +215,7 @@
     const hi = (isHi(t) || mem.hi) ? 1 : 0;
     const L = k => T[k][hi];
     const has = re => re.test(t);
-    if (has(EMERG)) return { text: L('emerg') + '\n[[go:clinics|Find a clinic]]', urgent: true };
+    if (has(EMERG)) return { text: L('emerg') + '\n[[tel:108|Call 108]][[tel:112|Call 112]]', urgent: true, chips: [{ label: 'I am okay now', q: 'I am okay now' }, { label: 'Find a doctor', q: 'Find me a clinic' }] };
     if (has(/(reschedul|change (the )?(time|date|slot)|time badal|date badal|slot badal|badalna|postpone)/)) return { text: L('resched') + '\n[[go:mybookings|Open My Bookings]]' };
     if (has(/(cancel|radd|raddh)/)) return { text: L('cancel') + '\n[[go:track|Track Booking]]' };
     if (has(/(track|status|reference|booking id|ref no|confirm hua|confirmed\?|meri booking|my booking)/)) return { text: L('track') + '\n[[go:track|Track Booking]]' };
@@ -464,7 +471,17 @@
     if (isHi(t)) mem.hi = 1; else if (t.trim().split(' ').length >= 4) mem.hi = 0;
     const hi = mem.hi ? 1 : 0;
     const has = re => re.test(t);
+    const L2 = k => T[k][hi];
     if (has(EMERG)) { flow = null; sflow = null; return smartReplyBase(raw); }
+    const ADVICE = /(medicine|medication|dawai|dawa\b|tablet|syrup|dose|dosage|goli|paracetamol|ibuprofen|antibiotic|crocin|dolo|what (should|can) i (take|eat|do|use)|kya (khaun|khana|lun|karun|lena)|home remed|gharelu|nuskha|treatment|ilaaj|\bcure\b|is it (serious|dangerous|cancer)|kya (hua|ye) hai mujhe|diagnos|what (disease|illness|condition)|kaun si bimari|how (to|do i) (treat|cure|reduce)|side effect|prescri)/;
+    if (has(ADVICE) && !has(/(cancel|track|status|fee|pay|refund)/)) {
+      const rr = await smartReplyBase(raw);
+      const head = L2('advice');
+      if (rr && rr.symptom) { rr.text = head + '\n\n' + rr.text; return rr; }
+      return { text: head, chips: [{ label: 'Describe symptoms', q: 'I have a health problem' }, { label: 'Book appointment', q: 'I want to book an appointment' }, { label: 'Talk to support', q: 'Talk to support' }] };
+    }
+    if (has(/(support|help ?desk|customer care|human|real person|insaan|talk to (someone|a person|you)|speak to|complain|shikayat|contact (you|us)|your (number|email)|whatsapp)/) && !has(/(clinic|doctor)/)) return { text: L2('support') + '\n[[ext:https://wa.me/917735521019?text=Hi%20Drayvenn%20Lab|WhatsApp us]][[tel:+917735521019|Call]][[ext:mailto:hello@drayvennlab.in|Email]]', chips: DEFAULT_CHIPS };
+    if (/^ *(i am okay now|i m okay now|main theek hun|theek hun)/.test(t)) return { text: hi ? 'Accha hua. Apna khayal rakhiye. Chahein to main doctor se milne ki booking mein madad kar dun.' : 'Glad to hear it. Please do see a doctor soon if anything feels off. I can help you book one.', chips: DEFAULT_CHIPS };
     const ref = getRef(raw), phone = getPhone(raw);
     // status helper
     if (ref && phone) return statusLookup(ref, phone, hi);
@@ -561,6 +578,13 @@
     const c = ctx(); el.querySelector('span').textContent = ctxLabel(c);
   }
 
+  const UNSAFE = /(\b\d+\s?(mg|ml|mcg|tablets?|capsules?)\b|\b(tablet|capsule|syrup|paracetamol|ibuprofen|acetaminophen|aspirin|antibiotics?|amoxicillin|azithromycin|crocin|dolo|dosage|dose|ointment|cream)\b|\b(take|have|drink|eat|apply|use) (one|two|a|an|some|plenty|warm|cold|\d)|home remed|you (probably|likely|may|might) have|this (is|looks like|could be|may be|might be) (a |an )?(viral|infection|flu|cold|allergy|migraine|gastritis|diabetes|asthma))/i;
+  function safeAI(r) {
+    const t = String(r || '').trim();
+    if (!t) return 'Sorry, I did not catch that. I can help you pick a specialty, book, track or cancel an appointment.';
+    if (UNSAFE.test(t)) return 'I can only guide you to the right kind of doctor, I cannot give medical advice. Tell me what you are feeling and I will suggest a specialty and clinics, or ask me about booking.';
+    return t.slice(0, 700);
+  }
   async function send(text) {
     text = (text || '').trim();
     if (!text || busy) return;
@@ -573,7 +597,8 @@
     if (lr) {
       await new Promise(r => setTimeout(r, 450 + Math.min(500, lr.text.length * 2)));
       typing(false);
-      addMsg('bot', lr.text, lr.save !== false);
+      const be = addMsg('bot', lr.text, lr.save !== false);
+      if (lr.urgent) be.classList.add('urgent');
       afterReply(lr);
       busy = false; $('#chat-send').disabled = false; $('#chat-input').focus();
       return;
@@ -585,7 +610,7 @@
     }
     try {
       let ok = false;
-      try { ok = await sendStreaming(); } catch (e) { ok = false; }
+      ok = false; /* no streaming: every fallback reply is checked before it is shown */
       if (!ok) {
         const res = await fetch('/api/chat', {
           method: 'POST',
@@ -595,7 +620,7 @@
         const data = await res.json().catch(() => ({}));
         typing(false);
         if (!res.ok) throw new Error(data.error || 'Chat is unavailable right now');
-        addMsg('bot', data.reply || 'Sorry, I did not catch that.');
+        addMsg('bot', safeAI(data.reply));
       }
     } catch (e) {
       typing(false);
@@ -614,6 +639,7 @@
     ] : (ctxChips(ctx()) || DEFAULT_CHIPS));
   }
 
+  const WELCOME = 'Hello, I am the Drayvenn assistant. Tell me what you are feeling and I will suggest the right kind of doctor, or ask me about booking, fees, cancelling and tracking. You can write in English, Hindi or Hinglish.\n_I am not a doctor. I only guide you to the right specialty, I do not diagnose or give medical advice._';
   let lastSig = '';
   function toggle(force) {
     open = typeof force === 'boolean' ? force : !open;
@@ -633,7 +659,7 @@
       lastSig = sig;
       if (!greeted) {
         greeted = true;
-        setTimeout(() => addMsg('bot', 'Hello, I am the Drayvenn assistant. Tell me what you are feeling and I will suggest the right kind of doctor, or ask me about booking, fees, cancelling and tracking. You can write in English, Hindi or Hinglish.\n_I am not a doctor. I only guide you to the right specialty, I do not diagnose._'), 350);
+        setTimeout(() => addMsg('bot', WELCOME), 350);
         if (c0.view !== 'home' && (c0.wiz || c0.clinic)) setTimeout(() => addMsg('bot', c0.wiz && c0.doctor ? `I can see you are booking with ${c0.doctor.name}. I can show open slots or guide you step by step.` : `I can see you are viewing ${c0.clinic.name}. Want its open slots, doctors and fees, or help booking?`, false), 1100);
       }
       scrollDown();
@@ -641,14 +667,37 @@
     }
   }
 
+  function clearChat() {
+    history.length = 0;
+    try { sessionStorage.removeItem('dh_chat'); sessionStorage.removeItem('dh_mem'); } catch (e) {}
+    mem.spec = mem.area = mem.clinicId = null; mem.lastShown = []; mem.hi = 0;
+    flow = null; sflow = null; creds = null; lastSpec = null;
+    msgsEl.innerHTML = '';
+    setChips(ctxChips(ctx()) || DEFAULT_CHIPS);
+    setTimeout(() => addMsg('bot', WELCOME, false), 250);
+  }
+  $('#chat-clear').onclick = () => $('#chat-confirm').classList.toggle('hidden');
+  $('#chat-clear-no').onclick = () => $('#chat-confirm').classList.add('hidden');
+  $('#chat-clear-yes').onclick = () => { $('#chat-confirm').classList.add('hidden'); clearChat(); };
+  // mobile: keep the panel inside the visible area when the keyboard opens, lock page scroll behind it
+  const vv = window.visualViewport;
+  function fitPanel() {
+    const pn = $('#chat-panel');
+    if (!pn || !open) return;
+    if (window.innerWidth <= 600 && vv) { pn.style.height = vv.height + 'px'; pn.style.top = vv.offsetTop + 'px'; pn.style.bottom = 'auto'; }
+    else { pn.style.height = ''; pn.style.top = ''; pn.style.bottom = ''; }
+    scrollDown();
+  }
+  if (vv) { vv.addEventListener('resize', fitPanel); vv.addEventListener('scroll', fitPanel); }
+  const _toggleOrig = toggle;
+  toggle = function (force) { _toggleOrig(force); document.body.classList.toggle('chat-open', open && window.innerWidth <= 600); setTimeout(fitPanel, 50); };
   // restore
   for (const m of history) addMsg(m.role === 'assistant' ? 'bot' : 'user', m.content, false);
   const DEFAULT_CHIPS = [
-    { label: 'I have symptoms', q: 'I have a health problem' },
-    { label: 'Find me a clinic', q: 'Find me a clinic' },
-    { label: 'Check booking status', q: 'Check my booking status' },
-    { label: 'How to book', q: 'How do I book an appointment?' },
-    { label: 'Payment', q: 'How do I pay?' },
+    { label: 'Symptoms', q: 'I have a health problem' },
+    { label: 'Book Appointment', q: 'I want to book an appointment' },
+    { label: 'Track Booking', q: 'Check my booking status' },
+    { label: 'Talk to Support', q: 'Talk to support' },
     { label: 'Cancel booking', q: 'How do I cancel my booking?' },
     { label: 'Hindi mein batao', q: 'Mujhe booking kaise karni hai?' }
   ];
