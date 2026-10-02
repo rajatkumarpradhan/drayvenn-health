@@ -124,3 +124,61 @@ input:focus,select:focus,textarea:focus{border-color:rgba(47,102,208,.45);box-sh
 .es-premium .empty-sub{max-width:320px;margin-left:auto;margin-right:auto}
 .es-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:6px}
 .clinic-grid>.empty-state,#doctor-browse-list>.empty-state{grid-column:1/-1}
+
+/* ===== v190 final polish: spacing, motion, skeletons, refined buttons/cards ===== */
+:root{--ease:cubic-bezier(.2,.7,.2,1);--r-card:22px}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+::selection{background:rgba(47,102,208,.16)}
+/* focus + touch */
+:focus-visible{outline:2px solid rgba(47,102,208,.55);outline-offset:3px;border-radius:12px}
+button,.btn,a.btn,.chip,.tab,[role=tab]{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.btn{min-height:48px;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn.btn-sm,.btn-sm{min-height:40px}
+/* section rhythm */
+.section-title{margin:28px 0 14px;letter-spacing:-.02em}
+section,.view>section{scroll-margin-top:90px}
+/* cards */
+.clinic-card,.doc-card,.bk-card,.card{border-radius:22px;background:#fff;transition:transform .35s var(--ease),box-shadow .35s var(--ease),border-color .25s}
+.clinic-card:hover,.doc-card:hover{border-color:rgba(47,102,208,.14)}
+.clinic-card:active{transform:scale(.99)}
+.chip{transition:background .2s,border-color .2s,color .2s,transform .15s}
+.chip:active{transform:scale(.96)}
+input,select,textarea{transition:border-color .2s,box-shadow .2s,background .2s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:rgba(47,102,208,.45)!important;box-shadow:0 0 0 4px rgba(47,102,208,.10)}
+/* entrance motion (cards fade up, staggered) */
+@keyframes dlIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.clinic-grid>.clinic-card:not(.skel-card),#doctor-browse-list>*,.bk-card,.doc-card{animation:dlIn .5s var(--ease) both}
+.clinic-grid>.clinic-card:nth-child(2),#doctor-browse-list>*:nth-child(2){animation-delay:.05s}
+.clinic-grid>.clinic-card:nth-child(3),#doctor-browse-list>*:nth-child(3){animation-delay:.1s}
+.clinic-grid>.clinic-card:nth-child(4),#doctor-browse-list>*:nth-child(4){animation-delay:.15s}
+.clinic-grid>.clinic-card:nth-child(n+5),#doctor-browse-list>*:nth-child(n+5){animation-delay:.2s}
+/* skeletons: calm, shaped like the real card */
+.skel-card{height:auto!important;min-height:176px;border-radius:22px!important;border:1px solid var(--line)!important;box-shadow:var(--shadow-sm);
+ background:
+  linear-gradient(#EAF0F8,#EAF0F8) 22px 24px/54px 54px no-repeat,
+  linear-gradient(#EAF0F8,#EAF0F8) 92px 28px/55% 16px no-repeat,
+  linear-gradient(#EFF3F9,#EFF3F9) 92px 56px/38% 12px no-repeat,
+  linear-gradient(#EFF3F9,#EFF3F9) 22px 100px/80% 12px no-repeat,
+  linear-gradient(#EFF3F9,#EFF3F9) 22px 124px/60% 12px no-repeat,
+  linear-gradient(#E6EEFA,#E6EEFA) 22px 150px/110px 14px no-repeat,#fff!important;
+ position:relative;overflow:hidden}
+.skel-card::after{background:linear-gradient(100deg,transparent 25%,rgba(255,255,255,.85) 50%,transparent 75%)!important;animation:shimmer 1.6s ease-in-out infinite!important}
+.skel i{background:#EAF0F8!important}
+.skel-slots i{height:42px}
+.skel{animation:none}
+.skel-slots,.skel-cards,.skel-rows{position:relative;overflow:hidden}
+/* mobile */
+@media (max-width:600px){
+  .hero{padding:28px 18px 34px}
+  .hero-ctas .btn{width:100%}
+  #home-search,#search-input{font-size:16px;text-overflow:ellipsis}
+  .clinic-card{padding:18px}
+  .detail-name{letter-spacing:-.02em}
+  .section-title{font-size:21px}
+}
+@media (min-width:900px){
+  .section-title{margin-top:40px}
+  .clinic-card:hover{transform:translateY(-4px)}
+}
+.detail-cover-emoji:empty{display:none}
