@@ -118,3 +118,8 @@ input:focus,select:focus,textarea:focus{border-color:rgba(47,102,208,.45);box-sh
 .for-pill.fam{background:rgba(43,179,168,.14);color:#0f6b63}
 .fam-btns [data-bookfor]{flex:1 1 100%}
 .fam-btns [data-famedit],.fam-btns [data-famdel]{flex:1 1 0}
+.es-premium{padding:34px 22px 28px!important;border-radius:24px!important;background:linear-gradient(180deg,#fff,rgba(47,102,208,.04))!important;box-shadow:0 10px 30px rgba(30,60,130,.08)!important}
+.es-premium .empty-ico-disc{width:68px;height:68px;border-radius:22px;background:linear-gradient(135deg,rgba(47,102,208,.12),rgba(43,179,168,.16));color:#2F66D0}
+.es-premium .empty-title{font-size:18px}
+.es-premium .empty-sub{max-width:320px;margin-left:auto;margin-right:auto}
+.es-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:6px}
