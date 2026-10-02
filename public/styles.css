@@ -1494,3 +1494,14 @@ body.intro-open { overflow: hidden; }
 .pf-check { display: flex; gap: 8px; align-items: center; font-size: 14px; margin: 8px 0; }
 .pf-card .doc-actions { margin-top: 10px; }
 .pf-check input { width: auto !important; flex: none; }
+
+/* legal pages */
+.legal{max-width:760px;margin:0 auto;padding-bottom:30px;line-height:1.65}
+.legal .legal-h1{font-size:28px;font-weight:800;letter-spacing:-.02em;margin-top:8px}
+.legal .legal-meta{color:var(--muted);font-size:13px;margin:4px 0 14px}
+.legal h2{scroll-margin-top:84px}
+.legal ul{padding-left:20px}.legal li{margin:5px 0}
+.legal-toc{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 6px}
+.legal-toc a{font-size:12.5px;padding:5px 11px;border-radius:99px;border:1px solid var(--line,rgba(120,140,180,.3));color:var(--muted);text-decoration:none}
+.legal-toc a:hover{color:var(--ink)}
+@media(max-width:480px){.legal .legal-h1{font-size:24px}.legal-toc{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-right:-16px;padding-right:16px}.legal-toc a{white-space:nowrap}}

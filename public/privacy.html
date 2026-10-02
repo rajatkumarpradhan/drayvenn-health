@@ -28,89 +28,88 @@
 </header>
 
 <main class="wrap">
-  <div class="privacy-page">
-    <h1 style="font-size:26px;font-weight:800;letter-spacing:-.02em;margin-top:8px">Privacy Policy</h1>
-    <p style="margin-top:6px">Drayvenn Lab is a clinic appointment booking service from Bengaluru. This page explains what we collect, why, and how to have it deleted. We follow the Digital Personal Data Protection (DPDP) Act, 2023.</p>
-
-    <h2>What we collect</h2>
-    <ul>
-      <li>Patient name and age</li>
-      <li>Mobile number used for the booking</li>
-      <li>Appointment details - clinic, doctor, date and time slot</li>
-      <li>A short concern note you choose to write (optional)</li>
-    </ul>
-
-    <h2>What we never collect</h2>
-    <ul>
-      <li>No diagnosis, prescriptions, reports or medical records</li>
-      <li>No passwords or accounts for patients</li>
-      <li>No payment details - you pay at the clinic</li>
-    </ul>
-
-    <h2>How your data is used</h2>
-    <ul>
-      <li>To create and manage your appointment with the clinic you booked</li>
-      <li>The clinic you booked sees your name, age, mobile number and concern so they can confirm and run your visit</li>
-      <li>We do not sell or share your data with anyone else</li>
-    </ul>
-
-    <h2>Who sees your data</h2>
-    <p>Only the clinic you booked with sees your details. The Drayvenn Lab team accesses data only to run and fix the service. We never sell data.</p>
-
-    <h2>How long we keep it</h2>
-    <p>Booking data is automatically deleted 1 year after the appointment date. If you ask us to delete it earlier (form below), we action the request within 7 days and confirm.</p>
-
-    <h2>Where your data is stored</h2>
-    <p>Your booking data lives in a Cloudflare D1 database. Cloudflare placed it in its Western North America region (reported by Cloudflare on 29 September 2026). Cloudflare may keep cached copies in its network as part of normal operation.</p>
-
-    <h2>Your choices</h2>
-    <ul>
-      <li>See or cancel a booking anytime from the Track booking page with your reference and mobile number</li>
-      <li>Ask for a full export of your booking data, or ask us to delete it - email <a href="mailto:hello@drayvennlab.in" style="color:#8bdfd0;font-weight:600">hello@drayvennlab.in</a> or use the deletion form below</li>
-    </ul>
-
-    <h2 id="delete">Request data deletion</h2>
-    <ul>
-      <li>See or cancel a booking anytime from the Bookings page with your reference and mobile number</li>
-      <li>Ask us to delete your booking data using the form below - we action it within 7 days and confirm</li>
-    </ul>
-
-    <h2 id="delete">Request data deletion</h2>
-    <p>Enter your booking reference and the mobile number you booked with - both are needed, so only you can request deletion of your data.</p>
-    <div class="track-card">
-      <div class="form-grid">
-        <div class="form-row">
-          <label for="del-phone">Mobile number used for booking</label>
-          <div class="phone-wrap"><span class="phone-prefix">+91</span><input id="del-phone" placeholder="98765 43210" inputmode="numeric" maxlength="10" autocomplete="tel-national"></div>
-        </div>
-        <div class="form-row">
-          <label for="del-ref">Booking reference</label>
-          <input id="del-ref" placeholder="e.g. DH-7K3QP9X2MT" autocomplete="off" style="text-transform:uppercase">
-        </div>
-        <div class="form-row">
-          <label for="del-note">Anything else? (optional)</label>
-          <input id="del-note" placeholder="e.g. delete all bookings on this number" maxlength="300">
-        </div>
-        <div class="form-error" id="del-error"></div>
-        <button class="btn btn-block" id="del-btn">Request deletion</button>
-        <div id="del-done" class="hidden" style="color:var(--green);font-weight:600;font-size:14px;margin-top:4px"></div>
-      </div>
-    </div>
-  </div>
+<div class="privacy-page legal">
+<h1 class="legal-h1">Privacy Policy</h1>
+<p class="legal-meta">Last updated: 2 October 2026</p>
+<p>Drayvenn Lab (&ldquo;we&rdquo;, &ldquo;us&rdquo;) is an online platform, available at drayvennlab.in, that helps patients find neighbourhood clinics in Bengaluru and request appointments. This policy explains what personal data we handle, why, who sees it, how long we keep it, and what you can do about it. We handle your data in line with the Digital Personal Data Protection Act, 2023 (DPDP Act) of India.</p>
+<nav class="legal-toc" aria-label="On this page"><a href="#collect">What we collect</a><a href="#never">What we do not collect</a><a href="#use">How we use it</a><a href="#share">Who sees it</a><a href="#ai">Chat assistant</a><a href="#store">Storage and retention</a><a href="#rights">Your rights</a><a href="#children">Children</a><a href="#security">Security</a><a href="#delete">Delete your data</a><a href="#grievance">Contact and grievances</a></nav>
+<h2 id="collect">What we collect</h2>
+<ul>
+<li><b>Booking details:</b> patient name, age, gender (if given), the mobile number used for the booking, clinic, doctor, date and time slot, and who the booking is for (yourself or a family member).</li>
+<li><b>Concern note:</b> a short note about the reason for the visit. It is optional. Please keep it brief and do not include reports or detailed medical history.</li>
+<li><b>Sign-in details (optional):</b> if you sign in to see your bookings, we store your mobile number or email address (or the email of your Google account if you use Google sign-in), your name and age, and any family members you add (name, age, gender, relation). We store a sign-in session in a secure cookie, valid for up to 30 days, so you stay signed in.</li>
+<li><b>Technical records:</b> basic request and security records, such as rate-limit counters, used to stop abuse and guessing of booking references.</li>
+<li><b>On your device:</b> the chat assistant keeps its conversation in your browser&rsquo;s session storage until you close the tab or clear the chat. Nothing in it is stored on our servers.</li>
+</ul>
+<h2 id="never">What we do not collect</h2>
+<ul>
+<li>No diagnosis, prescriptions, test reports or medical records</li>
+<li>No payment details. You pay the clinic directly at the clinic</li>
+<li>No precise location, and no advertising or tracking cookies</li>
+</ul>
+<h2 id="use">How we use your data</h2>
+<ul>
+<li>To create your appointment request and pass it to the clinic you chose</li>
+<li>To show you your booking status and let you track, reschedule or cancel it</li>
+<li>To sign you in and keep your account secure</li>
+<li>To fix problems, prevent misuse and keep the service running</li>
+</ul>
+<p>We use your data only for these purposes. We do not sell it and we do not use it for advertising.</p>
+<p><b>Consent.</b> When you confirm a booking you agree to this policy and to us processing the details above for that booking. You can withdraw consent at any time by asking us to delete your data (see below). Withdrawing does not affect what was done before, and a booking that is still pending or confirmed may be cancelled as a result.</p>
+<h2 id="share">Who sees your data</h2>
+<ul>
+<li><b>The clinic you booked with</b> sees your name, age, gender, mobile number, concern note and appointment details so it can confirm and run your visit. Once it has your details, the clinic handles them under its own practices as well.</li>
+<li><b>Drayvenn Lab team</b> accesses data only to operate and fix the service.</li>
+<li><b>Service providers:</b> our hosting and database run on Cloudflare. They process data for us only to provide that infrastructure.</li>
+<li>We may disclose data if the law or a court or authority in India requires it.</li>
+</ul>
+<h2 id="ai">Chat assistant</h2>
+<p>Most questions in the chat assistant are answered on your device without sending anything to us. When a question cannot be answered that way, the text of your message is sent to an AI model run on Cloudflare to write a reply. Booking references and mobile numbers are removed from messages before this happens, but please do not type personal or medical details into the chat. The assistant does not give medical advice. It can only suggest which kind of specialist to see. In an emergency call 108 or 112 or go to the nearest hospital.</p>
+<h2 id="store">Storage and retention</h2>
+<p>Booking data is stored in a Cloudflare database. When last checked (29 September 2026) Cloudflare reported it as placed in its Western North America region, so your data may be stored and processed outside India. Cloudflare may also keep cached copies as part of normal operation.</p>
+<p>Booking records are deleted automatically one year after the appointment date. Account details stay until you ask us to delete them. If you ask for deletion, we act on it within 7 days and confirm.</p>
+<h2 id="rights">Your rights</h2>
+<p>Under the DPDP Act you can:</p>
+<ul>
+<li>ask for a summary of the personal data we hold about you and how it is used</li>
+<li>ask us to correct or update inaccurate data</li>
+<li>ask us to erase your data</li>
+<li>withdraw your consent</li>
+<li>nominate another person to exercise these rights for you if you die or become unable to</li>
+<li>complain to us, and then to the Data Protection Board of India if you are not satisfied with our reply</li>
+</ul>
+<p>To use any of these, email <a href="mailto:hello@drayvennlab.in" style="color:#8bdfd0;font-weight:600">hello@drayvennlab.in</a> from the email you used with us, or use the deletion form below. We may ask you to confirm your booking reference and mobile number so that only you can act on your data.</p>
+<h2 id="children">Children</h2>
+<p>If the patient is under 18, the booking must be made by a parent or legal guardian, who gives consent for the child. We do not knowingly take bookings made by children for themselves.</p>
+<h2 id="security">Security</h2>
+<p>We use encrypted connections (HTTPS), limit who can see booking details, require both the booking reference and mobile number to view a booking without signing in, and rate-limit repeated attempts. No online service is completely risk free. If a data breach affects you, we will tell you and the authorities as the law requires.</p>
+<h2 id="delete">Request data deletion</h2>
+<p>Enter your booking reference and the mobile number you booked with. Both are needed, so only you can request deletion of your data. If you only have an account and no booking, email us instead.</p>
+<div class="track-card">
+<div class="form-grid">
+<div class="form-row"><label for="del-phone">Mobile number used for booking</label>
+<div class="phone-wrap"><span class="phone-prefix">+91</span><input id="del-phone" placeholder="98765 43210" inputmode="numeric" maxlength="10" autocomplete="tel-national"></div></div>
+<div class="form-row"><label for="del-ref">Booking reference</label>
+<input id="del-ref" placeholder="e.g. DH-7K3QP9X2MT" autocomplete="off" style="text-transform:uppercase"></div>
+<div class="form-row"><label for="del-note">Anything else? (optional)</label>
+<input id="del-note" placeholder="e.g. delete all bookings on this number" maxlength="300"></div>
+<div class="form-error" id="del-error"></div>
+<button class="btn btn-block" id="del-btn">Request deletion</button>
+<div id="del-done" class="hidden" style="color:var(--green);font-weight:600;font-size:14px;margin-top:4px"></div>
+</div></div>
+<h2 id="grievance">Contact and grievances</h2>
+<p>Questions, requests or complaints about your data: email <a href="mailto:hello@drayvennlab.in" style="color:#8bdfd0;font-weight:600">hello@drayvennlab.in</a> or call <a href="tel:+917735521019" style="color:#8bdfd0;font-weight:600">+91 77355 21019</a>. We reply within 7 days. Please put &ldquo;Privacy&rdquo; in the subject line.</p>
+<h2>Changes</h2>
+<p>If we change this policy we will update the date at the top. If a change is significant, we will tell you on the site. See also our <a href="/terms" style="color:#8bdfd0;font-weight:600">Terms of Service</a>.</p>
+</div>
 </main>
-
-<div class="privacy-page" style="margin-top:10px">
-    <h2>Contact</h2>
-    <p>Anything about your data or this policy: <a href="mailto:hello@drayvennlab.in" style="color:#8bdfd0;font-weight:600">hello@drayvennlab.in</a></p>
-  </div>
 
 <footer class="footer">
   <div class="footer-inner">
-    <span><b style="color:var(--ink)">Drayvenn Lab</b></span>
-    <span class="right"><a href="terms.html" style="font-weight:600">Terms</a> · <a href="about.html" style="font-weight:600">About</a> · <a href="index.html" style="font-weight:600">Home</a> · Demo build</span>
+    <span><b style="color:var(--ink)">Drayvenn Lab</b> &middot; <a href="mailto:hello@drayvennlab.in">hello@drayvennlab.in</a> &middot; <a href="tel:+917735521019">+91 77355 21019</a></span>
+    <span class="right"><a href="/privacy" style="font-weight:600">Privacy</a> &middot; <a href="/terms" style="font-weight:600">Terms</a> &middot; <a href="about.html" style="font-weight:600">About</a> &middot; <a href="index.html" style="font-weight:600">Home</a></span>
   </div>
 </footer>
-
 <script src="privacy.js"></script>
 </body>
 </html>

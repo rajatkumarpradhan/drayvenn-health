@@ -402,7 +402,7 @@ function renderAccountPage() {
   on('acp-track', () => { show('track'); const t = $('#bk-ref'); if (t) setTimeout(() => t.focus({ preventScroll: true }), 350); });
   on('acp-chat', () => { if (window.openChat) window.openChat(); });
   on('acp-support', () => show('contact'));
-  on('acp-privacy', () => window.open('privacy.html', '_blank', 'noopener'));
+  on('acp-privacy', () => window.open('/privacy', '_blank', 'noopener'));
   on('acp-about', () => { const a = $('#acctp-about'); if (a) a.classList.toggle('hidden'); });
   on('acp-google', () => { location.href = '/api/auth/google/start'; });
   on('acp-logout', async () => { await logout(); show('account'); });
@@ -1430,7 +1430,7 @@ function wizDetailsHTML() {
         </select></div>
       </div>
       <div class="form-row"><label for="wz-concern">Symptoms / notes <span style="color:var(--muted);font-weight:400">(optional)</span></label><textarea id="wz-concern" rows="2" placeholder="e.g. fever since 2 days" maxlength="300">${esc(b.pconcern || '')}</textarea></div>
-      <div class="consent-row">By confirming, you agree to Drayvenn Lab storing your name, mobile number and booking details so the clinic can manage this appointment, as described in the <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>. You can ask for your data to be deleted anytime.</div>
+      <div class="consent-row">By confirming, you agree to Drayvenn Lab storing your name, mobile number and booking details so the clinic can manage this appointment, as described in the <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a> and <a href="/terms" target="_blank" rel="noopener">Terms</a>. You can ask for your data to be deleted anytime.</div>
       <div class="form-note" style="text-align:center;margin-top:2px">No payment now - pay \u20B9${b.doctor.fee} at the clinic. The clinic confirms your slot shortly.</div>
       <div class="form-error" id="wz-error"></div>
     </div></div>`;
@@ -1526,7 +1526,7 @@ function wizReviewHTML() {
       ${b.pconcern ? row('Concern', b.pconcern) : ''}
       <div class="wiz-review-row wiz-review-total"><span>Consult fee</span><b>₹${b.doctor.fee} <span class="wiz-pay-note">pay at clinic</span></b></div>
     </div>
-    <div class="consent-row">By confirming, you agree to Drayvenn Lab storing your name, mobile number and booking details so the clinic can manage this appointment, as described in the <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>. You can ask for your data to be deleted anytime.</div>
+    <div class="consent-row">By confirming, you agree to Drayvenn Lab storing your name, mobile number and booking details so the clinic can manage this appointment, as described in the <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a> and <a href="/terms" target="_blank" rel="noopener">Terms</a>. You can ask for your data to be deleted anytime.</div>
     <div class="form-error" id="bk-error2"></div>
     <div class="form-note" style="text-align:center;margin-top:2px">The clinic confirms your slot shortly.</div></div>`;
 }
