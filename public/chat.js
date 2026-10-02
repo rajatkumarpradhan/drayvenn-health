@@ -20,15 +20,15 @@
         </div>
         <div class="chat-head-text">
           <div class="chat-head-name">Drayvenn Assistant</div>
-          <div class="chat-head-sub"><span class="chat-dot"></span>Online · 24x7</div>
+          <div class="chat-head-sub"><span class="chat-dot"></span>Here to help · 24x7</div>
         </div>
         <button id="chat-close" aria-label="Close chat">✕</button>
       </div>
-      <div class="chat-disclaimer">Booking help only - no medical advice</div>
+      <div class="chat-disclaimer">Guidance only · not medical advice. Emergency: call 108 / 112</div>
       <div id="chat-msgs"></div>
       <div id="chat-chips"></div>
       <form id="chat-form">
-        <input id="chat-input" placeholder="Ask about clinics, booking, fees..." autocomplete="off" maxlength="500">
+        <input id="chat-input" placeholder="Describe symptoms or ask in Hindi / English" autocomplete="off" maxlength="500">
         <button type="submit" id="chat-send" aria-label="Send">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M3.4 20.4l17.4-7.5c.8-.35.8-1.45 0-1.8L3.4 3.6c-.66-.29-1.39.2-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .72.73 1.2 1.39.91z"/></svg>
         </button>
@@ -47,6 +47,7 @@
         if (window.openClinicFromChat) window.openClinicFromChat(b.dataset.clinic);
       };
     });
+    container.querySelectorAll('button[data-spec]').forEach(b => { b.onclick = () => runSpec(b.dataset.spec); });
     container.querySelectorAll('button[data-goto]').forEach(b => {
       b.onclick = () => {
         toggle(false);
@@ -59,8 +60,12 @@
     // pull [[clinic:ID]] tokens out of the text; render their buttons after it
     const ids = [];
     let text = String(t).replace(/\[\[clinic:([a-z0-9-]+)\]\]/gi, (m, id) => { ids.push(id); return ''; });
+    const acts = [];
+    text = text.replace(/\[\[spec:([A-Za-z ]+)\]\]/g, (m, sp) => { acts.push(`<button class="chat-action spec" data-spec="${esc(sp)}">Find ${esc(sp)} clinics</button>`); return ''; });
+    text = text.replace(/\[\[go:([a-z]+)\|([^\]]+)\]\]/g, (m, v, l) => { acts.push(`<button class="chat-action" data-goto="${esc(v)}">${esc(l)} \u2192</button>`); return ''; });
     text = text.replace(/[ \t]+\n/g, '\n').trim();
-    let html = esc(text).replace(/\n/g, '<br>');
+    let html = esc(text).replace(/\n/g, '<br>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/(^|<br>)_([^<]+)_(?=<br>|$)/g, '$1<span class="chat-note">$2</span>');
+    html += acts.length ? '<div class="chat-acts">' + acts.join('') + '</div>' : '';
     const seen = new Set();
     for (const id of ids) {
       if (seen.has(id)) continue;
@@ -157,6 +162,79 @@
     return true;
   }
 
+  /* ---------- local assistant: instant, private, no AI call, no patient data ---------- */
+  const HI_WORDS = /\b(hai|hain|hu|hun|mujhe|mujhko|mera|meri|mere|ko|ka|ki|ke|kya|kaise|kaun|kab|kitna|nahi|nahin|nhi|bukhar|dard|chahiye|karna|karni|karo|batao|bataiye|dikhao|aap|kal|aaj|bacche|bachcha|dant|daant|khansi|sardi|kamar|ghutna|baal|khujli|sugar|pet|sar|sir|rahe|raha|rahi|se|mein|me|par|pe|liye|wala|wali|abhi|kar|karun|karu|karni|hindi|sakta|sakte|paisa|paise|kitne)\b/i;
+  const isHi = t => (t.match(new RegExp(HI_WORDS.source, 'gi')) || []).length >= 2;
+  const SPECS = [
+    { spec: 'Paediatrics', re: /(child|children|kid|baby|infant|toddler|newborn|bacch|bache|bachh|shishu|vaccin|tika|teeka|immuni)/ },
+    { spec: 'Dental', re: /(tooth|teeth|dant|daant|gum|cavity|toothache|dentist|jaw|wisdom|root canal|braces|filling|dental)/ },
+    { spec: 'Dermatology', re: /(skin|rash|acne|pimple|itch|khujli|daane|daana|allerg|eczema|fungal|ringworm|dandruff|pigment|dark spot|hair|baal|jhad)/ },
+    { spec: 'Orthopaedics', re: /(joint|knee|ghutn|back pain|kamar|backache|neck pain|gardan|shoulder|kandha|sprain|fracture|bone|haddi|ligament|sports|injur|chot|muscle pain|arthritis|heel|ankle|physio)/ },
+    { spec: 'Diabetology', re: /(sugar|diabet|madhumeh|thyroid|insulin|hba1c)/ },
+    { spec: 'General Medicine', re: /(fever|bukhar|cold|cough|khansi|khasi|sardi|zukam|flu|viral|throat|gala|sore|headache|sir dard|sar dard|migraine|body pain|badan|weakness|kamzori|thakan|fatigue|vomit|ulti|nausea|diarrh|loose motion|dast|stomach|pet dard|pet mein|acidity|gas|infection|bp|blood pressure|dizz|chakkar|check ?up|checkup)/ }
+  ];
+  const SPEC_NOTE = {
+    'General Medicine': ['a General Physician', 'General Physician'],
+    'Paediatrics': ['a Paediatrician (child specialist)', 'Bachchon ke doctor (Paediatrician)'],
+    'Dental': ['a Dentist', 'Dentist'],
+    'Dermatology': ['a Dermatologist (skin and hair)', 'Skin aur baal ke doctor (Dermatologist)'],
+    'Orthopaedics': ['an Orthopaedic doctor (bones and joints)', 'Haddi aur jodon ke doctor (Orthopaedic)'],
+    'Diabetology': ['a Diabetologist', 'Sugar ke doctor (Diabetologist)']
+  };
+  const EMERG = /(chest pain|seene (me|mein)|heart attack|dil ka daura|can.?t breathe|cannot breathe|breathless|breathing (problem|trouble|difficult)|saans (nahi|nhi|phool|lene)|unconscious|behosh|faint|seizure|fits|daura|stroke|lakwa|heavy bleeding|bahut khoon|khoon (nahi ruk|beh)|poison|overdose|suicid|marna chahta|marna chahti|accident)/;
+  const DISCLAIM = ['I can only guide you to the right kind of doctor. This is not a diagnosis or medical advice.', 'Main sirf sahi doctor tak pahunchne mein madad karta hun. Ye diagnosis ya medical salah nahi hai.'];
+
+  const T = {
+    greet: ['Hello, I am the Drayvenn assistant. Tell me your symptoms and I will point you to the right kind of doctor, or ask me anything about booking, fees, cancelling or tracking.', 'Namaste, main Drayvenn assistant hun. Apni takleef batayein, main sahi doctor suggest karunga. Booking, fees, cancel ya track ke bare mein bhi puchh sakte hain.'],
+    thanks: ['You are welcome. Take care, and I am here if you need anything else.', 'Koi baat nahi. Apna khayal rakhiye, kuch aur chahiye to bata dijiye.'],
+    book: ['Booking takes about a minute, step by step:\n1. Tap "Find a Clinic" and pick a clinic.\n2. Choose a doctor and tap "Book with this doctor".\n3. Pick a date and a time slot.\n4. Enter the patient name and mobile number, then verify the OTP.\n5. Confirm. You get a reference like DH-XXXXXXXXXX.\nThe clinic then confirms your slot. No online payment, you pay at the clinic.', 'Booking mein bas ek minute lagta hai:\n1. "Find a Clinic" dabake clinic chuniye.\n2. Doctor chuniye aur "Book with this doctor" dabaiye.\n3. Tareekh aur time slot chuniye.\n4. Patient ka naam aur mobile number dalkar OTP verify kijiye.\n5. Confirm kijiye. Aapko DH-XXXXXXXXXX jaisa reference milega.\nPhir clinic slot confirm karta hai. Online payment nahi, paise clinic mein dene hain.'],
+    pay: ['There is no online payment. You pay the consultation fee at the clinic after your visit. The fee is shown on each doctor card before you book, so there are no surprises.', 'Online payment nahi hai. Consultation fee aap clinic mein visit ke baad dete hain. Fee har doctor card par booking se pehle dikhti hai.'],
+    cancel: ['You can cancel a Pending booking yourself: open My Bookings (or Track Booking with your reference and mobile) and tap Cancel. Once the clinic has confirmed it, please call the clinic to cancel or change it. The number is on the clinic page.', 'Pending booking aap khud cancel kar sakte hain: My Bookings ya Track Booking (reference + mobile) kholkar Cancel dabaiye. Clinic ke confirm karne ke baad cancel ya change ke liye clinic ko call kijiye. Number clinic page par hai.'],
+    resched: ['To change the time, open the booking in My Bookings and use Reschedule. A rescheduled booking goes back to Pending until the clinic confirms the new slot.', 'Time badalne ke liye My Bookings mein booking kholkar Reschedule dabaiye. Naya slot clinic confirm kare tab tak booking Pending rehti hai.'],
+    track: ['To check a booking, tap Track Booking and enter your reference (like DH-XXXXXXXXXX) with the mobile number used to book. You will see whether it is Pending, Confirmed or Cancelled. Signed-in users can also see everything in My Bookings.', 'Booking dekhne ke liye Track Booking kholiye, apna reference (DH-XXXXXXXXXX) aur booking wala mobile number dalein. Status Pending, Confirmed ya Cancelled dikhega. Sign in karke My Bookings mein sab ek jagah dikhta hai.'],
+    otp: ['To see all your bookings in one place, tap Profile and sign in with your mobile number. We send a one-time code (OTP) to verify it. Your details are used only for your booking.', 'Saari bookings ek jagah dekhne ke liye Profile mein mobile number se sign in kijiye. Verify karne ke liye OTP aata hai. Aapki details sirf booking ke liye use hoti hain.'],
+    family: ['You can book for a family member. In the booking steps, add them as a family member (name and relation) and keep your own mobile number. Each booking gets its own reference.', 'Parivar ke kisi member ke liye bhi book kar sakte hain. Booking mein unhe family member ke roop mein jodein (naam aur rishta), mobile number apna rakhein. Har booking ka alag reference milta hai.'],
+    time: ['Each clinic page shows its timings, doctors and live open slots. Tap Find a Clinic and open any clinic to see today\'s availability.', 'Har clinic page par timings, doctors aur live slots dikhte hain. Find a Clinic dabake koi bhi clinic kholiye.'],
+    emerg: ['This sounds urgent. Please call 108 or 112 now, or go to the nearest emergency room. Do not wait for an appointment. Once things are stable, I can help you book a follow-up.', 'Ye zaroori lag raha hai. Abhi 108 ya 112 par call kijiye ya nazdiki emergency mein jaiye. Appointment ka intezaar mat kijiye. Halat sambhalne ke baad main follow-up booking mein madad karunga.'],
+    ask: ['Could you tell me a little more? For example, what you are feeling and for how long, or who the patient is (you, a child, a parent).', 'Thoda aur bataiye? Jaise kya takleef hai aur kab se, ya patient kaun hai (aap, bachcha, mata-pita).']
+  };
+
+  function localReply(raw) {
+    const t = ' ' + raw.toLowerCase().replace(/[^a-z0-9\u0900-\u097f\s.?]/g, ' ').replace(/\s+/g, ' ') + ' ';
+    const hi = isHi(t) ? 1 : 0;
+    const L = k => T[k][hi];
+    const has = re => re.test(t);
+    if (has(EMERG)) return { text: L('emerg') + '\n[[go:clinics|Find a clinic]]', urgent: true };
+    if (has(/(reschedul|change (the )?(time|date|slot)|time badal|date badal|slot badal|badalna|postpone)/)) return { text: L('resched') + '\n[[go:mybookings|Open My Bookings]]' };
+    if (has(/(cancel|radd|raddh)/)) return { text: L('cancel') + '\n[[go:track|Track Booking]]' };
+    if (has(/(track|status|reference|booking id|ref no|confirm hua|confirmed\?|meri booking|my booking)/)) return { text: L('track') + '\n[[go:track|Track Booking]]' };
+    if (has(/(pay|payment|upi|card|fees?|charges?|cost|price|paisa|paise|kitna|kitne|rate)/)) return { text: L('pay') };
+    if (has(/(otp|sign ?in|log ?in|login|account|profile|password)/)) return { text: L('otp') + '\n[[go:account|Open Profile]]' };
+    if (has(/(symptom|health problem|not feeling well|feeling (sick|unwell|ill)|unwell|tabiyat|takleef|taklif|bimar|problem hai|another problem|something wrong|pain)/)) return { text: L('ask') };
+    const found = SPECS.filter(s => s.re.test(t)).slice(0, 2);
+    if (found.length) {
+      const names = found.map(s => SPEC_NOTE[s.spec][hi]);
+      const intro = hi ? `Aapki baat se lagta hai ki ${names.join(' ya ')} se milna theek rahega.` : `From what you describe, ${names.join(' or ')} would be a good place to start.`;
+      const how = hi ? 'Neeche button se us specialty ke clinics dekhiye aur slot book kijiye.' : 'Use the button below to see clinics for that specialty and book a slot.';
+      return { text: `${intro}\n${how}\n${found.map(s => `[[spec:${s.spec}]]`).join('')}\n_${DISCLAIM[hi]} Agar takleef badhe ya serious lage to turant 108/112 par call kijiye._`, symptom: true };
+    }
+    if (has(/(mother|father|mom|mum|papa|maa|mummy|wife|husband|family|parent|son|daughter|beta|beti|biwi|pati|someone else|for my)/)) return { text: L('family') };
+    if (has(/(book|appointment|slot|booking|schedule|doctor se milna|milna hai|kaise kare|how (do|to|can))/)) return { text: L('book') + '\n[[go:clinics|Find a Clinic]]', steps: true };
+    if (has(/(timing|hours|open|close|kab tak|kitne baje|available|availability|khula)/)) return { text: L('time') + '\n[[go:clinics|Find a Clinic]]' };
+    if (has(/^ *(hi+|hello+|hey+|namaste|namaskar|hii+|good (morning|afternoon|evening)|start|help|menu)[ .?!]*$/)) return { text: L('greet') };
+    if (has(/(thank|thanks|shukriya|dhanyavaad|dhanyawad|thx)/)) return { text: L('thanks') };
+    return null;
+  }
+
+  function runSpec(spec) {
+    toggle(false);
+    if (window.showFromChat) window.showFromChat('clinics');
+    setTimeout(() => {
+      const si = document.getElementById('search-input');
+      if (si) { si.value = spec; si.dispatchEvent(new Event('input', { bubbles: true })); }
+    }, 350);
+  }
+
   async function send(text) {
     text = (text || '').trim();
     if (!text || busy) return;
@@ -165,6 +243,15 @@
     addMsg('user', text);
     $('#chat-input').value = '';
     typing(true);
+    const lr = localReply(text);
+    if (lr) {
+      await new Promise(r => setTimeout(r, 450 + Math.min(500, lr.text.length * 2)));
+      typing(false);
+      addMsg('bot', lr.text);
+      afterReply(lr);
+      busy = false; $('#chat-send').disabled = false; $('#chat-input').focus();
+      return;
+    }
     try {
       let ok = false;
       try { ok = await sendStreaming(); } catch (e) { ok = false; }
@@ -188,6 +275,14 @@
     $('#chat-input').focus();
   }
 
+  function afterReply(lr) {
+    setChips(lr && lr.symptom ? [
+      { label: 'How do I book?', q: 'How do I book an appointment?' },
+      { label: 'Fees / payment', q: 'How do I pay?' },
+      { label: 'Another symptom', q: 'I have another problem' }
+    ] : DEFAULT_CHIPS);
+  }
+
   function toggle(force) {
     open = typeof force === 'boolean' ? force : !open;
     $('#chat-panel').classList.toggle('hidden', !open);
@@ -195,7 +290,7 @@
     if (open) {
       if (!greeted) {
         greeted = true;
-        setTimeout(() => addMsg('bot', 'Hi! I am the Drayvenn assistant, here 24x7. I help with booking appointments, finding the right doctor, fees, timings and booking status. I cannot give medical advice - for that, please consult a doctor. What do you need?'), 350);
+        setTimeout(() => addMsg('bot', 'Hello, I am the Drayvenn assistant. Tell me what you are feeling and I will suggest the right kind of doctor, or ask me about booking, fees, cancelling and tracking. You can write in English, Hindi or Hinglish.\n_I am not a doctor. I only guide you to the right specialty, I do not diagnose._'), 350);
       }
       scrollDown();
       setTimeout(() => $('#chat-input').focus(), 250);
@@ -204,12 +299,15 @@
 
   // restore
   for (const m of history) addMsg(m.role === 'assistant' ? 'bot' : 'user', m.content, false);
-  setChips([
-    { label: 'Book an appointment', q: 'I want to book an appointment' },
-    { label: 'Track my booking', goto: 'track' },
-    { label: '🕐 Clinic timings', q: 'What are the clinic timings?' },
-    { label: '💰 Fees', q: 'What are the consultation fees?' }
-  ]);
+  const DEFAULT_CHIPS = [
+    { label: 'I have symptoms', q: 'I have a health problem' },
+    { label: 'How to book', q: 'How do I book an appointment?' },
+    { label: 'Payment', q: 'How do I pay?' },
+    { label: 'Cancel booking', q: 'How do I cancel my booking?' },
+    { label: 'Track booking', goto: 'track' },
+    { label: 'Hindi mein batao', q: 'Mujhe booking kaise karni hai?' }
+  ];
+  setChips(DEFAULT_CHIPS);
 
   window.openChat = () => toggle(true);
   window.closeChat = () => toggle(false);
