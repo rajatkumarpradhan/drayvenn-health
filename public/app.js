@@ -2082,6 +2082,7 @@ function renderLogin(host) {
   $('#login-phone').addEventListener('input', () => { $('#login-error').style.display = 'none'; });
   $('#login-phone').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); requestOtp(); } });
   $('#login-otp').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); verifyOtp(); } });
+  $('#login-name2').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); verifyOtp(); } });
   $('#login-send').onclick = () => requestOtp();
   $('#login-verify').onclick = verifyOtp;
   $('#login-resend').onclick = () => requestOtp(true);
