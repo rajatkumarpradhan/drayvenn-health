@@ -1505,3 +1505,6 @@ body.intro-open { overflow: hidden; }
 .legal-toc a{font-size:12.5px;padding:5px 11px;border-radius:99px;border:1px solid var(--line,rgba(120,140,180,.3));color:var(--muted);text-decoration:none}
 .legal-toc a:hover{color:var(--ink)}
 @media(max-width:480px){.legal .legal-h1{font-size:24px}.legal-toc{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-right:-16px;padding-right:16px}.legal-toc a{white-space:nowrap}}
+.topbar-links .nav-short{display:none}
+@media(max-width:560px){.topbar-links .nav-full{display:none}.topbar-links .nav-short{display:inline}}
+.footer-inner a{color:var(--ink)}

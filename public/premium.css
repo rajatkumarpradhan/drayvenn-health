@@ -260,3 +260,5 @@ body.chat-open{overflow:hidden;overscroll-behavior:none}
   #chat-form{padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
 }
 @media (max-width:380px){.chat-msg{font-size:14px}.chat-chip{font-size:12.5px;padding:7px 12px}#chat-head{padding-left:12px;padding-right:12px}}
+.footer-base a{color:#fff;text-decoration:underline;text-underline-offset:3px;opacity:.95}
+.footer-base{line-height:1.9}
