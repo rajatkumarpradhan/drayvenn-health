@@ -299,7 +299,7 @@ function renderAccountPage() {
   const about = `
     <div class="acctp-about hidden" id="acctp-about">
       Drayvenn Lab is a clinic-booking product built for neighbourhood clinics in Bengaluru.
-      Patients book real slots in under a minute and pay at the clinic. The clinics shown during this preview are
+      Patients book real slots in under a minute and pay at the clinic. The clinics shown right now are
       sample listings. One account keeps every booking in one place.
     </div>`;
   let html = '<h2 class="section-title" style="margin-top:18px">Account</h2>';
