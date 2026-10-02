@@ -116,3 +116,5 @@ input:focus,select:focus,textarea:focus{border-color:rgba(47,102,208,.45);box-sh
 .fam-actions{display:flex;gap:8px;margin-top:6px}
 .for-pill{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:rgba(47,102,208,.09);color:#1d3f8f;margin:2px 0 6px}
 .for-pill.fam{background:rgba(43,179,168,.14);color:#0f6b63}
+.fam-btns [data-bookfor]{flex:1 1 100%}
+.fam-btns [data-famedit],.fam-btns [data-famdel]{flex:1 1 0}
