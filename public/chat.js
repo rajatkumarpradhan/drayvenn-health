@@ -247,7 +247,7 @@
   const S = () => { try { return state; } catch (e) { return null; } };
   function ctx() {
     const st = S() || {};
-    const vis = [...document.querySelectorAll('[id^="view-"]')].find(e => !e.classList.contains('hidden'));
+    const vis = ['home','clinics','clinic','confirm','mybookings','track','signin','account','about','services','contact'].map(v => document.getElementById('view-' + v)).find(e => e && !e.classList.contains('hidden'));
     const view = vis ? vis.id.replace('view-', '') : 'home';
     const wiz = !!document.getElementById('wizard-overlay');
     const b = st.booking || {};
