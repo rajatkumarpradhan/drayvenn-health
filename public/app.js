@@ -2054,8 +2054,8 @@ function renderLogin(host) {
       <div class="dev-code hidden" id="login-devcode"></div>
       <div class="form-error" id="otp-error"></div>
       <button class="btn btn-block" id="login-verify">Verify</button>
-      <button class="btn btn-block btn-ghost" id="login-resend" type="button" disabled>Resend code</button>
-      <button class="btn btn-block btn-ghost" id="login-back" type="button">Change number</button>
+      <button class="btn btn-block btn-outline" id="login-resend" type="button" disabled>Resend code</button>
+      <button class="btn btn-block btn-outline" id="login-back" type="button">Change number</button>
     </div>
     <div class="privacy-line" style="margin-top:14px">Codes expire in 10 minutes. We only use your number to sign you in and confirm bookings.</div>`;
   const paint = paintAuthTabs = () => {
