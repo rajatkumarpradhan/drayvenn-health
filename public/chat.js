@@ -25,6 +25,7 @@
         <button id="chat-close" aria-label="Close chat">✕</button>
       </div>
       <div class="chat-disclaimer">Guidance only · not medical advice. Emergency: call 108 / 112</div>
+      <div id="chat-ctx" class="chat-ctx"><i></i><span>Home</span></div>
       <div id="chat-msgs"></div>
       <div id="chat-chips"></div>
       <form id="chat-form">
@@ -47,6 +48,8 @@
         if (window.openClinicFromChat) window.openClinicFromChat(b.dataset.clinic);
       };
     });
+    container.querySelectorAll('button[data-loc]').forEach(b => { b.onclick = useLocation; });
+    container.querySelectorAll('button[data-bookc]').forEach(b => { b.onclick = () => bookFromChat(b.dataset.bookc, b.dataset.bookd); });
     container.querySelectorAll('button[data-spec]').forEach(b => { b.onclick = () => runSpec(b.dataset.spec); });
     container.querySelectorAll('button[data-goto]').forEach(b => {
       b.onclick = () => {
@@ -57,21 +60,18 @@
   }
 
   function renderText(t) {
-    // pull [[clinic:ID]] tokens out of the text; render their buttons after it
-    const ids = [];
-    let text = String(t).replace(/\[\[clinic:([a-z0-9-]+)\]\]/gi, (m, id) => { ids.push(id); return ''; });
-    const acts = [];
-    text = text.replace(/\[\[spec:([A-Za-z ]+)\]\]/g, (m, sp) => { acts.push(`<button class="chat-action spec" data-spec="${esc(sp)}">Find ${esc(sp)} clinics</button>`); return ''; });
-    text = text.replace(/\[\[go:([a-z]+)\|([^\]]+)\]\]/g, (m, v, l) => { acts.push(`<button class="chat-action" data-goto="${esc(v)}">${esc(l)} \u2192</button>`); return ''; });
+    const btns = [];
+    const ph = h => { btns.push(h); return '\u0001' + (btns.length - 1) + '\u0001'; };
+    let text = String(t);
+    text = text.replace(/\[\[clinic:([a-z0-9-]+)\]\]/gi, (m, id) => ph(`<button class="chat-action" data-clinic="${esc(id)}">View clinic \u2192</button>`));
+    text = text.replace(/\[\[spec:([A-Za-z ]+)\]\]/g, (m, sp) => ph(`<button class="chat-action spec" data-spec="${esc(sp)}">Find ${esc(sp)} clinics</button>`));
+    text = text.replace(/\[\[loc\]\]/g, () => ph('<button class="chat-action" data-loc="1">Use my location</button>'));
+    text = text.replace(/\[\[book:([a-z0-9-]+):([a-z0-9-]+)\|([^\]]+)\]\]/g, (m, cid, did, l) => ph(`<button class="chat-action spec" data-bookc="${esc(cid)}" data-bookd="${esc(did)}">${esc(l)}</button>`));
+    text = text.replace(/\[\[go:([a-z]+)\|([^\]]+)\]\]/g, (m, v, l) => ph(`<button class="chat-action" data-goto="${esc(v)}">${esc(l)} \u2192</button>`));
     text = text.replace(/[ \t]+\n/g, '\n').trim();
     let html = esc(text).replace(/\n/g, '<br>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/(^|<br>)_([^<]+)_(?=<br>|$)/g, '$1<span class="chat-note">$2</span>');
-    html += acts.length ? '<div class="chat-acts">' + acts.join('') + '</div>' : '';
-    const seen = new Set();
-    for (const id of ids) {
-      if (seen.has(id)) continue;
-      seen.add(id);
-      html += `<button class="chat-action" data-clinic="${esc(id)}">View clinic →</button>`;
-    }
+    html = html.replace(/(?:\u0001\d+\u0001)+/g, m => '<div class="chat-acts">' + m.replace(/\u0001(\d+)\u0001/g, (x, n) => btns[+n]) + '</div>');
+    html = html.replace(/(<br>)*(<div class="chat-acts">)/g, '$2');
     return html;
   }
 
@@ -235,6 +235,184 @@
     }, 350);
   }
 
+  /* ---------- context awareness: reads page state from the app, never patient details ---------- */
+  const trail = { clinicId: null, doctorId: null };
+  function hookTrail() {
+    try {
+      const oc = window.openClinic, ob = window.openBooking;
+      if (typeof oc === 'function' && !oc._dh) { window.openClinic = function (id) { trail.clinicId = id; return oc.apply(this, arguments); }; window.openClinic._dh = 1; }
+      if (typeof ob === 'function' && !ob._dh) { window.openBooking = function (id) { trail.doctorId = id; return ob.apply(this, arguments); }; window.openBooking._dh = 1; }
+    } catch (e) {}
+  }
+  const S = () => { try { return state; } catch (e) { return null; } };
+  function ctx() {
+    const st = S() || {};
+    const vis = [...document.querySelectorAll('[id^="view-"]')].find(e => !e.classList.contains('hidden'));
+    const view = vis ? vis.id.replace('view-', '') : 'home';
+    const wiz = !!document.getElementById('wizard-overlay');
+    const b = st.booking || {};
+    let clinic = st.clinic || null;
+    const here = wiz || view === 'clinic';
+    if (!clinic && trail.clinicId && st.clinics) clinic = st.clinics.find(c => c.id === trail.clinicId) || null;
+    let doctor = wiz ? b.doctor : null;
+    return { view, wiz, here, clinic, doctor, step: b.step, date: b.date, slot: b.slot, st };
+  }
+  function ctxLabel(c) {
+    if (c.wiz && c.doctor) return `Booking ${c.doctor.name} · step ${c.step === 'details' ? 2 : 1} of 2` + (c.date && c.slot ? ` · ${fmtDateShort(c.date)}, ${fmtTime(c.slot)}` : '');
+    if (c.view === 'clinic' && c.clinic) return `Viewing ${c.clinic.name}`;
+    if (c.view === 'clinics') { const q = c.st.filter && c.st.filter.q; return q ? `Searching "${q}"` : 'Browsing clinics'; }
+    if (c.view === 'confirm') return 'Booking confirmed';
+    if (c.view === 'track') return 'Track Booking';
+    if (c.view === 'mybookings') return 'My Bookings';
+    if (c.view === 'account') return 'Profile';
+    return 'Home';
+  }
+  function ctxChips(c) {
+    if (c.wiz && c.step === 'details') return [{ label: 'What do I enter?', q: 'What should I enter in the details?' }, { label: 'OTP not received', q: 'OTP nahi aaya' }, { label: 'Book for family', q: 'Can I book for my mother?' }, { label: 'Payment', q: 'How do I pay?' }];
+    if (c.wiz) return [{ label: 'Show open slots', q: 'Show available slots' }, { label: 'No slot for my date', q: 'slot nahi mil raha' }, { label: 'What next?', q: 'What should I do next?' }, { label: 'Fees', q: 'What is the fee?' }];
+    if (c.view === 'clinic' && c.clinic) return [{ label: 'Show open slots', q: 'Show available slots' }, { label: 'Doctors and fees', q: 'Which doctors are here and what are the fees?' }, { label: 'Help me book', q: 'Help me book' }, { label: 'Timings', q: 'What are the timings?' }];
+    if (c.view === 'clinics') return [{ label: 'I have symptoms', q: 'I have a health problem' }, { label: 'Earliest slot', q: 'Which clinic has the earliest slot?' }, { label: 'Nearest clinic', q: 'Nearest clinic' }];
+    return null;
+  }
+  const cap = s => String(s || '').slice(0, 60);
+  const kmBetween = (a, b) => { const R = 6371, rad = x => x * Math.PI / 180; const dl = rad(b[0] - a[0]), dn = rad(b[1] - a[1]); const h = Math.sin(dl / 2) ** 2 + Math.cos(rad(a[0])) * Math.cos(rad(b[0])) * Math.sin(dn / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(h)); };
+  const dKm = c => { try { const st = S(); if (st && st.geo && CLINIC_COORDS[c.id]) return kmBetween(st.geo, CLINIC_COORDS[c.id]); } catch (e) {} return null; };
+  const nextTxt = n => { try { return fmtNext(n); } catch (e) { return null; } };
+  const nextKey = n => n ? (n.date + 'T' + n.time) : '9999';
+  const earliest = c => (c.doctors || []).map(d => d.next_available).filter(Boolean).sort((a, b) => nextKey(a) < nextKey(b) ? -1 : 1)[0] || null;
+
+  function specClinics(spec) {
+    const st = S(); const all = (st && st.clinics) || [];
+    const stem = spec.toLowerCase().slice(0, 6);
+    const hit = all.filter(c => (c.specialties || []).some(x => x.toLowerCase().startsWith(stem)) || (c.doctors || []).some(d => (d.specialty || '').toLowerCase().includes(stem.slice(0, 5))));
+    hit.sort((a, b) => { const da = dKm(a), db = dKm(b); if (da != null && db != null) return da - db; return nextKey(earliest(a)) < nextKey(earliest(b)) ? -1 : 1; });
+    return hit;
+  }
+  function docFor(c, spec) {
+    const stem = spec.toLowerCase().slice(0, 5);
+    const ds = (c.doctors || []).filter(d => (d.specialty || '').toLowerCase().includes(stem) || spec === 'General Medicine' && /general/i.test(d.specialty || ''));
+    const pool = ds.length ? ds : (c.doctors || []);
+    return pool.slice().sort((a, b) => nextKey(a.next_available) < nextKey(b.next_available) ? -1 : 1)[0] || null;
+  }
+  function clinicLines(list, spec, hi) {
+    return list.slice(0, 3).map(c => {
+      const d = docFor(c, spec), km = dKm(c), nx = d && nextTxt(d.next_available);
+      const line = `**${c.name}**, ${c.area}` + (km != null ? ` (${km.toFixed(1)} km)` : '') + (d ? `\n${d.name}, Rs${d.fee}` + (nx ? (hi ? `, agla slot ${nx}` : `, next slot ${nx}`) : (hi ? ', abhi slot nahi' : ', no open slot right now')) : '');
+      return line + `\n[[clinic:${c.id}]]` + (d && nx ? `[[book:${c.id}:${d.id}|${hi ? 'Book' : 'Book'} ${d.name.replace(/^Dr\.? /, 'Dr ')}]]` : '');
+    }).join('\n\n');
+  }
+
+  async function slotsFor(docId, date) {
+    try { const r = await api('/api/slots?doctor_id=' + encodeURIComponent(docId) + '&date=' + date); return (r.slots || []).filter(x => x.available).map(x => x.time); } catch (e) { return null; }
+  }
+  const addDays = n => { const d = new Date(); d.setDate(d.getDate() + n); return toISODate(d); };
+  async function weekSlots(docId, n = 7) {
+    const out = [];
+    const res = await Promise.all(Array.from({ length: n }, (_, i) => slotsFor(docId, addDays(i))));
+    res.forEach((s, i) => { if (s && s.length) out.push({ date: addDays(i), times: s }); });
+    return out;
+  }
+  const timesTxt = ts => ts.slice(0, 4).map(fmtTime).join(', ') + (ts.length > 4 ? ` +${ts.length - 4} more` : '');
+
+  let lastSpec = null;
+  async function smartReply(raw) {
+    const c = ctx();
+    const t = ' ' + raw.toLowerCase().replace(/[^a-z0-9\u0900-\u097f\s.?]/g, ' ').replace(/\s+/g, ' ') + ' ';
+    const hi = isHi(t) ? 1 : 0;
+    const has = re => re.test(t);
+    const st = c.st;
+    if (has(EMERG)) return null;
+    // slot availability
+    if (has(/(nahi mil|nhi mil|not (showing|available|finding|able)|no slots?|slots? (nahi|nhi|available|dikha|show|khali|full|kab|list)|show (me )?(the )?(open |available )?slots|available slots|open slots|next available|earliest|jaldi|kab milega|slots? (are )?(full|booked)|fully booked|time nahi)/)) {
+      const target = c.wiz && c.doctor ? [c.doctor] : (c.clinic ? (c.clinic.doctors || []) : []);
+      if (!target.length) {
+        const all = ((st && st.clinics) || []).slice().sort((a, b) => nextKey(earliest(a)) < nextKey(earliest(b)) ? -1 : 1).filter(x => earliest(x)).slice(0, 3);
+        if (!all.length) return { text: hi ? 'Abhi koi open slot nahi dikh raha. Kuch der baad dekhiye ya clinic ko call kijiye.' : 'I do not see an open slot right now. Please check again later or call the clinic.' };
+        return { text: (hi ? 'Sabse jaldi ke slots:' : 'Earliest open slots right now:') + '\n\n' + all.map(x => `**${x.name}**\n${nextTxt(earliest(x))}\n[[clinic:${x.id}]]`).join('\n\n') + (hi ? '\n\nKisi clinic ka naam batayein to main uske doctors ke slots dikha dunga.' : '\n\nTell me a clinic and I will show its doctors\' slots.') };
+      }
+      const blocks = [];
+      for (const d of target.slice(0, 3)) {
+        const wk = await weekSlots(d.id);
+        if (!wk.length) { blocks.push(`**${d.name}**\n` + (hi ? 'Agle 7 din koi slot khali nahi.' : 'No open slots in the next 7 days.')); continue; }
+        blocks.push(`**${d.name}**\n` + wk.slice(0, 3).map(w => `${fmtDateShort(w.date)}: ${timesTxt(w.times)}`).join('\n'));
+      }
+      const head = c.clinic ? (hi ? `${c.clinic.name} ke open slots:` : `Open slots at ${c.clinic.name}:`) : '';
+      let extra = '';
+      if (c.wiz && c.doctor && c.date) {
+        const here = await slotsFor(c.doctor.id, c.date);
+        if (here && !here.length) extra = '\n\n' + (hi ? `${fmtDateShort(c.date)} ko is doctor ka koi slot khali nahi hai. Upar wale din chuniye.` : `${fmtDateShort(c.date)} has no open slot for this doctor. Pick one of the days above.`);
+      }
+      const jump = (c.wiz && c.doctor) ? '' : (c.clinic ? `\n[[clinic:${c.clinic.id}]]` : '');
+      return { text: head + (head ? '\n\n' : '') + blocks.join('\n\n') + extra + jump };
+    }
+    // booking flow help (in wizard)
+    if (c.wiz && c.doctor) {
+      if (has(/(otp)/)) return { text: hi ? 'OTP aane mein ek minute lag sakta hai. Mobile number sahi hai ya nahi dekhiye, phir naya code mangwaiye. Phir bhi na aaye to clinic ko call kijiye.' : 'The code can take up to a minute. Check the mobile number is right, then request a new code. If it still does not arrive, call the clinic.' };
+      if (has(/(enter|details|name|naam|number|mobile|dalna|what next|next|kya karu|ab kya|aage|help|stuck|confus|samajh|continue|how|kaise)/)) {
+        if (c.step === 'details') return { text: hi ? `Ab patient ka naam aur 10 digit ka mobile number dalein. Phir OTP verify karke Confirm dabaiye. Aapka slot: ${c.date ? fmtDateShort(c.date) : ''} ${c.slot ? fmtTime(c.slot) : ''} (${c.doctor.name}). Fee Rs${c.doctor.fee}, clinic mein dena hai.` : `Now enter the patient's name and a 10 digit mobile number, then verify the OTP and tap Confirm. Your slot: ${c.date ? fmtDateShort(c.date) : ''} ${c.slot ? fmtTime(c.slot) : ''} with ${c.doctor.name}. The fee is Rs${c.doctor.fee}, paid at the clinic.` };
+        if (!c.date) return { text: hi ? `${c.doctor.name} ke saath booking chal rahi hai. Pehle ek tareekh chuniye, phir time slot. Fir "Continue" dabaiye.` : `You are booking with ${c.doctor.name}. First pick a date, then a time slot, then tap Continue.` };
+        if (!c.slot) return { text: hi ? `${fmtDateShort(c.date)} chuna hai. Ab neeche se ek time slot chuniye, phir Continue.` : `You picked ${fmtDateShort(c.date)}. Now choose a time slot below, then tap Continue.` };
+        return { text: hi ? `Slot ${fmtDateShort(c.date)}, ${fmtTime(c.slot)} chuna hai. Continue dabake naam aur mobile number dalein.` : `You picked ${fmtDateShort(c.date)}, ${fmtTime(c.slot)}. Tap Continue and enter the patient's name and mobile number.` };
+      }
+      if (has(/(fee|charge|cost|price|kitna|kitne|paisa|paise)/)) return { text: (hi ? `${c.doctor.name} ki fee Rs${c.doctor.fee} hai. Online payment nahi, clinic mein dena hai.` : `${c.doctor.name}'s fee is Rs${c.doctor.fee}. No online payment, you pay at the clinic.`) };
+    }
+    // clinic-page questions
+    if (c.clinic && c.here) {
+      const cl = c.clinic;
+      if (has(/(fee|charge|cost|price|kitna|kitne|doctors?|dr |who|kaun|specialist)/)) {
+        const lines = (cl.doctors || []).map(d => `**${d.name}**, ${d.specialty}\nRs${d.fee}` + (d.next_available ? `, ${hi ? 'agla slot' : 'next slot'} ${nextTxt(d.next_available)}` : '')).join('\n\n');
+        return { text: (hi ? `${cl.name} ke doctors:` : `Doctors at ${cl.name}:`) + '\n\n' + lines + '\n\n' + (hi ? 'Fee clinic mein dete hain.' : 'Fees are paid at the clinic.') };
+      }
+      if (has(/(timing|hours|open|close|kab tak|kitne baje|khula|address|phone|call|number|where|kahan)/)) return { text: `${cl.name}\n${cl.timings}\n${cl.address}\n${hi ? 'Phone' : 'Phone'}: ${cl.phone}` };
+      if (has(/(book|appointment|help me)/) && !has(/(how|kaise|steps?)/)) {
+        const d = (cl.doctors || []).slice().sort((a, b) => nextKey(a.next_available) < nextKey(b.next_available) ? -1 : 1).find(x => x.next_available);
+        if (d) return { text: (hi ? `${cl.name} par aap hain. Sabse jaldi ${d.name} available hain (${nextTxt(d.next_available)}). Neeche button se booking shuru kijiye.` : `You are on ${cl.name}. The earliest doctor is ${d.name} (${nextTxt(d.next_available)}). Tap below to start booking.`) + `\n[[book:${cl.id}:${d.id}|Book ${d.name.replace(/^Dr\.? /, 'Dr ')}]]` };
+      }
+    }
+    // nearest / location
+    if (has(/(nearest|near me|nearby|paas|najdik|nazdik|closest)/) && !SPECS.some(s => s.re.test(t))) {
+      const all = ((st && st.clinics) || []).slice().sort((a, b) => { const da = dKm(a), db = dKm(b); if (da != null && db != null) return da - db; return nextKey(earliest(a)) < nextKey(earliest(b)) ? -1 : 1; }).slice(0, 3);
+      if (!st.geo) return { text: (hi ? 'Sabse paas ka clinic dikhane ke liye mujhe aapki location chahiye. Ye sirf aapke phone mein rehti hai, kahin save nahi hoti.' : 'To show the nearest clinic I need your location. It stays on your phone and is not saved anywhere.') + '\n[[loc]]' };
+      return { text: (hi ? 'Aapke sabse paas ke clinics:' : 'Clinics closest to you:') + '\n\n' + all.map(x => `**${x.name}**, ${x.area} (${(dKm(x) || 0).toFixed(1)} km)\n[[clinic:${x.id}]]`).join('\n\n') };
+    }
+    // symptoms with real clinics
+    const found = SPECS.filter(s => s.re.test(t)).slice(0, 2);
+    if (found.length && !has(/(cancel|track|status|otp|sign ?in|login|pay|payment)/)) {
+      lastSpec = found[0].spec;
+      const names = found.map(s => SPEC_NOTE[s.spec][hi]);
+      const intro = hi ? `Aapki baat se lagta hai ki ${names.join(' ya ')} se milna theek rahega.` : `From what you describe, ${names.join(' or ')} would be a good place to start.`;
+      let body = '';
+      for (const s of found) {
+        const list = specClinics(s.spec);
+        if (!list.length) continue;
+        const loc = st.geo ? (hi ? 'Aapke paas ke' : 'Closest to you') : (hi ? 'Sabse jaldi slot wale' : 'Earliest availability');
+        body += `\n\n${loc} (${s.spec}):\n\n` + clinicLines(list, s.spec, hi);
+      }
+      const here = c.clinic && c.here && found.some(s => specClinics(s.spec).some(x => x.id === c.clinic.id));
+      const hereNote = here ? '\n\n' + (hi ? `Aap jo clinic dekh rahe hain (${c.clinic.name}) wo bhi is ke liye theek hai.` : `The clinic you are viewing (${c.clinic.name}) also fits this.`) : '';
+      const locBtn = st.geo ? '' : '\n[[loc]]';
+      return { text: `${intro}${body}${hereNote}${locBtn}\n_${DISCLAIM[hi]} Agar takleef badhe ya serious lage to turant 108/112 par call kijiye._`, symptom: true };
+    }
+    return localReply(raw);
+  }
+
+  function useLocation() {
+    if (!navigator.geolocation) { addMsg('bot', 'Your browser does not allow location. You can still pick a clinic from the list.'); return; }
+    navigator.geolocation.getCurrentPosition(p => {
+      try { state.geo = [p.coords.latitude, p.coords.longitude]; } catch (e) {}
+      addMsg('bot', 'Thanks, using your location for this chat only.');
+      send(lastSpec ? 'I need ' + lastSpec : 'nearest clinic');
+    }, () => addMsg('bot', 'No problem, I could not get your location. You can still pick a clinic from the list.'), { timeout: 8000 });
+  }
+  function bookFromChat(cid, did) {
+    toggle(false);
+    Promise.resolve(window.openClinic(cid)).then(() => { try { openBooking(did); } catch (e) {} });
+  }
+  function refreshCtx() {
+    const el = $('#chat-ctx'); if (!el) return;
+    const c = ctx(); el.querySelector('span').textContent = ctxLabel(c);
+  }
+
   async function send(text) {
     text = (text || '').trim();
     if (!text || busy) return;
@@ -243,7 +421,7 @@
     addMsg('user', text);
     $('#chat-input').value = '';
     typing(true);
-    const lr = localReply(text);
+    const lr = await smartReply(text);
     if (lr) {
       await new Promise(r => setTimeout(r, 450 + Math.min(500, lr.text.length * 2)));
       typing(false);
@@ -280,17 +458,30 @@
       { label: 'How do I book?', q: 'How do I book an appointment?' },
       { label: 'Fees / payment', q: 'How do I pay?' },
       { label: 'Another symptom', q: 'I have another problem' }
-    ] : DEFAULT_CHIPS);
+    ] : (ctxChips(ctx()) || DEFAULT_CHIPS));
   }
 
+  let lastSig = '';
   function toggle(force) {
     open = typeof force === 'boolean' ? force : !open;
     $('#chat-panel').classList.toggle('hidden', !open);
     $('#chat-fab').classList.toggle('open', open);
+    if (!open) clearInterval(window._dhCtxT);
     if (open) {
+      hookTrail();
+      const c0 = ctx(), sig = ctxLabel(c0);
+      refreshCtx();
+      clearInterval(window._dhCtxT); window._dhCtxT = setInterval(refreshCtx, 1500);
+      const cc = ctxChips(c0); if (cc) setChips(cc);
+      if (greeted && sig !== lastSig && c0.view !== 'home') {
+        const hint = c0.wiz && c0.doctor ? `I can see you are booking with ${c0.doctor.name}. I can show open slots or guide you step by step.` : c0.view === 'clinic' && c0.clinic ? `I can see you are viewing ${c0.clinic.name}. Want its open slots, doctors and fees, or help booking?` : '';
+        if (hint) setTimeout(() => addMsg('bot', hint, false), 300);
+      }
+      lastSig = sig;
       if (!greeted) {
         greeted = true;
         setTimeout(() => addMsg('bot', 'Hello, I am the Drayvenn assistant. Tell me what you are feeling and I will suggest the right kind of doctor, or ask me about booking, fees, cancelling and tracking. You can write in English, Hindi or Hinglish.\n_I am not a doctor. I only guide you to the right specialty, I do not diagnose._'), 350);
+        if (c0.view !== 'home' && (c0.wiz || c0.clinic)) setTimeout(() => addMsg('bot', c0.wiz && c0.doctor ? `I can see you are booking with ${c0.doctor.name}. I can show open slots or guide you step by step.` : `I can see you are viewing ${c0.clinic.name}. Want its open slots, doctors and fees, or help booking?`, false), 1100);
       }
       scrollDown();
       setTimeout(() => $('#chat-input').focus(), 250);
@@ -309,6 +500,7 @@
   ];
   setChips(DEFAULT_CHIPS);
 
+  setTimeout(hookTrail, 1500); window.addEventListener('load', hookTrail);
   window.openChat = () => toggle(true);
   window.closeChat = () => toggle(false);
   window.chatIsOpen = () => open;

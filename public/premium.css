@@ -217,3 +217,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:rgba(47,102,20
 #chat-send{width:46px;height:46px;border-radius:16px;box-shadow:0 8px 18px rgba(47,102,208,.28)}
 #chat-send:disabled{opacity:.5}
 @media (max-width:600px){#chat-panel{border-radius:0;height:100dvh;width:100vw}#chat-head{padding-top:calc(16px + env(safe-area-inset-top,0px))}}
+/* v194 context-aware assistant */
+.chat-ctx{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:12px;font-weight:600;color:#1f5f8f;background:linear-gradient(90deg,rgba(47,102,208,.08),rgba(46,140,134,.08));border-bottom:1px solid rgba(22,35,59,.05)}
+.chat-ctx i{width:7px;height:7px;border-radius:50%;background:var(--teal-deep);flex:none}
+.chat-ctx span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#chat-fab,#chat-panel{z-index:800}
+body.wiz-open #chat-fab{bottom:auto;top:calc(12px + env(safe-area-inset-top,0px));right:68px;width:42px;height:42px}
+body.wiz-open #chat-fab svg{width:20px;height:20px}
+@media (min-width:761px){body.wiz-open #chat-fab{top:auto;bottom:28px;right:28px;width:56px;height:56px}}
+.chat-acts{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 2px}
+.chat-msg b{color:#16233B}
