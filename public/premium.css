@@ -90,3 +90,10 @@ input:focus,select:focus,textarea:focus{border-color:rgba(47,102,208,.45);box-sh
 }
 .detail-cover.has-video{height:auto!important;aspect-ratio:640/314}
 @media (min-width:900px){.detail-cover.has-video{max-width:860px;margin-left:auto;margin-right:auto}}
+#dt-doctors .doctor-card{margin-bottom:16px}
+.sticky-book{transition:transform .25s ease,opacity .25s ease}
+.sticky-book.sb-away{transform:translateY(24px);opacity:0;pointer-events:none}
+@media (max-width:760px){
+  .sticky-book{padding:6px 6px 6px 16px!important;bottom:calc(92px + env(safe-area-inset-bottom))!important}
+  main.wrap{padding-bottom:calc(190px + env(safe-area-inset-bottom,0px))!important}
+}

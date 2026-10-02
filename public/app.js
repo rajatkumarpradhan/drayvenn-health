@@ -968,6 +968,8 @@ function renderClinicDetail() {
     </div>`).join('');
   $('#dt-doctors').querySelectorAll('.doc-slots').forEach(el => initDocSlots(el, el.dataset.ds));
   $('#dt-doctors').querySelectorAll('button[data-doc]').forEach(b => { b.onclick = () => openBooking(b.dataset.doc); });
+  try { if (window._sbObs) window._sbObs.disconnect(); const sb = $('#sticky-book'); const dl = $('#dt-doctors');
+    if (sb && dl && 'IntersectionObserver' in window) { window._sbObs = new IntersectionObserver(es => { sb.classList.toggle('sb-away', es[0].isIntersecting); }, { rootMargin: '-120px 0px -40% 0px' }); window._sbObs.observe(dl); } } catch (e) {}
   $('#dt-doctors').querySelectorAll('button[data-docinfo]').forEach(b => { b.onclick = () => openDoctorModal(b.dataset.docinfo); });
   let mapInit = false, slotsInit = false;
   $$('#detail-tabs .dtab').forEach(b => b.onclick = () => {
