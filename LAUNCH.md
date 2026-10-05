@@ -13,7 +13,7 @@ still has the OLD site and migrations up to 0010 only.
 
 ## Go-live steps, in order
 1. `bash scripts/prod-migrate.sh`               (dry run: lists pending migrations)
-2. `CONFIRM_PROD=yes bash scripts/prod-migrate.sh`   (backup, then apply 0011..0022)
+2. `CONFIRM_PROD=yes bash scripts/prod-migrate.sh`   (backup, then apply 0011..0022: 0011-0012 plus the redesign 0013-0022)
 3. Remove noindex on public pages only: the global `X-Robots-Tag` line in public/_headers (keep it for /admin, /owner*, /clinic-admin/*)
    and `<meta name="robots">` in index.html, privacy.html, terms.html, about.html. Keep noindex on admin pages.
 4. Deploy the production branch: `npx wrangler pages deploy public --project-name drayvenn-health --branch main`
