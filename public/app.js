@@ -23,7 +23,7 @@ const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-function show(view) {
+function show(view, fromPop) {
   // safety: a stuck scroll lock must never survive a view switch
   if (!document.getElementById('wizard-overlay')) document.body.classList.remove('wiz-open');
   closeBModal();
@@ -43,7 +43,38 @@ function show(view) {
   document.querySelectorAll('.tabbar .tab').forEach(t =>
     t.classList.toggle('active', t.dataset.tab === tabFor[view]));
   window.scrollTo({ top: 0, behavior: 'instant' });
+  /* System-back support: every screen change becomes a history entry. */
+  if (!fromPop && !hashNav && view !== currentView) { try { history.pushState({ appView: view }, ''); } catch (e) {} navDepth++; }
+  hashNav = false;
+  currentView = view;
 }
+
+/* Android/system Back: step back through the app's screens, closing sheets first.
+   Views push {appView} entries; overlays never push - Back closes the open sheet
+   and re-pushes the current screen so stack depth is preserved. */
+const APP_VIEWS = ['home', 'clinics', 'clinic', 'confirm', 'mybookings', 'track', 'signin', 'account', 'about', 'services', 'contact', '404'];
+let currentView = 'home';
+let hashNav = false;
+let navDepth = 0;
+try { history.replaceState({ appView: 'home' }, ''); } catch (e) {}
+function closeTopOverlay() {
+  if (document.getElementById('wizard-overlay')) { closeWizard(); return true; }
+  if (document.getElementById('login-overlay')) { closeLoginModal(true); return true; }
+  if (document.getElementById('doc-modal-overlay')) { closeDoctorModal(); return true; }
+  if (document.getElementById('bmodal-overlay')) { closeBModal(); return true; }
+  const am = document.getElementById('acct-menu');
+  if (am && !am.classList.contains('hidden')) { closeAcctMenu(); return true; }
+  const cp = document.getElementById('chat-panel');
+  if (cp && !cp.classList.contains('hidden')) { const cc = document.getElementById('chat-close'); if (cc) cc.click(); return true; }
+  return false;
+}
+function appBack(fallback) { if (navDepth > 0) history.back(); else show(fallback || 'home'); }
+window.addEventListener('popstate', (e) => {
+  if (navDepth > 0) navDepth--;
+  if (closeTopOverlay()) { try { history.pushState({ appView: currentView }, ''); } catch (err) {} navDepth++; return; }
+  const v = e.state && e.state.appView;
+  show(APP_VIEWS.includes(v) ? v : 'home', true);
+});
 
 const toastQueue = [];
 let toastActive = false;
@@ -1800,11 +1831,11 @@ document.querySelectorAll('#browse-seg .seg-btn').forEach(b => b.onclick = () =>
 });
 document.querySelectorAll('#clinic-view-toggle .seg-btn').forEach(b => b.onclick = () => { setMapMode(b.dataset.vt); segSlide($('#clinic-view-toggle')); });
 $('#logo-home').onclick = () => show('home');
-$('#back-home').onclick = () => show('home');
+$('#back-home').onclick = () => appBack('home');
 $('#confirm-home').onclick = () => show('home');
-$('#back-home-3').onclick = () => show('home');
-$('#back-home-4').onclick = () => show('home');
-$('#back-home-5').onclick = () => show('home');
+$('#back-home-3').onclick = () => appBack('home');
+$('#back-home-4').onclick = () => appBack('home');
+$('#back-home-5').onclick = () => appBack('home');
 const footClinics = $('#foot-clinics'); if (footClinics) footClinics.onclick = e => { e.preventDefault(); show('clinics'); };
 const footTrack = $('#foot-track'); if (footTrack) footTrack.onclick = e => { e.preventDefault(); show('track'); };
 const footSignin = $('#foot-signin'); if (footSignin) footSignin.onclick = e => { e.preventDefault(); showSignin(); };
@@ -2496,7 +2527,7 @@ function myReschedulePanel(row, ref, doctorId) {
   let landing = null;
   if (q.get('login') === 'google') { toast('Signed in with Google', 'info'); landing = 'account'; }
   if (q.get('linked') === 'google') { toast('Google account connected', 'info'); landing = 'account'; }
-  if (landing) history.replaceState(null, '', location.pathname + location.hash);
+  if (landing) history.replaceState({ appView: 'home' }, '', location.pathname + location.hash);
   window.__postLoginLanding = landing;
 })();
 
@@ -2557,7 +2588,14 @@ function openPage(p) { if (p === 'faqs') { show('home'); setTimeout(() => { cons
 window.addEventListener('hashchange', () => {
   const h = location.hash.replace('#', '');
   if (!h) return;
-  if (PAGE_VIEWS[h]) openPage(h);
+  if (PAGE_VIEWS[h]) {
+    /* the browser already pushed an entry for the fragment change - tag it
+       instead of letting show() push a duplicate */
+    try { history.replaceState({ appView: h === 'faqs' ? 'home' : PAGE_VIEWS[h] }, ''); } catch (e) {}
+    hashNav = true;
+    navDepth++;
+    openPage(h);
+  }
 });
 const b404 = document.getElementById('btn-404-home');
 if (b404) b404.onclick = () => show('home');
