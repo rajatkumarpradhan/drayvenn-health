@@ -178,7 +178,7 @@ function renderHomeExtras() {
   };
   // live activity pill (aggregate count, /api/stats)
   fetch('api/stats').then(r => r.ok ? r.json() : null).then(d => {
-    if (d && d.bookings > 0) {
+    if (false && d && d.bookings > 0) { /* social-proof count hidden until it reflects real bookings */
       const lp = $('#live-pill'), lt = $('#live-text');
       if (lp && lt) { lt.textContent = d.bookings + ' appointments booked so far'; lp.classList.remove('hidden'); }
     }
@@ -915,7 +915,7 @@ function renderClinicDetail() {
       <div class="detail-head-main">
         <h1 class="detail-name">${esc(c.name)}</h1>
         <div class="detail-addr">${PIN_SVG} ${esc(c.address)} ${isSampleClinic(c) ? '<span class="sample-badge">Sample clinic</span>' : ''}</div>
-        <div class="detail-badges">${isSampleClinic(c) ? '' : `<span class="verified-badge">${uiIcon('shield')} Verified clinic</span>`}</div>
+        <div class="detail-badges"></div>
       </div>
       <div class="detail-head-cta"><button type="button" class="btn" id="dt-book-top">Book Appointment</button><button type="button" class="btn btn-outline btn-save" id="dt-save">&#9825; Save</button></div>
     </div>

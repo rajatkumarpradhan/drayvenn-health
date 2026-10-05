@@ -1,4 +1,5 @@
 import { json, badRequest, hashPassword, safeEqualHex, sha256Hex, adminCookie } from '../_lib.js';
+import { rateLimit, clientIp } from '../_auth.js';
 
 /* Clinic sign-in: per-clinic email + password (PBKDF2-SHA256, 100k).
    5 failed attempts locks the account for 15 minutes. Sessions last 12 hours. */
@@ -7,6 +8,9 @@ const LOCK_MINUTES = 15;
 
 export async function onRequestPost(context) {
   const { DB } = context.env;
+  // Per-IP throttle on top of the per-account lockout: slows password guessing across many accounts.
+  const rl = await rateLimit(DB, 'clinic-login:' + clientIp(context.request), 20, 900, 1200);
+  if (rl.limited) return json({ error: `Too many sign-in attempts from this network. Try again in ${rl.retryAfterMin} minutes.` }, 429);
   let body;
   try { body = await context.request.json(); }
   catch { return badRequest('Invalid JSON'); }
