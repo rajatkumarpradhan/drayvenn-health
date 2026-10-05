@@ -1,5 +1,6 @@
 import { pubName, json, badRequest, generateSlots, nowIST, istToday, addDays, makeRef, normalizePhone, purgeOldBookings, effectiveSlots } from './_lib.js';
 import { getPatientSession } from './_auth.js';
+import { sendBookingEmail } from './_email.js';
 
 export async function onRequestPost(context) {
   const { DB } = context.env;
@@ -69,6 +70,8 @@ export async function onRequestPost(context) {
     throw e;
   }
 
+  const pe = authState.patient.email || authState.patient.google_email;
+  if (pe && context.waitUntil) context.waitUntil(sendBookingEmail(context.env, pe, 'received', { ref, clinic: pubName(clinic.name), doctor: doctor.name, date, slot }).catch(() => {}));
   return json({
     booking: {
       ref, status: 'pending',

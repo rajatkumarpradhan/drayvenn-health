@@ -54,3 +54,20 @@ export async function sendPlainEmail(env, toEmail, subject, text) {
   if (!env.BREVO_API_KEY) return { ok: false, reason: 'not_configured' };
   return sendViaBrevo(env, toEmail, subject, text);
 }
+
+/* Booking emails go to the signed-in patient's own email only. No health details (concern, age) are ever included. */
+export async function sendBookingEmail(env, toEmail, kind, b) {
+  if (!env.BREVO_API_KEY || !toEmail) return { ok: false, reason: 'not_configured' };
+  const when = b.date + ' at ' + b.slot;
+  const who = b.clinic + ', ' + b.doctor;
+  const head = {
+    received: ['Booking received - ' + b.ref, 'We received your appointment request. The clinic will confirm your slot. Until then it is not confirmed.'],
+    confirmed: ['Booking confirmed - ' + b.ref, 'The clinic has confirmed your appointment.'],
+    cancelled: ['Booking cancelled - ' + b.ref, 'This appointment was cancelled by the clinic. You can book another slot at drayvennlab.in.'],
+    rescheduled: ['Booking moved - ' + b.ref, 'The clinic moved your appointment to a new time.']
+  }[kind];
+  if (!head) return { ok: false, reason: 'bad_kind' };
+  return sendViaBrevo(env, toEmail, head[0],
+    head[1] + '\n\nBooking reference: ' + b.ref + '\nClinic and doctor: ' + who + '\nWhen: ' + when +
+    '\n\nTrack your booking with the reference and your mobile number on the Drayvenn Lab site.\n\n- Drayvenn Lab');
+}

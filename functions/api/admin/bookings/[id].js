@@ -1,4 +1,5 @@
-import { json, badRequest, requireAdmin, effectiveSlots, istToday, nowIST } from '../../_lib.js';
+import { sendBookingEmail } from '../../_email.js';
+import { pubName, json, badRequest, requireAdmin, effectiveSlots, istToday, nowIST } from '../../_lib.js';
 
 export async function onRequestPost(context) {
   const { DB } = context.env;
@@ -10,7 +11,7 @@ export async function onRequestPost(context) {
   const { action } = body || {};
 
   const id = parseInt(context.params.id, 10);
-  const booking = await DB.prepare('SELECT id, status, doctor_id, date, slot FROM bookings WHERE id = ? AND clinic_id = ?').bind(id, session.clinic_id).first();
+  const booking = await DB.prepare('SELECT id, ref, clinic_name, doctor_name, patient_id, status, doctor_id, date, slot FROM bookings WHERE id = ? AND clinic_id = ?').bind(id, session.clinic_id).first();
   if (booking && session.doctor_id && booking.doctor_id !== session.doctor_id) return json({ error: 'Booking not found' }, 404);
   if (!booking) return json({ error: 'Booking not found' }, 404);
 
@@ -35,6 +36,7 @@ export async function onRequestPost(context) {
     ).bind(booking.doctor_id, date, slot, id).first();
     if (clash) return json({ error: 'That slot is already taken' }, 409);
     await DB.prepare('UPDATE bookings SET date = ?, slot = ? WHERE id = ?').bind(date, slot, id).run();
+    await notify(context, booking, 'rescheduled', date, slot);
     return json({ ok: true, id, date, slot });
   }
 
@@ -44,5 +46,17 @@ export async function onRequestPost(context) {
   else return badRequest('action must be confirm, cancel or reschedule');
 
   await DB.prepare('UPDATE bookings SET status = ? WHERE id = ?').bind(status, id).run();
+  if (status !== booking.status) await notify(context, booking, status, booking.date, booking.slot);
   return json({ ok: true, id, status });
+}
+
+async function notify(context, bk, kind, date, slot) {
+  try {
+    if (!bk.patient_id) return;
+    const p = await context.env.DB.prepare('SELECT email, google_email FROM patients WHERE id = ?').bind(bk.patient_id).first();
+    const to = p && (p.email || p.google_email);
+    if (!to) return;
+    const job = sendBookingEmail(context.env, to, kind, { ref: bk.ref, clinic: pubName(bk.clinic_name), doctor: bk.doctor_name, date, slot }).catch(() => {});
+    if (context.waitUntil) context.waitUntil(job);
+  } catch (e) {}
 }
