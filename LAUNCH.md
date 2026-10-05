@@ -1,7 +1,11 @@
-# Launch checklist (nothing here has been run; run only after the owner says the site is final)
+# Launch checklist
 
-State on 5 Oct 2026: redesign lives on the `redesign` preview branch + preview D1. Production (`main`, DB `drayvenn-health-db`)
-still has the OLD site and migrations up to 0010 only.
+State on 6 Oct 2026: the REDESIGN is production. The Pages project's production branch is `redesign`, so
+`wrangler pages deploy ... --branch redesign` deploys straight to https://drayvenn-health.pages.dev (and the
+redesign.* alias). Prod D1 `drayvenn-health-db` is migrated through 0022 and its 5 sample clinics carry the
+"SAMPLE - " name tag. Workflow from 6 Oct: iterate on a SEPARATE non-production branch (e.g. `preview`,
+served at <branch>.drayvenn-health.pages.dev, preview D1 via the host swap in functions/api/_middleware.js);
+deploy to production only when Rajat asks for that specific change. Keep prod DB vs preview DB split explicit.
 
 ## Before going live
 1. Owner answers (legal pages): legal entity name + registered address, grievance officer name, jurisdiction city,
@@ -16,7 +20,7 @@ still has the OLD site and migrations up to 0010 only.
 2. `CONFIRM_PROD=yes bash scripts/prod-migrate.sh`   (backup, then apply 0011..0022: 0011-0012 plus the redesign 0013-0022)
 3. Remove noindex on public pages only: the global `X-Robots-Tag` line in public/_headers (keep it for /admin, /owner*, /clinic-admin/*)
    and `<meta name="robots">` in index.html, privacy.html, terms.html, about.html. Keep noindex on admin pages.
-4. Deploy the production branch: `npx wrangler pages deploy public --project-name drayvenn-health --branch main`
+4. Deploy the production branch: `npx wrangler pages deploy public --project-name drayvenn-health --branch redesign` (production branch IS `redesign` since 6 Oct)
 5. `CONFIRM_PROD=yes bash scripts/owner-setup-link.sh prod` -> send the link privately to the owner; he sets his own password.
 6. Remove the demo platform account if it exists: `DELETE FROM platform_admins` (it was only ever created on preview).
 7. Connect drayvennlab.in as a Cloudflare Pages custom domain (DNS is at GoDaddy; keep the Zoho mail records).

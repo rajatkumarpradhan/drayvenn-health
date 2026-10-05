@@ -22,7 +22,7 @@
 
 Deploy mechanism: wrangler OAuth (~/.wrangler/config/default.toml), project drayvenn-health,
 D1 drayvenn-health-db (id 9ef176b1-d282-4a5e-83d6-2aacc1be0d20), migrations in ./migrations.
-Redeploy: npx wrangler pages deploy public --project-name drayvenn-health --branch main
+Redeploy: npx wrangler pages deploy public --project-name drayvenn-health --branch redesign (production branch = redesign since 6 Oct 2026; use a separate non-production branch for previews)
 
 ## Step 3 decisions (29 Sep 2026)
 - Patient auth: Google sign-in + email OTP are the two live methods.
